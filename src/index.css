@@ -1,0 +1,456 @@
+/* ============================================================
+   Universidad v1 — Liquid Glass Design System
+   Apple WWDC 2025 · Translucent · Specular · Spring Physics
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ============================================================
+   VARIABLES — Liquid Glass Core
+   ============================================================ */
+:root {
+  /* ── Fondo de app ── */
+  --bg-app:      #eef1f8;
+  --bg-app-pure: #ffffff;
+
+  /* ── Superficies Liquid Glass ── */
+  --lg-surface:        rgba(255, 255, 255, 0.55);
+  --lg-surface-hover:  rgba(255, 255, 255, 0.68);
+  --lg-surface-active: rgba(255, 255, 255, 0.75);
+  --lg-surface-deep:   rgba(255, 255, 255, 0.35);
+  --lg-surface-subtle: rgba(255, 255, 255, 0.25);
+
+  /* Alias legacy (compatibilidad componentes existentes) */
+  --glass:        rgba(255, 255, 255, 0.55);
+  --glass-strong: rgba(255, 255, 255, 0.72);
+  --glass-soft:   rgba(255, 255, 255, 0.38);
+  --glass-subtle: rgba(255, 255, 255, 0.18);
+
+  /* ── Specular highlights ── */
+  --lg-specular:      rgba(255, 255, 255, 0.80);
+  --lg-specular-soft: rgba(255, 255, 255, 0.40);
+  --lg-specular-edge: rgba(255, 255, 255, 0.60);
+
+  /* ── Bordes Liquid Glass ── */
+  --lg-border:        rgba(255, 255, 255, 0.70);
+  --lg-border-outer:  rgba(255, 255, 255, 0.50);
+  --lg-border-inner:  rgba(255, 255, 255, 0.90);
+  --lg-border-bottom: rgba(0, 0, 0, 0.06);
+  --lg-border-dark:   rgba(0, 0, 0, 0.08);
+
+  /* Alias legacy */
+  --glass-border:       rgba(255, 255, 255, 0.65);
+  --glass-border-hover: rgba(255, 255, 255, 0.85);
+  --glass-border-input: rgba(255, 255, 255, 0.55);
+
+  /* ── Blur por capa (Liquid Glass) ── */
+  --lg-blur-xs:      blur(8px)  saturate(150%);
+  --lg-blur-base:    blur(24px) saturate(180%) brightness(1.04);
+  --lg-blur-md:      blur(32px) saturate(190%) brightness(1.05);
+  --lg-blur-lg:      blur(48px) saturate(200%) brightness(1.06);
+  --lg-blur-xl:      blur(64px) saturate(220%) brightness(1.08);
+  --lg-blur-nav:     blur(36px) saturate(200%) brightness(1.05);
+  --lg-blur-modal:   blur(56px) saturate(220%) brightness(1.08);
+
+  /* Alias legacy */
+  --blur-sm:   blur(8px);
+  --blur-base: blur(24px) saturate(180%) brightness(1.04);
+  --blur-lg:   blur(48px) saturate(200%) brightness(1.06);
+
+  /* ── Sombras Liquid Glass (multi-capa con glow interno) ── */
+  --lg-shadow-xs:
+    0 1px 3px  rgba(0,0,0,0.05),
+    0 2px 8px  rgba(0,0,0,0.06),
+    inset 0 1px 0 var(--lg-specular-soft);
+  --lg-shadow:
+    0 2px 6px  rgba(0,0,0,0.06),
+    0 8px 24px rgba(0,0,0,0.08),
+    0 1px 1px  rgba(255,255,255,0.8),
+    inset 0 1px 0 var(--lg-specular-soft);
+  --lg-shadow-hover:
+    0 4px 12px rgba(0,0,0,0.08),
+    0 16px 40px rgba(0,0,0,0.10),
+    0 1px 1px  rgba(255,255,255,0.9),
+    inset 0 1px 0 var(--lg-specular-edge);
+  --lg-shadow-modal:
+    0 8px 24px rgba(0,0,0,0.10),
+    0 32px 80px rgba(0,0,0,0.14),
+    0 0 0 1px rgba(255,255,255,0.5),
+    inset 0 1px 0 var(--lg-specular-edge);
+  --lg-shadow-nav:
+    1px 0 0 rgba(0,0,0,0.06),
+    4px 0 20px rgba(0,0,0,0.06),
+    inset -1px 0 0 rgba(255,255,255,0.9);
+
+  /* Alias legacy */
+  --shadow-glass:       var(--lg-shadow);
+  --shadow-glass-hover: var(--lg-shadow-hover);
+  --shadow-glass-xl:    var(--lg-shadow-modal);
+  --shadow-base:        var(--lg-shadow);
+
+  /* ── Radios orgánicos ── */
+  --lg-radius-pill: 9999px;
+  --lg-radius-2xl:  28px;
+  --lg-radius-xl:   22px;
+  --lg-radius-lg:   18px;
+  --lg-radius-md:   14px;
+  --lg-radius-sm:   10px;
+
+  /* Alias legacy */
+  --radius-xs:   4px;
+  --radius-sm:   10px;
+  --radius-base: 14px;
+  --radius-lg:   18px;
+  --radius-xl:   22px;
+  --radius-full: 9999px;
+
+  /* ── Texto — sobre fondo claro ── */
+  --text-primary:         #111827;
+  --text-secondary:       #374151;
+  --text-muted:           #6B7280;
+  --text-page:            #111827;
+  --text-page-secondary:  #374151;
+
+  /* Alias on-glass */
+  --text-on-glass:        #111827;
+  --text-on-glass-muted:  rgba(17,24,39,0.55);
+
+  /* ── Colores semánticos ── */
+  --color-success:  #16a34a;
+  --color-danger:   #dc2626;
+  --color-warning:  #d97706;
+  --color-info:     #2563eb;
+
+  /* ── Accent (default blue, override via SettingsContext) ── */
+  --accent:     #3B82F6;
+  --accent-rgb: 59,130,246;
+  --accent-bg:  rgba(59,130,246,0.12);
+
+  /* ── Botones ── */
+  --btn-bg:       rgba(255,255,255,0.60);
+  --btn-bg-hover: rgba(255,255,255,0.80);
+  --btn-text:     #111827;
+
+  /* ── Tipografía ── */
+  --font-display: 'Crimson Pro', Georgia, serif;
+  --font-ui:      'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --text-xs:   0.70rem;
+  --text-sm:   0.875rem;
+  --text-base: 1rem;
+  --text-lg:   1.125rem;
+  --text-xl:   1.375rem;
+  --text-2xl:  1.75rem;
+  --text-3xl:  2.25rem;
+
+  --weight-normal:   400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* ── Espaciado ── */
+  --space-1:  4px;   --space-2:  8px;   --space-3:  12px;
+  --space-4:  16px;  --space-5:  20px;  --space-6:  24px;
+  --space-8:  32px;  --space-10: 40px;  --space-12: 48px;
+  --space-16: 64px;
+
+  /* ── Layout ── */
+  --nav-height:        60px;
+  --sidebar-width:     230px;
+  --sidebar-collapsed: 64px;
+  --content-max:       980px;
+  --modal-width:       520px;
+
+  /* ── Animaciones — Spring Physics ── */
+  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out:     cubic-bezier(0.0, 0.0, 0.2, 1);
+  --ease-smooth:  cubic-bezier(0.4, 0.0, 0.2, 1);
+  --ease-bounce:  cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+  --dur-instant: 180ms;
+  --dur-fast:    340ms;
+  --dur-base:    500ms;
+  --dur-slow:    700ms;
+  --dur-xslow:   1000ms;
+
+  /* ── Compatibility aliases ── */
+  --bg-secondary:  var(--lg-surface);
+  --bg-elevated:   var(--lg-surface-hover);
+  --border-subtle: var(--lg-border-dark);
+  --border-color:  var(--lg-border);
+  --border-strong: var(--lg-border-inner);
+  --shadow-xl:     var(--lg-shadow-modal);
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html { height: 100%; -webkit-text-size-adjust: 100%; }
+
+body {
+  height: 100%;
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-app, #f0f0f0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+  transition: background 0.4s ease, color 0.3s ease;
+}
+
+/* Fondo con blobs de color vibrante — el corazón del Liquid Glass */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: var(--lg-bg-gradient, #eef1f8);
+  pointer-events: none;
+  z-index: 0;
+  /* Sin animación de opacidad — evita el parpadeo en temas oscuros */
+  transition: background 0.6s ease;
+}
+
+#root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   LIQUID GLASS MIXIN — superficie base
+   ============================================================ */
+.lg-surface,
+.glass-card {
+  background: var(--lg-surface);
+  backdrop-filter: var(--lg-blur-base);
+  -webkit-backdrop-filter: var(--lg-blur-base);
+  border: 1px solid var(--lg-border);
+  border-bottom-color: var(--lg-border-bottom);
+  border-radius: var(--lg-radius-lg);
+  box-shadow: var(--lg-shadow);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Specular highlight superior */
+.lg-surface::before,
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 50%;
+  border-radius: inherit;
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.45) 0%,
+    rgba(255,255,255,0.08) 40%,
+    transparent 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Contenido encima del specular */
+.lg-surface > *,
+.glass-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================================
+   TIPOGRAFÍA
+   ============================================================ */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text-primary);
+}
+h4, h5, h6 {
+  font-family: var(--font-ui);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+p { color: var(--text-secondary); }
+a { color: inherit; text-decoration: none; }
+
+/* ============================================================
+   FORMS — sobre fondo claro con glass
+   ============================================================ */
+input, select, textarea, button {
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+}
+
+input, select, textarea {
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(0,0,0,0.12);
+  color: var(--text-primary);
+  border-radius: var(--lg-radius-sm);
+  padding: var(--space-2) var(--space-3);
+  width: 100%;
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out);
+}
+
+input::placeholder, textarea::placeholder { color: var(--text-muted); }
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.80);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15);
+}
+
+input[type="date"] { color-scheme: light; }
+input[type="checkbox"] {
+  width: auto;
+  accent-color: var(--accent);
+}
+input[type="number"] { width: auto; }
+
+select {
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(55,65,81,0.6)' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+}
+
+select option {
+  background: #ffffff;
+  color: #111827;
+}
+
+textarea { resize: vertical; min-height: 100px; }
+
+label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-secondary);
+  margin-bottom: var(--space-1);
+}
+
+.form-group { display: flex; flex-direction: column; gap: var(--space-4); }
+.form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,0.15);
+  border-radius: var(--radius-full);
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+
+/* ============================================================
+   FOCUS
+   ============================================================ */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* ============================================================
+   LAYOUT UTILITIES
+   ============================================================ */
+.page {
+  height: 100%;
+  overflow-y: auto;
+  padding: var(--space-8) var(--space-6) calc(var(--nav-height) + var(--space-8));
+  -webkit-overflow-scrolling: touch;
+}
+
+.page-content { max-width: var(--content-max); margin: 0 auto; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-6);
+  gap: var(--space-4);
+}
+
+.section-title {
+  font-family: var(--font-display);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+.cards-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-3); }
+.divider { border: none; border-top: 1px solid rgba(0,0,0,0.08); margin: var(--space-6) 0; }
+.text-muted     { color: var(--text-muted); }
+.text-secondary { color: var(--text-secondary); }
+.text-sm        { font-size: var(--text-sm); }
+.text-xs        { font-size: var(--text-xs); }
+.font-mono      { font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.02em; }
+
+/* ============================================================
+   INLINE EDIT — campos editables al hacer click
+   ============================================================ */
+.inline-edit-field {
+  cursor: text;
+  border-bottom: 1px dashed transparent;
+  transition: border-color var(--dur-fast) var(--ease-out);
+  border-radius: 2px;
+  padding: 1px 2px;
+}
+.inline-edit-field:hover {
+  border-bottom-color: rgba(0,0,0,0.25);
+}
+.inline-edit-input {
+  background: rgba(255,255,255,0.75) !important;
+  border: 1px solid var(--accent) !important;
+  border-radius: var(--lg-radius-sm) !important;
+  padding: 2px 6px !important;
+  font-size: inherit !important;
+  font-weight: inherit !important;
+  color: inherit !important;
+  width: auto !important;
+  min-width: 60px;
+}
+
+/* ============================================================
+   REDUCED MOTION
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (min-width: 768px) {
+  .page { padding: var(--space-10) var(--space-8); }
+  .cards-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+}
+
+@media (min-width: 1100px) {
+  .cards-grid { grid-template-columns: repeat(3, 1fr); }
+}

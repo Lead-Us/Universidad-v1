@@ -1,0 +1,27 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  font-family: var(--font-ui);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  line-height: 1.6;
+}
+
+.plain {
+  background: rgba(0,0,0,0.06);
+  color: var(--text-secondary);
+}
+
+.colorBadge {
+  /* dynamic via inline style */
+}
+
+/* Task types */
+.type.tarea      { background: rgba(79, 142, 247, 0.15); color: #4f8ef7; }
+.type.evaluación { background: rgba(255, 69, 58, 0.15);  color: #ff453a; }
+.type.control    { background: rgba(230, 165, 48, 0.15); color: #e6a530; }
+.type.quiz       { background: rgba(76, 217, 123, 0.15); color: #4cd97b; }

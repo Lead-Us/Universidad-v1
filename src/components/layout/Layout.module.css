@@ -1,0 +1,22 @@
+.root {
+  display: flex;
+  height: 100%;
+}
+
+.main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .main {
+    margin-left: var(--sidebar-width);
+    transition: margin-left var(--dur-base) var(--ease-out);
+  }
+
+  .mainCollapsed {
+    margin-left: var(--sidebar-collapsed);
+  }
+}

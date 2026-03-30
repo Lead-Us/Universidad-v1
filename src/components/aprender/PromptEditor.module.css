@@ -1,0 +1,81 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-base);
+  overflow: hidden;
+}
+
+.toolbar {
+  display: flex;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 0 var(--space-4);
+}
+
+.modeBtn {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  font-family: var(--font-ui);
+  padding: var(--space-3) var(--space-2);
+  margin-right: var(--space-3);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+  margin-bottom: -1px;
+}
+
+.modeActive {
+  color: var(--text-primary);
+  border-bottom-color: var(--color-info);
+}
+
+.textarea {
+  min-height: 320px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: var(--text-primary);
+  background: var(--bg-secondary);
+  border: none;
+  border-radius: 0;
+  padding: var(--space-5) var(--space-6);
+  resize: vertical;
+}
+
+.textarea:focus {
+  outline: none;
+  background: var(--bg-secondary);
+  border: none;
+  border-color: transparent;
+}
+
+.preview {
+  padding: var(--space-5) var(--space-6);
+  min-height: 320px;
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  color: var(--text-secondary);
+}
+
+.preview h1, .preview h2, .preview h3 { color: var(--text-primary); margin: var(--space-4) 0 var(--space-2); }
+.preview p { margin-bottom: var(--space-3); }
+.preview ul, .preview ol { padding-left: var(--space-6); margin-bottom: var(--space-3); }
+.preview code {
+  font-family: inherit;
+  background: var(--bg-elevated);
+  padding: 1px 5px;
+  border-radius: var(--radius-xs);
+  font-size: 0.9em;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--border-subtle);
+}

@@ -1,0 +1,325 @@
+.timeline {
+  position: relative;
+  padding-left: var(--space-8);
+}
+
+.line {
+  position: absolute;
+  left: 10px;
+  top: 6px;
+  bottom: 0;
+  width: 2px;
+  background: var(--glass-border);
+}
+
+.unit {
+  position: relative;
+  margin-bottom: var(--space-6);
+}
+
+.dot {
+  position: absolute;
+  left: -26px;
+  top: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ramo-color, var(--color-info));
+  animation: dotPop 250ms var(--ease-spring) both;
+}
+
+.unitContent {
+  background: var(--glass);
+  backdrop-filter: var(--blur-sm);
+  -webkit-backdrop-filter: var(--blur-sm);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-base);
+  padding: var(--space-4);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+
+.unitContent:hover { border-color: var(--glass-border-hover); }
+
+.unitHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.unitName {
+  font-family: var(--font-ui);
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.unitActions {
+  display: flex;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.iconBtn:hover { color: var(--text-primary); }
+
+/* ── Materia chips (view mode) ───────────────────────────── */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.materiaItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-xs);
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
+  background: var(--glass-subtle);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+
+.chip:hover {
+  background: rgba(255, 255, 255, 0.10);
+  color: var(--text-primary);
+}
+
+.chipFileBadge {
+  font-size: 10px;
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+  padding: 0 5px;
+  border-radius: var(--radius-full);
+  font-weight: var(--weight-semibold);
+  min-width: 16px;
+  text-align: center;
+}
+
+/* File list under chip */
+.materiaFiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-2);
+  background: var(--glass-subtle);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  margin-top: 2px;
+}
+
+.fileChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+  background: rgba(255,255,255,0.04);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.fileChipIcon { font-size: 11px; opacity: 0.6; }
+.noFiles { font-size: var(--text-xs); color: var(--text-muted); font-style: italic; }
+
+/* ── Edit mode ───────────────────────────────────────────── */
+.editBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.nameInput {
+  font-size: var(--text-base);
+  font-weight: var(--weight-semibold);
+}
+
+.materiasList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.materiaEditItem {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.materiaEditTop {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.materiaEdit {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-xs);
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--glass-subtle);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+}
+
+.removeMat {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  display: flex;
+  font-size: 12px;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.removeMat:hover { color: var(--color-danger); }
+
+/* File edit toggle */
+.fileEditToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 7px;
+  border-radius: var(--radius-full);
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.fileEditToggle:hover {
+  background: var(--glass-subtle);
+  color: var(--text-primary);
+}
+
+.fileCount {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+}
+
+/* File selector panel */
+.fileSelector {
+  background: var(--glass-subtle);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-3);
+}
+
+.fileSelectorLabel {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.fileSelectorList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.fileOption {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px var(--space-2);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.fileOption:hover { background: rgba(255,255,255,0.06); }
+
+.fileOptionSelected {
+  background: rgba(255,255,255,0.06);
+  color: var(--text-primary);
+}
+
+.fileOptionIcon { font-size: 13px; color: var(--text-muted); flex-shrink: 0; }
+.fileOptionName { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Add materia row */
+.addMateriaRow {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.addMateriaInput { flex: 1; }
+
+.editActions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+/* Add unit */
+.addRow {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) 0;
+}
+
+.addRow input { flex: 1; }
+
+.addUnitBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  background: none;
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+  margin-top: var(--space-2);
+}
+
+.addUnitBtn:hover {
+  border-color: var(--glass-border-hover);
+  color: var(--text-secondary);
+}
+
+@keyframes dotPop {
+  from { transform: scale(0); opacity: 0; }
+  to   { transform: scale(1); opacity: 1; }
+}
