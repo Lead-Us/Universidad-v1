@@ -10,8 +10,17 @@
   overflow: hidden;
 }
 
+/* Folder header is now just the container row */
 .folderHeader {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* The toggle button takes up the main space */
+.folderToggle {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -21,9 +30,149 @@
   cursor: pointer;
   text-align: left;
   transition: background var(--dur-fast) var(--ease-out);
+  min-width: 0;
 }
 
-.folderHeader:hover { background: var(--bg-elevated); }
+.folderToggle:hover { background: var(--bg-elevated); }
+
+/* Folder edit/delete buttons on the right */
+.folderActions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding-right: var(--space-2);
+  flex-shrink: 0;
+}
+
+.iconBtnSmall {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.iconBtnSmall:hover { color: var(--text-secondary); }
+
+.iconBtnSmallDanger {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.iconBtnSmallDanger:hover { color: var(--color-danger); }
+
+/* Inline rename row inside folder header */
+.folderRenameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+}
+
+.folderRenameInput {
+  flex: 1;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid var(--lg-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-family: var(--font-ui);
+  padding: 3px 8px;
+}
+.folderRenameInput:focus { outline: none; border-color: var(--accent); }
+
+.iconBtn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: var(--space-1);
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.iconBtn:hover { color: var(--text-secondary); }
+
+/* Delete confirmation inline */
+.folderDeleteConfirm {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding-right: var(--space-3);
+  flex-shrink: 0;
+}
+
+.confirmText {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.confirmYes {
+  background: rgba(220,38,38,0.20);
+  border: 1px solid rgba(220,38,38,0.35);
+  color: #ef4444;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: var(--radius-xs);
+  display: flex;
+  align-items: center;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.confirmYes:hover { background: rgba(220,38,38,0.40); }
+
+/* Add folder button */
+.addFolderBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(var(--accent-rgb), 0.06);
+  border: 1.5px dashed rgba(var(--accent-rgb), 0.30);
+  border-radius: var(--radius-base);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.addFolderBtn:hover { background: rgba(var(--accent-rgb), 0.12); border-style: solid; }
+
+.addFolderRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-base);
+}
+
+.addFolderInput {
+  flex: 1;
+  background: rgba(255,255,255,0.10);
+  border: 1px solid var(--lg-border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  font-family: var(--font-ui);
+  padding: 4px 10px;
+}
+.addFolderInput:focus { outline: none; border-color: var(--accent); }
 
 .folderLabel {
   font-size: var(--text-sm);

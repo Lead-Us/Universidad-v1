@@ -631,19 +631,13 @@ export const MOCK_LEARNING_MODELS = [
   {
     id: 'lm1',
     name: 'Método Herrera',
-    description: 'Sistema de aprendizaje activo en tres fases: comprensión, consolidación y aplicación.',
+    description: 'Sistema de aprendizaje activo: comprensión → práctica → consolidación.',
     color: '#3B82F6',
   },
   {
     id: 'lm2',
-    name: 'Feynman Technique',
-    description: 'Aprender explicando el concepto con palabras simples hasta dominar la idea.',
-    color: '#22C55E',
-  },
-  {
-    id: 'lm3',
-    name: 'Spaced Repetition',
-    description: 'Revisión espaciada en intervalos crecientes para maximizar retención a largo plazo.',
+    name: 'Método Matemático',
+    description: 'Neurociencia de la mecanización: práctica progresiva y flash para emergencias.',
     color: '#F59E0B',
   },
 ];
@@ -651,36 +645,127 @@ export const MOCK_LEARNING_MODELS = [
 export const MOCK_SUBMODULES = {
   lm1: [
     {
-      id: 'sm1-1', model_id: 'lm1', name: 'Aprender', order: 1,
-      prompt_content: `# Prompt — Aprender (Método Herrera)\n\nEres un tutor experto en [MATERIA]. Tu objetivo es que yo entienda [CONCEPTO] desde cero.\n\n## Instrucciones\n1. Explícame el concepto como si tuviera 15 años\n2. Usa una analogía del mundo real\n3. Dame un ejemplo concreto paso a paso\n4. Hazme 3 preguntas de comprensión al final\n\n**Concepto a aprender:** [ESCRIBE AQUÍ EL CONCEPTO]`,
+      id: 'sm1-1', model_id: 'lm1', name: 'APRENDER', order: 1,
+      prompt_content: `# Sub-modelo: Herrera - APRENDER
+**Objetivo:** Construcción de la arquitectura mental y comprensión lógica inicial.
+
+---
+
+## 1. Storytelling Simbólico (El Ancla)
+* **Acción de la IA:** Antes de presentar datos, la IA debe crear una narrativa breve, una analogía física o un escenario cotidiano que represente el problema central del tema.
+* **Requisito:** Debe contener un "símbolo" claro que el alumno pueda recordar.
+* **Meta:** Generar una conexión emocional/lógica para que el concepto "importe".
+
+## 2. Explicación Clara y Concreta (El Aterrizaje)
+* **Acción de la IA:** Definición técnica y precisa utilizando los términos exactos de las fuentes proporcionadas.
+* **Contenido Obligatorio:**
+    1. **Definición:** ¿Qué es exactamente?
+    2. **Mecánica:** ¿Cómo funciona paso a paso?
+    3. **Límites:** ¿Qué NO es y dónde deja de aplicarse?
+* **Meta:** Eliminar ambigüedades y asentar el lenguaje técnico.
+
+## 3. Verificación de Intuición
+* **Acción de la IA:** La IA lanza una pregunta para validar si la lógica del "Ancla" y la "Teoría" se han fusionado.
+* **Interacción:** "¿Cómo se relaciona la historia inicial con la regla técnica que acabamos de ver?".
+
+---
+
+## 🔄 Navegación y Pimponeo
+Al finalizar la Verificación de Intuición, la IA evaluará el desempeño y ofrecerá:
+1. **Profundizar:** "¿Deseas ver un detalle más específico o técnico de este concepto?"
+2. **Siguiente:** "Si está claro, pasemos al siguiente concepto de tus fuentes."
+3. **Pimponeo a PRÁCTICA:** "Recomiendo saltar ahora al sub-modelo **Herrera - Practicar** para fijar este conocimiento en tu memoria de largo plazo."`,
     },
     {
-      id: 'sm1-2', model_id: 'lm1', name: 'Pulir', order: 2,
-      prompt_content: `# Prompt — Pulir (Método Herrera)\n\nYa tengo una comprensión básica de [CONCEPTO]. Ayúdame a profundizar.\n\n## Instrucciones\n1. Identifica los errores o conceptos incompletos en mi explicación\n2. Señala los casos borde o excepciones\n3. Conéctalo con otros conceptos del ramo\n4. Dame ejercicios intermedios para consolidar\n\n**Mi explicación:** [PEGA TU EXPLICACIÓN AQUÍ]`,
-    },
-    {
-      id: 'sm1-3', model_id: 'lm1', name: 'Practicar', order: 3,
-      prompt_content: `# Prompt — Practicar (Método Herrera)\n\nQuiero practicar [CONCEPTO] hasta dominarlo.\n\n## Instrucciones\n1. Dame 5 problemas de dificultad creciente\n2. No me des la solución hasta que yo intente cada uno\n3. Cuando me equivoque, explica el error específico\n4. Al final, dame un problema integrador`,
+      id: 'sm1-2', model_id: 'lm1', name: 'PRACTICAR', order: 2,
+      prompt_content: `# Sub-modelo: Herrera - PRACTICAR
+**Objetivo:** Transferencia de la memoria de corto plazo a la de largo plazo mediante esfuerzo cognitivo deliberado.
+
+---
+
+## 1. Active Recall de Alta Complejidad (Recuperación Activa)
+* **Acción de la IA:** No se permiten preguntas de definición simple. La IA debe plantear retos de **aplicación, contraste y predicción**.
+* **Dinámica:** * "Sin mirar tus apuntes, ¿qué sucedería con [Resultado X] si eliminamos la variable [Y] que acabamos de aprender?"
+    * "Compara este concepto con [Concepto Anterior]: ¿En qué se parecen y cuál es la diferencia crítica que los separa?"
+* **Meta:** Forzar al cerebro a reconstruir el conocimiento desde cero.
+
+## 2. Learning by Teaching (Método Feynman Dinámico)
+* **Acción de la IA:** El alumno debe explicar el concepto en sus propias palabras como si le enseñara a alguien que no sabe nada del tema.
+* **Rol de la IA:** La IA actuará como un "alumno curioso" que detecta inconsistencias. Interrumpirá con preguntas tipo: "¿Pero por qué asumes que eso siempre es así?" o "¿Qué palabra usarías si no pudieras usar términos técnicos?".
+* **Meta:** Identificar lagunas o "puntos ciegos" en la comprensión del alumno.
+
+---
+
+## 🔄 Navegación y Pimponeo
+Basado en la calidad de la explicación del alumno:
+1. **Éxito Alto:** "Tu dominio es sólido. ¿Deseas pasar al siguiente tema o ir a **Práctica Full** para mecanizar ejercicios?"
+2. **Éxito Medio:** "Entiendes la base pero flaqueas en la terminología. Sugiero profundizar un poco más aquí antes de avanzar."
+3. **Pimponeo a APRENDER (Rescate):** "Detecto una confusión fundamental en tu explicación. Sugiero volver al sub-modelo **Herrera - Aprender** para revisar la Fase de Aterrizaje del concepto [X]."`,
     },
   ],
   lm2: [
     {
-      id: 'sm2-1', model_id: 'lm2', name: 'Explicar Simple', order: 1,
-      prompt_content: `# Prompt — Técnica Feynman: Explicar Simple\n\nVoy a explicarte [CONCEPTO] con mis propias palabras. Evalúa mi explicación.\n\n## Instrucciones\n1. Escucha mi explicación completa\n2. Califica qué tan claro fue (1–10)\n3. Señala dónde usé jerga en vez de explicar\n4. Dime qué parte necesita más simplificación`,
+      id: 'sm2-1', model_id: 'lm2', name: 'PRÁCTICA FULL', order: 1,
+      prompt_content: `# Skill: Método Matemático - PRÁCTICA FULL
+**Áreas:** Econometría, Finanzas, Contabilidad, Cálculo y Álgebra.
+**Enfoque:** Neurociencia de la Mecanización y Andamiaje Cognitivo.
+
+---
+
+## 🔵 Sub-modelo: PRÁCTICA FULL (Maestría Progresiva)
+*Diseñado para profundizar, mecanizar y automatizar el conocimiento de manera incremental.*
+
+### Fase 1: Desglose de Componentes (Aislamiento)
+- **Acción:** La IA descompone el tema en sus "ladrillos" básicos (variables, constantes, reglas de asientos, etc.).
+- **Interacción:** El alumno explica qué sucede con el sistema si uno de esos componentes se altera.
+- **Meta:** Comprensión de la lógica antes de la operación.
+
+### Fase 2: El Traductor de Contexto (Abstracción)
+- **Acción:** Generación de 3 enunciados narrativos (historias o casos de uso real).
+- **Tarea:** El alumno identifica datos relevantes y elige la "fórmula o herramienta madre" sin resolver aún.
+- **Meta:** Entrenar el filtro de "ruido" en problemas complejos.
+
+### Fase 3: Mecanización Incremental (Músculo Mental)
+Se trabaja por bloques de repetición adaptativa:
+- **Bloque A (Guiado):** 3 ejercicios donde la IA resuelve el 50% y el alumno completa el proceso.
+- **Bloque B (Autónomo):** 5 ejercicios estándar para generar fluidez y velocidad.
+- **Bloque C (Desafío):** 2 ejercicios con variables ocultas o datos que requieren un cálculo previo.
+
+### Fase 4: Práctica Intercalada (Interleaving)
+- **Acción:** La IA mezcla problemas de diferentes temas encontrados en las fuentes (ej: un ejercicio de interés compuesto seguido de uno de amortización).
+- **Meta:** Simular el cambio de contexto de un examen real y evitar la memoria de corto plazo.
+
+### Fase 5: Auditoría de Errores (Metacognición)
+- **Acción:** Ante un error, la IA **no entrega la respuesta**. Muestra el paso a paso del alumno vs. un paso a paso correcto (anonimizado).
+- **Interacción:** El alumno debe señalar el punto exacto de la bifurcación errónea.
+
+---
+
+## 🔄 Protocolo de "Pimponeo" (Integración con Aprendizaje)
+Este modelo de **Práctica Full** detecta automáticamente bloqueos:
+1. Si el alumno falla 2 veces consecutivas en la **Fase 3**, el sistema activa un *Trigger de Nivelación*.
+2. Se sugiere pausar y saltar al **Sub-modelo de Aprendizaje** para ese concepto específico.
+3. Tras resolver la duda teórica, el alumno es reinsertado en la **Fase 3** de la Práctica Full con nuevos valores.`,
     },
     {
-      id: 'sm2-2', model_id: 'lm2', name: 'Identificar Gaps', order: 2,
-      prompt_content: `# Prompt — Técnica Feynman: Identificar Gaps\n\nRevisa mi explicación de [CONCEPTO] y encuentra los vacíos.\n\n## Instrucciones\n1. Lista todos los puntos donde mi explicación fue vaga o incompleta\n2. Para cada gap, dame una pregunta que debo poder responder\n3. Ordénalos por importancia`,
-    },
-  ],
-  lm3: [
-    {
-      id: 'sm3-1', model_id: 'lm3', name: 'Sesión Inicial', order: 1,
-      prompt_content: `# Prompt — Repetición Espaciada: Sesión Inicial\n\nEstoy aprendiendo [CONCEPTO] por primera vez. Crea flashcards.\n\n## Instrucciones\n1. Genera 10 flashcards (pregunta → respuesta)\n2. Incluye: definición, fórmulas clave, ejemplos\n3. Ordénalas de menor a mayor complejidad`,
-    },
-    {
-      id: 'sm3-2', model_id: 'lm3', name: 'Revisión', order: 2,
-      prompt_content: `# Prompt — Repetición Espaciada: Revisión\n\nRevisión de [CONCEPTO]. Han pasado [N] días desde que lo estudié.\n\n## Instrucciones\n1. Hazme preguntas de los conceptos clave\n2. Si fallo una, explica brevemente y repítela\n3. Dame un score al final`,
+      id: 'sm2-2', model_id: 'lm2', name: 'FLASH', order: 2,
+      prompt_content: `# Skill: Método Matemático - FLASH
+**Áreas:** Econometría, Finanzas, Contabilidad, Cálculo y Álgebra.
+**Enfoque:** Neurociencia de la Mecanización y Andamiaje Cognitivo.
+
+---
+
+## 🔴 Sub-modelo: FLASH (Modo Emergencia / Memoria Rápida)
+*Ideal para repasos de última hora (30-60 min antes de una evaluación).*
+
+### 1. El Formulario Crítico
+La IA identifica y extrae de las fuentes las 3-5 fórmulas o reglas lógicas que resuelven el 80% de los problemas típicos. Define cada variable y su unidad de medida obligatoria.
+
+### 2. Diccionario de Unidades y Conversiones
+Reto rápido de "trampas" de magnitudes (ej: pasar tasas anuales a mensuales, o verificar que los activos sumen lo mismo que pasivos + patrimonio).
+
+### 3. Detección de Errores (V/F)
+La IA presenta 3 ejercicios resueltos con un error escondido (conceptual o de cálculo). El alumno debe identificar si es **Verdadero** o **Falso**, o señalar dónde está el fallo en menos de 60 segundos por ejercicio.`,
     },
   ],
 };

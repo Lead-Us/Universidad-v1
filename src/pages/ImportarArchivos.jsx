@@ -1,5 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import * as pdfjsLib from 'pdfjs-dist';
 import { supabase, getUid } from '../lib/supabase.js';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -7,10 +8,61 @@ import {
   RiEyeLine, RiArrowRightLine, RiDeleteBinLine, RiBookLine,
   RiCalendarLine, RiFileTextLine, RiAddLine, RiEditLine,
   RiCloseLine, RiFileLine, RiArrowDownSLine, RiArrowRightSLine,
+  RiFileSearchLine,
 } from 'react-icons/ri';
 import styles from './ImportarArchivos.module.css';
 
+// Set up pdfjs worker
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).href;
+
 const STEPS = ['Subir carpeta', 'Editar', 'Procesando IA', 'Vista previa', 'Listo'];
+
+// ── Detect program file candidates ────────────────────────────────────
+function detectProgramCandidates(fileNames) {
+  return fileNames.filter(f => {
+    if (!/\.(pdf|docx)$/i.test(f)) return false;
+    const name = f.toLowerCase()
+      .replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e').replace(/[íìï]/g, 'i')
+      .replace(/[óòö]/g, 'o').replace(/[úùü]/g, 'u').replace(/ñ/g, 'n')
+      .replace(/\.[^.]+$/, '');
+    if (/programa|syllabus|reglas|guia|plan de estudios|course outline/.test(name)) return true;
+    // Code-only or numeric filename (e.g. "ECO355.pdf", "12345.pdf")
+    if (/^[a-z0-9]{3,12}$/.test(name)) return true;
+    return false;
+  });
+}
+
+// ── Extract text from PDF / DOCX ──────────────────────────────────────
+async function extractProgramText(file) {
+  if (/\.pdf$/i.test(file.name)) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = '';
+      for (let i = 1; i <= Math.min(pdf.numPages, 10); i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(item => item.str).join(' ') + '\n';
+      }
+      return text.slice(0, 8000);
+    } catch { return ''; }
+  }
+  if (/\.docx$/i.test(file.name)) {
+    try {
+      const { unzipSync } = await import('fflate');
+      const buf = new Uint8Array(await file.arrayBuffer());
+      const unzipped = unzipSync(buf);
+      const xmlKey = Object.keys(unzipped).find(k => k === 'word/document.xml');
+      if (!xmlKey) return '';
+      const xml = new TextDecoder().decode(unzipped[xmlKey]);
+      return xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 8000);
+    } catch { return ''; }
+  }
+  return '';
+}
 
 export default function ImportarArchivos() {
   const navigate = useNavigate();
@@ -26,30 +78,47 @@ export default function ImportarArchivos() {
   const [progress,  setProgress]  = useState('');
 
   // Editing state
-  const [editingRamo,    setEditingRamo]    = useState(null); // name being edited
+  const [editingRamo,    setEditingRamo]    = useState(null);
   const [newRamoName,    setNewRamoName]    = useState('');
   const [addingRamo,     setAddingRamo]     = useState(false);
   const [newRamoInput,   setNewRamoInput]   = useState('');
   const [collapsedRamos, setCollapsedRamos] = useState(new Set());
 
-  // ── Parse folder ─────────────────────────────────────────────────────────────
+  // Program file state
+  const [rawFileMap,    setRawFileMap]    = useState({}); // { [ramo]: { [filename]: File } }
+  const [programFiles,  setProgramFiles]  = useState({}); // { [ramo]: filename | null }
+
+  // ── Parse folder ─────────────────────────────────────────────────────
   const parseFiles = async (fileList) => {
-    const files = Array.from(fileList);
-    const tree  = {};
+    const files  = Array.from(fileList);
+    const tree   = {};
     const txtMap = {};
+    const rawMap = {};
+
     for (const f of files) {
       const parts = f.webkitRelativePath.split('/');
       if (parts.length < 2) continue;
       const ramo = parts[1];
       if (!ramo || ramo.startsWith('.')) continue;
-      if (!tree[ramo]) tree[ramo] = [];
+      if (!tree[ramo]) { tree[ramo] = []; rawMap[ramo] = {}; }
       tree[ramo].push(f.name);
+      rawMap[ramo][f.name] = f;
       if (f.size < 50000 && /\.(txt|md|csv)$/i.test(f.name)) {
         try { txtMap[f.webkitRelativePath] = await f.text(); } catch (_) {}
       }
     }
+
+    // Auto-detect program files (1 candidate → auto-select, else null)
+    const detected = {};
+    for (const [ramo, fileNames] of Object.entries(tree)) {
+      const candidates = detectProgramCandidates(fileNames);
+      detected[ramo] = candidates.length === 1 ? candidates[0] : null;
+    }
+
     setStructure(tree);
     setTexts(txtMap);
+    setRawFileMap(rawMap);
+    setProgramFiles(detected);
     setCollapsedRamos(new Set(Object.keys(tree)));
     setStep(1);
   };
@@ -57,23 +126,24 @@ export default function ImportarArchivos() {
   const onDrop = (e) => { e.preventDefault(); setDragging(false); inputRef.current?.click(); };
   const onFileInput = async (e) => { if (e.target.files?.length) await parseFiles(e.target.files); };
 
-  // ── Structure editing ────────────────────────────────────────────────────────
+  // ── Structure editing ─────────────────────────────────────────────────
   const removeRamoFromStructure = (name) => {
     setStructure(s => { const n = { ...s }; delete n[name]; return n; });
   };
 
   const removeFileFromRamo = (ramo, file) => {
     setStructure(s => ({ ...s, [ramo]: s[ramo].filter(f => f !== file) }));
+    if (programFiles[ramo] === file) {
+      setProgramFiles(p => ({ ...p, [ramo]: null }));
+    }
   };
 
   const renameRamo = (oldName) => {
     if (!newRamoName.trim() || newRamoName === oldName) { setEditingRamo(null); return; }
-    setStructure(s => {
-      const n = { ...s };
-      n[newRamoName.trim()] = n[oldName];
-      delete n[oldName];
-      return n;
-    });
+    const newName = newRamoName.trim();
+    setStructure(s => { const n = { ...s }; n[newName] = n[oldName]; delete n[oldName]; return n; });
+    setRawFileMap(r => { const n = { ...r }; n[newName] = n[oldName]; delete n[oldName]; return n; });
+    setProgramFiles(p => { const n = { ...p }; n[newName] = n[oldName]; delete n[oldName]; return n; });
     setEditingRamo(null);
     setNewRamoName('');
   };
@@ -82,6 +152,7 @@ export default function ImportarArchivos() {
     const name = newRamoInput.trim();
     if (!name) return;
     setStructure(s => ({ ...s, [name]: [] }));
+    setProgramFiles(p => ({ ...p, [name]: null }));
     setNewRamoInput('');
     setAddingRamo(false);
   };
@@ -94,17 +165,31 @@ export default function ImportarArchivos() {
     });
   };
 
-  // ── Call Gemini API ──────────────────────────────────────────────────────────
+  // ── Process with AI ──────────────────────────────────────────────────
   const processWithAI = async () => {
     if (!Object.keys(structure).length) { setError('Agrega al menos un ramo.'); return; }
     setError('');
     setStep(2);
-    setProgress('Enviando estructura a Gemini…');
+    setProgress('Extrayendo texto de programas…');
+
+    // Extract program text from selected files
+    const enrichedTexts = { ...texts };
+    for (const [ramo, filename] of Object.entries(programFiles)) {
+      if (!filename) continue;
+      const file = rawFileMap[ramo]?.[filename];
+      if (!file) continue;
+      try {
+        const text = await extractProgramText(file);
+        if (text) enrichedTexts[`${ramo}/__programa__`] = text;
+      } catch (_) {}
+    }
+
+    setProgress('Enviando estructura a la IA…');
     try {
       const resp = await fetch('/api/process-folder', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ structure, textContents: texts }),
+        body: JSON.stringify({ structure, textContents: enrichedTexts }),
       });
       const json = await resp.json();
       if (json.error) throw new Error(json.error);
@@ -116,7 +201,7 @@ export default function ImportarArchivos() {
     }
   };
 
-  // ── Save to Supabase ─────────────────────────────────────────────────────────
+  // ── Save to Supabase ─────────────────────────────────────────────────
   const saveAll = async () => {
     setSaving(true);
     setError('');
@@ -156,24 +241,19 @@ export default function ImportarArchivos() {
         }
 
         // Save file list to localStorage for the files browser
-        // We don't have actual file data (base64), but we save the filenames so they appear listed
         if (ramo.files?.length) {
           const existing = {};
           try {
             const saved = localStorage.getItem(`uni_files_${ramoId}`);
             if (saved) Object.assign(existing, JSON.parse(saved));
           } catch {}
-
           if (!existing['todos']) existing['todos'] = [];
           ramo.files.forEach(fileName => {
-            const alreadyExists = existing['todos'].some(f => f.name === fileName);
-            if (!alreadyExists) {
+            if (!existing['todos'].some(f => f.name === fileName)) {
               existing['todos'].push({
-                name: fileName,
-                size: 0,
+                name: fileName, size: 0,
                 uploadedAt: new Date().toISOString(),
-                data: null, // actual file not available, only metadata
-                fromImport: true,
+                data: null, fromImport: true,
               });
             }
           });
@@ -192,7 +272,7 @@ export default function ImportarArchivos() {
   const removeResultRamo = (idx) =>
     setResult(r => ({ ...r, ramos: r.ramos.filter((_, i) => i !== idx) }));
 
-  // ── Render ────────────────────────────────────────────────────────────────────
+  // ── Render ────────────────────────────────────────────────────────────
   return (
     <div className={styles.page}>
       <div className={styles.header}>
@@ -247,7 +327,7 @@ export default function ImportarArchivos() {
           <div className={styles.editHeader}>
             <div>
               <h2 className={styles.editTitle}>{Object.keys(structure).length} ramos detectados</h2>
-              <p className={styles.editSubtitle}>Edita, añade o elimina ramos y archivos antes de procesar</p>
+              <p className={styles.editSubtitle}>Edita ramos, archivos y confirma el programa de cada ramo antes de procesar</p>
             </div>
             <button className={styles.btnSecondary} onClick={() => { setStructure({}); setStep(0); }}>
               Cambiar carpeta
@@ -255,53 +335,81 @@ export default function ImportarArchivos() {
           </div>
 
           <div className={styles.ramoEditList}>
-            {Object.entries(structure).map(([ramo, files]) => (
-              <div key={ramo} className={styles.ramoEditCard}>
-                {/* Ramo header */}
-                <div className={styles.ramoEditHeader}>
-                  {editingRamo === ramo ? (
-                    <div className={styles.renameRow}>
-                      <input
-                        className={styles.renameInput}
-                        value={newRamoName}
-                        onChange={e => setNewRamoName(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') renameRamo(ramo); if (e.key === 'Escape') setEditingRamo(null); }}
-                        autoFocus
-                      />
-                      <button className={styles.iconBtnAccent} onClick={() => renameRamo(ramo)}><RiCheckLine /></button>
-                      <button className={styles.iconBtnMuted} onClick={() => setEditingRamo(null)}><RiCloseLine /></button>
+            {Object.entries(structure).map(([ramo, files]) => {
+              const candidates = detectProgramCandidates(files);
+              const selected   = programFiles[ramo] ?? null;
+
+              return (
+                <div key={ramo} className={styles.ramoEditCard}>
+                  {/* Ramo header */}
+                  <div className={styles.ramoEditHeader}>
+                    {editingRamo === ramo ? (
+                      <div className={styles.renameRow}>
+                        <input
+                          className={styles.renameInput}
+                          value={newRamoName}
+                          onChange={e => setNewRamoName(e.target.value)}
+                          onKeyDown={e => { if (e.key === 'Enter') renameRamo(ramo); if (e.key === 'Escape') setEditingRamo(null); }}
+                          autoFocus
+                        />
+                        <button className={styles.iconBtnAccent} onClick={() => renameRamo(ramo)}><RiCheckLine /></button>
+                        <button className={styles.iconBtnMuted} onClick={() => setEditingRamo(null)}><RiCloseLine /></button>
+                      </div>
+                    ) : (
+                      <>
+                        <button className={styles.collapseBtn} onClick={() => toggleCollapse(ramo)}>
+                          {collapsedRamos.has(ramo) ? <RiArrowRightSLine /> : <RiArrowDownSLine />}
+                        </button>
+                        <RiBookLine className={styles.ramoEditIcon} />
+                        <span className={styles.ramoEditName} onClick={() => toggleCollapse(ramo)} style={{ cursor: 'pointer' }}>{ramo}</span>
+                        <span className={styles.ramoEditCount}>{files.length} archivos</span>
+                        <button className={styles.iconBtnMuted} onClick={() => { setEditingRamo(ramo); setNewRamoName(ramo); }} title="Renombrar"><RiEditLine /></button>
+                        <button className={styles.iconBtnDanger} onClick={() => removeRamoFromStructure(ramo)} title="Eliminar ramo"><RiDeleteBinLine /></button>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Files list */}
+                  {!collapsedRamos.has(ramo) && files.length > 0 && (
+                    <div className={styles.filesList}>
+                      {files.map(file => (
+                        <div key={file} className={styles.fileItem}>
+                          <RiFileLine className={styles.fileIcon} />
+                          <span className={styles.fileName}>{file}</span>
+                          <button className={styles.iconBtnMuted} onClick={() => removeFileFromRamo(ramo, file)} title="Quitar archivo"><RiCloseLine /></button>
+                        </div>
+                      ))}
                     </div>
-                  ) : (
-                    <>
-                      <button className={styles.collapseBtn} onClick={() => toggleCollapse(ramo)}>
-                        {collapsedRamos.has(ramo) ? <RiArrowRightSLine /> : <RiArrowDownSLine />}
-                      </button>
-                      <RiBookLine className={styles.ramoEditIcon} />
-                      <span className={styles.ramoEditName} onClick={() => toggleCollapse(ramo)} style={{cursor:'pointer'}}>{ramo}</span>
-                      <span className={styles.ramoEditCount}>{files.length} archivos</span>
-                      <button className={styles.iconBtnMuted} onClick={() => { setEditingRamo(ramo); setNewRamoName(ramo); }} title="Renombrar"><RiEditLine /></button>
-                      <button className={styles.iconBtnDanger} onClick={() => removeRamoFromStructure(ramo)} title="Eliminar ramo"><RiDeleteBinLine /></button>
-                    </>
+                  )}
+                  {!collapsedRamos.has(ramo) && files.length === 0 && (
+                    <p className={styles.emptyFiles}>Sin archivos — la IA inferirá solo por el nombre del ramo</p>
+                  )}
+
+                  {/* Program file selector */}
+                  {!collapsedRamos.has(ramo) && (
+                    <div className={styles.programRow}>
+                      <RiFileSearchLine className={styles.programIcon} />
+                      <span className={styles.programLabel}>Programa:</span>
+                      {candidates.length === 1 && selected === candidates[0] ? (
+                        <span className={styles.programDetected} title="Detectado automáticamente">
+                          ✓ {selected}
+                        </span>
+                      ) : null}
+                      <select
+                        className={styles.programSelect}
+                        value={selected ?? ''}
+                        onChange={e => setProgramFiles(p => ({ ...p, [ramo]: e.target.value || null }))}
+                      >
+                        <option value="">Sin programa</option>
+                        {files.filter(f => /\.(pdf|docx)$/i.test(f)).map(f => (
+                          <option key={f} value={f}>{f}</option>
+                        ))}
+                      </select>
+                    </div>
                   )}
                 </div>
-
-                {/* Files list */}
-                {!collapsedRamos.has(ramo) && files.length > 0 && (
-                  <div className={styles.filesList}>
-                    {files.map(file => (
-                      <div key={file} className={styles.fileItem}>
-                        <RiFileLine className={styles.fileIcon} />
-                        <span className={styles.fileName}>{file}</span>
-                        <button className={styles.iconBtnMuted} onClick={() => removeFileFromRamo(ramo, file)} title="Quitar archivo"><RiCloseLine /></button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-                {!collapsedRamos.has(ramo) && files.length === 0 && (
-                  <p className={styles.emptyFiles}>Sin archivos — la IA inferirá solo por el nombre del ramo</p>
-                )}
-              </div>
-            ))}
+              );
+            })}
 
             {/* Add ramo */}
             {addingRamo ? (
@@ -341,7 +449,7 @@ export default function ImportarArchivos() {
           <h2 className={styles.processingTitle}>Analizando con IA…</h2>
           <p className={styles.processingMsg}>{progress}</p>
           <p className={styles.processingHint}>
-            Gemini está leyendo la estructura y generando ramos, unidades, módulos de evaluación y horarios.
+            La IA lee la estructura y los programas para generar ramos, unidades, módulos de evaluación y horarios.
           </p>
         </div>
       )}
@@ -374,8 +482,8 @@ export default function ImportarArchivos() {
                   {ramo.section   && <span>🔖 {ramo.section}</span>}
                 </div>
                 <div className={styles.ramoCardStats}>
-                  {ramo.units?.length > 0 && <span><RiFileTextLine /> {ramo.units.length} unidades</span>}
-                  {ramo.schedule?.length > 0 && <span><RiCalendarLine /> {ramo.schedule.length} bloques horario</span>}
+                  {ramo.units?.length > 0          && <span><RiFileTextLine /> {ramo.units.length} unidades</span>}
+                  {ramo.schedule?.length > 0        && <span><RiCalendarLine /> {ramo.schedule.length} bloques horario</span>}
                   {ramo.evaluationModules?.length > 0 && <span>📊 {ramo.evaluationModules.length} módulos eval.</span>}
                 </div>
               </div>

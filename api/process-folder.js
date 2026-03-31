@@ -14,9 +14,24 @@ export default async function handler(req, res) {
     .map(([ramo, files]) => `📁 ${ramo}/\n${files.map(f => `   - ${f}`).join('\n')}`)
     .join('\n\n');
 
-  const textsSection = textContents && Object.keys(textContents).length > 0
-    ? '\n\n## Contenido de archivos de texto:\n' +
-      Object.entries(textContents)
+  // Separate __programa__ entries (syllabus text) from other text files
+  const programaEntries = Object.entries(textContents || {}).filter(([k]) => k.includes('/__programa__'));
+  const otherEntries    = Object.entries(textContents || {}).filter(([k]) => !k.includes('/__programa__'));
+
+  const programaSection = programaEntries.length > 0
+    ? '\n\n## ⭐ PROGRAMAS OFICIALES DE RAMOS (FUENTE PRIORITARIA):\n' +
+      'Usa estos textos como fuente PRINCIPAL para extraer: profesor (busca "Docente:", "Profesor:", "Prof."), código, sección, créditos, ponderaciones exactas (busca "%" en tablas de evaluación), has_attendance (busca "asistencia obligatoria" o "% mínimo de asistencia").\n' +
+      programaEntries
+        .map(([path, content]) => {
+          const ramo = path.split('/__programa__')[0].split('/').pop();
+          return `\n### Programa oficial de "${ramo}":\n${String(content).slice(0, 6000)}`;
+        })
+        .join('\n')
+    : '';
+
+  const textsSection = otherEntries.length > 0
+    ? '\n\n## Contenido de otros archivos de texto:\n' +
+      otherEntries
         .map(([path, content]) => `\n### ${path}:\n${String(content).slice(0, 2000)}`)
         .join('\n')
     : '';
@@ -36,7 +51,7 @@ INSTRUCCIONES DE EXTRACCIÓN:
 8. **has_attendance**: true si el ramo tiene "asistencia" en algún archivo o si es un laboratorio/taller.
 
 ## Estructura de carpetas:
-${structureText}${textsSection}
+${structureText}${programaSection}${textsSection}
 
 Responde con exactamente este JSON (sin texto adicional, sin bloques de código):
 {
