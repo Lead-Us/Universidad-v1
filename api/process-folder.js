@@ -78,11 +78,12 @@ Responde ÚNICAMENTE con un JSON válido, sin texto adicional ni bloques de cód
   ]
 }`;
 
-  // Try models in order: 1.5-flash (most generous free tier) → 2.0-flash → 1.5-pro
   const models = [
-    'gemini-1.5-flash',
+    'gemini-2.0-flash-lite',
     'gemini-2.0-flash',
-    'gemini-1.5-pro',
+    'gemini-1.5-flash',
+    'gemini-1.5-flash-8b',
+    'gemini-2.5-flash-preview-05-20',
   ];
 
   const body = JSON.stringify({
@@ -94,7 +95,7 @@ Responde ÚNICAMENTE con un JSON válido, sin texto adicional ni bloques de cód
     },
   });
 
-  let lastError = '';
+  const errors = [];
   for (const model of models) {
     try {
       const response = await fetch(
@@ -103,29 +104,31 @@ Responde ÚNICAMENTE con un JSON válido, sin texto adicional ni bloques de cód
       );
 
       if (response.status === 429 || response.status === 503) {
-        lastError = `${model}: cuota agotada`;
-        continue; // try next model
+        errors.push(`${model}: cuota agotada (${response.status})`);
+        continue;
       }
 
       if (!response.ok) {
-        const err = await response.text();
-        lastError = `${model}: ${err}`;
+        const errText = await response.text();
+        let code = response.status;
+        try { code = JSON.parse(errText)?.error?.code || response.status; } catch {}
+        errors.push(`${model}: HTTP ${code}`);
         continue;
       }
 
       const result = await response.json();
       const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-      if (!text) { lastError = `${model}: sin contenido`; continue; }
+      if (!text) { errors.push(`${model}: sin contenido`); continue; }
 
       const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
       const parsed = JSON.parse(jsonMatch ? jsonMatch[1] : text);
       return res.status(200).json(parsed);
     } catch (err) {
-      lastError = `${model}: ${err.message}`;
+      errors.push(`${model}: ${err.message}`);
     }
   }
 
   return res.status(500).json({
-    error: `No se pudo procesar con ningún modelo de Gemini. Verifica que tu API key tenga billing habilitado en Google AI Studio. Último error: ${lastError}`,
+    error: `Cuota de Gemini agotada en todos los modelos (${errors.join(' | ')}). Ve a aistudio.google.com → tu proyecto → habilita billing, o crea una nueva API key.`,
   });
 }
