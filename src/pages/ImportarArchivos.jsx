@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, getUid } from '../lib/supabase.js';
+import { getUid } from '../lib/supabase.js';
 import { v4 as uuidv4 } from 'uuid';
 import {
   RiFolderOpenLine, RiUploadCloud2Line, RiCheckLine,
@@ -9,8 +9,6 @@ import {
   RiCalendarLine, RiFileTextLine,
 } from 'react-icons/ri';
 import styles from './ImportarArchivos.module.css';
-
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 
 // ── Steps ──────────────────────────────────────────────────────────────────────
 const STEPS = ['Subir carpeta', 'Procesando IA', 'Vista previa', 'Listo'];
@@ -72,7 +70,7 @@ export default function ImportarArchivos() {
     await parseFiles(files);
   };
 
-  // ── Call Edge Function ───────────────────────────────────────────────────────
+  // ── Call API Route ───────────────────────────────────────────────────────────
   const processWithAI = async () => {
     if (!Object.keys(structure).length) {
       setError('Selecciona una carpeta primero.');
@@ -83,15 +81,9 @@ export default function ImportarArchivos() {
     setProgress('Enviando estructura al agente IA…');
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-
-      const resp = await fetch(`${SUPABASE_URL}/functions/v1/process-folder`, {
+      const resp = await fetch('/api/process-folder', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ structure, textContents: texts }),
       });
 
