@@ -78,39 +78,54 @@ Responde ÚNICAMENTE con un JSON válido, sin texto adicional ni bloques de cód
   ]
 }`;
 
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.2,
-            maxOutputTokens: 8192,
-            responseMimeType: 'application/json',
-          },
-        }),
+  // Try models in order: 1.5-flash (most generous free tier) → 2.0-flash → 1.5-pro
+  const models = [
+    'gemini-1.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-pro',
+  ];
+
+  const body = JSON.stringify({
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      temperature: 0.2,
+      maxOutputTokens: 8192,
+      responseMimeType: 'application/json',
+    },
+  });
+
+  let lastError = '';
+  for (const model of models) {
+    try {
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }
+      );
+
+      if (response.status === 429 || response.status === 503) {
+        lastError = `${model}: cuota agotada`;
+        continue; // try next model
       }
-    );
 
-    if (!response.ok) {
-      const err = await response.text();
-      return res.status(500).json({ error: `Gemini API error: ${err}` });
+      if (!response.ok) {
+        const err = await response.text();
+        lastError = `${model}: ${err}`;
+        continue;
+      }
+
+      const result = await response.json();
+      const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+      if (!text) { lastError = `${model}: sin contenido`; continue; }
+
+      const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
+      const parsed = JSON.parse(jsonMatch ? jsonMatch[1] : text);
+      return res.status(200).json(parsed);
+    } catch (err) {
+      lastError = `${model}: ${err.message}`;
     }
-
-    const result = await response.json();
-    const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    if (!text) throw new Error('Gemini no devolvió contenido');
-
-    // Strip markdown code blocks if present
-    const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);
-    const jsonText = jsonMatch ? jsonMatch[1] : text;
-    const parsed = JSON.parse(jsonText);
-
-    return res.status(200).json(parsed);
-  } catch (err) {
-    return res.status(500).json({ error: err.message });
   }
+
+  return res.status(500).json({
+    error: `No se pudo procesar con ningún modelo de Gemini. Verifica que tu API key tenga billing habilitado en Google AI Studio. Último error: ${lastError}`,
+  });
 }
