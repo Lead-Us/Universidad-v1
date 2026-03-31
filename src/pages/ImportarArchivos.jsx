@@ -50,6 +50,7 @@ export default function ImportarArchivos() {
     }
     setStructure(tree);
     setTexts(txtMap);
+    setCollapsedRamos(new Set(Object.keys(tree)));
     setStep(1);
   };
 
