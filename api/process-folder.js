@@ -3,9 +3,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'ANTHROPIC_API_KEY no configurada en Vercel' });
+    return res.status(500).json({ error: 'GEMINI_API_KEY no configurada en Vercel' });
   }
 
   const { structure, textContents } = req.body;
@@ -40,7 +40,7 @@ Analiza los nombres de las carpetas y archivos. Cada carpeta de primer nivel es 
 - Horario: si hay archivos de horario, intenta extraer días y horas (day_of_week: 0=Lun,1=Mar,2=Mié,3=Jue,4=Vie)
 - has_attendance: true si el ramo parece tener asistencia obligatoria
 
-Responde ÚNICAMENTE con un JSON válido, sin texto adicional, con esta estructura exacta:
+Responde ÚNICAMENTE con un JSON válido, sin texto adicional ni bloques de código, con esta estructura exacta:
 
 {
   "ramos": [
@@ -79,27 +79,30 @@ Responde ÚNICAMENTE con un JSON válido, sin texto adicional, con esta estructu
 }`;
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify({
-        model: 'claude-opus-4-6',
-        max_tokens: 8192,
-        messages: [{ role: 'user', content: prompt }],
-      }),
-    });
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.2,
+            maxOutputTokens: 8192,
+            responseMimeType: 'application/json',
+          },
+        }),
+      }
+    );
 
     if (!response.ok) {
       const err = await response.text();
-      return res.status(500).json({ error: `Claude API error: ${err}` });
+      return res.status(500).json({ error: `Gemini API error: ${err}` });
     }
 
     const result = await response.json();
-    const text = result.content[0].text.trim();
+    const text = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+    if (!text) throw new Error('Gemini no devolvió contenido');
 
     // Strip markdown code blocks if present
     const jsonMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/);

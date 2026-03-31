@@ -403,6 +403,204 @@
 }
 .btnSecondary:hover { background: var(--lg-surface-hover); color: var(--text-primary); }
 
+/* ── Step 1: Edit structure ── */
+.editHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  position: relative;
+  z-index: 1;
+}
+.editTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+}
+.editSubtitle {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: var(--space-1) 0 0;
+}
+
+.ramoEditList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  position: relative;
+  z-index: 1;
+}
+
+.ramoEditCard {
+  background: rgba(255,255,255,0.28);
+  border: 1px solid var(--lg-border);
+  border-radius: var(--lg-radius-lg);
+  overflow: hidden;
+}
+
+.ramoEditHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255,255,255,0.15);
+  border-bottom: 1px solid var(--lg-border);
+}
+.ramoEditIcon {
+  font-size: 16px;
+  color: var(--accent);
+  flex-shrink: 0;
+}
+.ramoEditName {
+  flex: 1;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+.ramoEditCount {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  background: rgba(0,0,0,0.06);
+  padding: 2px 8px;
+  border-radius: var(--lg-radius-pill);
+}
+
+.renameRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+}
+.renameInput {
+  flex: 1;
+  padding: 6px 10px;
+  font-size: var(--text-sm);
+  font-family: var(--font-ui);
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.5);
+  border: 1.5px solid var(--accent);
+  border-radius: var(--lg-radius-md);
+  outline: none;
+}
+
+.iconBtnAccent {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--lg-radius-md);
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.iconBtnAccent:hover { opacity: 0.85; }
+
+.iconBtnMuted {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  color: var(--text-muted);
+  border: 1px solid var(--lg-border);
+  border-radius: var(--lg-radius-md);
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.iconBtnMuted:hover { background: var(--lg-surface-hover); color: var(--text-primary); }
+
+.iconBtnDanger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: none;
+  color: var(--text-muted);
+  border: 1px solid var(--lg-border);
+  border-radius: var(--lg-radius-md);
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.iconBtnDanger:hover { color: #dc2626; background: rgba(220,38,38,0.08); border-color: rgba(220,38,38,0.25); }
+
+.filesList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--space-2) var(--space-3);
+}
+.fileItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px var(--space-2);
+  border-radius: var(--lg-radius-sm);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.fileItem:hover { background: rgba(0,0,0,0.04); }
+.fileIcon { font-size: 13px; color: var(--text-muted); flex-shrink: 0; }
+.fileName {
+  flex: 1;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.emptyFiles {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-style: italic;
+  padding: var(--space-2) var(--space-4);
+  margin: 0;
+}
+
+.addRamoBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(var(--accent-rgb), 0.06);
+  border: 1.5px dashed rgba(var(--accent-rgb), 0.30);
+  border-radius: var(--lg-radius-lg);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--accent);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  width: 100%;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.addRamoBtn:hover {
+  background: rgba(var(--accent-rgb), 0.10);
+  border-color: rgba(var(--accent-rgb), 0.50);
+}
+
+.addRamoRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(var(--accent-rgb), 0.06);
+  border: 1.5px solid rgba(var(--accent-rgb), 0.30);
+  border-radius: var(--lg-radius-lg);
+}
+.addRamoRow .renameInput { background: rgba(255,255,255,0.6); }
+
 /* Error */
 .error {
   display: flex;

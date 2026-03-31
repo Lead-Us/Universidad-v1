@@ -5,9 +5,12 @@
 
 .main {
   flex: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   display: flex;
   flex-direction: column;
+  /* Account for mobile bottom bar */
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
 @media (min-width: 768px) {
