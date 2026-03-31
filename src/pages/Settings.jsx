@@ -4,6 +4,7 @@ import { useAuth } from '../lib/AuthContext.jsx';
 import {
   useSettings,
   BG_PRESETS, GLASS_PRESETS, ACCENT_PRESETS, BLUR_PRESETS, SPEED_PRESETS, FONT_COLOR_PRESETS,
+  FONT_SIZE_PRESETS, TITLE_COLOR_PRESETS,
 } from '../lib/SettingsContext.jsx';
 import styles from './Settings.module.css';
 
@@ -120,11 +121,10 @@ export default function Settings() {
                 value={settings.bgPreset}
                 onChange={v => update('bgPreset', v)}
                 renderPreset={p => (
-                  <span
-                    className={styles.bgSwatch}
-                    style={{ background: p.value, outline: p.dark ? '2px solid rgba(255,255,255,0.18)' : undefined }}
-                    title={p.label}
-                  />
+                  <span className={styles.bgSwatchWrap}>
+                    <span className={styles.bgSwatch} style={{ background: p.value }} />
+                    <span className={styles.bgSwatchLabel}>{p.label}</span>
+                  </span>
                 )}
               />
 
@@ -162,12 +162,33 @@ export default function Settings() {
                 )}
               />
 
+              {/* Title color */}
+              <PresetPicker
+                label="Color de títulos"
+                presets={TITLE_COLOR_PRESETS}
+                value={settings.titleColorPreset}
+                onChange={v => update('titleColorPreset', v)}
+                renderPreset={p => (
+                  <span className={styles.fontPresetBtn} title={p.label}>
+                    {p.id === 'auto' ? 'Auto' : <span style={{ fontWeight: 700, fontSize: 13 }}>H1</span>}
+                  </span>
+                )}
+              />
+
               {/* Blur */}
               <PresetPicker
                 label="Intensidad blur"
                 presets={BLUR_PRESETS}
                 value={settings.blurPreset}
                 onChange={v => update('blurPreset', v)}
+              />
+
+              {/* Font size */}
+              <PresetPicker
+                label="Tamaño de texto"
+                presets={FONT_SIZE_PRESETS}
+                value={settings.fontSizePreset}
+                onChange={v => update('fontSizePreset', v)}
               />
 
               {/* Speed */}

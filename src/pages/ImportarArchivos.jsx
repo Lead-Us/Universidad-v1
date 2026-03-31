@@ -154,6 +154,31 @@ export default function ImportarArchivos() {
             name: u.name, order: u.order ?? 0, materias: u.materias ?? [],
           })));
         }
+
+        // Save file list to localStorage for the files browser
+        // We don't have actual file data (base64), but we save the filenames so they appear listed
+        if (ramo.files?.length) {
+          const existing = {};
+          try {
+            const saved = localStorage.getItem(`uni_files_${ramoId}`);
+            if (saved) Object.assign(existing, JSON.parse(saved));
+          } catch {}
+
+          if (!existing['Todos los archivos']) existing['Todos los archivos'] = [];
+          ramo.files.forEach(fileName => {
+            const alreadyExists = existing['Todos los archivos'].some(f => f.name === fileName);
+            if (!alreadyExists) {
+              existing['Todos los archivos'].push({
+                name: fileName,
+                size: 0,
+                uploadedAt: new Date().toISOString(),
+                data: null, // actual file not available, only metadata
+                fromImport: true,
+              });
+            }
+          });
+          try { localStorage.setItem(`uni_files_${ramoId}`, JSON.stringify(existing)); } catch {}
+        }
       }
       setStep(4);
     } catch (err) {

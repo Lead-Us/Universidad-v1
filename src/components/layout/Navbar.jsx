@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   RiHome4Line, RiBook2Line, RiCalendarLine, RiLightbulbLine,
-  RiMenuFoldLine, RiMenuUnfoldLine, RiSettingsLine, RiTaskLine,
+  RiMenuFoldLine, RiMenuUnfoldLine, RiSettingsLine,
   RiFolderUploadLine,
 } from 'react-icons/ri';
 import styles from './Navbar.module.css';
@@ -10,7 +10,6 @@ const NAV_ITEMS = [
   { to: '/',           icon: RiHome4Line,     label: 'Dashboard'  },
   { to: '/ramos',      icon: RiBook2Line,     label: 'Ramos'      },
   { to: '/calendario', icon: RiCalendarLine,  label: 'Calendario' },
-  { to: '/tareas',     icon: RiTaskLine,      label: 'Tareas'     },
   { to: '/aprender',   icon: RiLightbulbLine,    label: 'Aprender'  },
   { to: '/importar',   icon: RiFolderUploadLine, label: 'Importar'  },
 ];

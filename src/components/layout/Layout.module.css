@@ -1,22 +1,24 @@
 .root {
   display: flex;
   height: 100%;
+  min-height: 100dvh;
 }
 
 .main {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  /* Account for mobile bottom bar */
-  padding-bottom: env(safe-area-inset-bottom, 0);
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
 }
 
 @media (min-width: 768px) {
   .main {
     margin-left: var(--sidebar-width);
     transition: margin-left var(--dur-base) var(--ease-out);
+    padding-bottom: var(--space-8);
   }
 
   .mainCollapsed {

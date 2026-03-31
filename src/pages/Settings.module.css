@@ -242,3 +242,17 @@
   border-color: var(--glass-border-hover);
   color: var(--text-secondary);
 }
+
+.bgSwatchWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.bgSwatchLabel {
+  font-size: 10px;
+  font-weight: var(--weight-semibold);
+  color: var(--text-muted);
+  white-space: nowrap;
+}

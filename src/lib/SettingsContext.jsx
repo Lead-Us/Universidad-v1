@@ -2,18 +2,11 @@ import { createContext, useContext, useState, useEffect, useCallback } from 'rea
 
 // ── Presets ──────────────────────────────────────────────────────────
 export const BG_PRESETS = [
-  { id: 'white',   label: 'Blanco',    value: '#f0f0f0',  dark: false },
-  { id: 'cream',   label: 'Crema',     value: '#f5f0e8',  dark: false },
-  { id: 'cool',    label: 'Frío',      value: '#e8eef5',  dark: false },
-  { id: 'stone',   label: 'Piedra',    value: '#e8e6e1',  dark: false },
-  { id: 'rose',    label: 'Rosa',      value: '#f5e8ed',  dark: false },
-  { id: 'sage',    label: 'Salvia',    value: '#e6f0ea',  dark: false },
-  { id: 'slate',   label: 'Pizarra',   value: '#e4e8f0',  dark: false },
-  { id: 'sand',    label: 'Arena',     value: '#f0ece4',  dark: false },
-  { id: 'dark',    label: 'Oscuro',    value: '#111111',  dark: true  },
-  { id: 'night',   label: 'Noche',     value: '#0f1117',  dark: true  },
-  { id: 'deep',    label: 'Profundo',  value: '#1a1a2e',  dark: true  },
-  { id: 'forest',  label: 'Bosque',    value: '#0d1f18',  dark: true  },
+  { id: 'white',  label: 'Claro',   value: '#f0f0f0',  dark: false },
+  { id: 'warm',   label: 'Cálido',  value: '#f5f0e8',  dark: false },
+  { id: 'cool',   label: 'Frío',    value: '#e8eef5',  dark: false },
+  { id: 'dark',   label: 'Oscuro',  value: '#111111',  dark: true  },
+  { id: 'night',  label: 'Noche',   value: '#1a1a2e',  dark: true  },
 ];
 
 export const GLASS_PRESETS = [
@@ -47,6 +40,20 @@ export const FONT_COLOR_PRESETS = [
   { id: 'cool',  label: 'Frío',    primary: '#0d1b2a', secondary: 'rgba(13,27,42,0.55)', muted: 'rgba(13,27,42,0.35)' },
 ];
 
+export const FONT_SIZE_PRESETS = [
+  { id: 'sm',  label: 'Pequeño', base: '13px', sm: '11px', lg: '16px', xl: '20px', '2xl': '24px', '3xl': '30px' },
+  { id: 'md',  label: 'Normal',  base: '14px', sm: '12px', lg: '18px', xl: '22px', '2xl': '28px', '3xl': '36px' },
+  { id: 'lg',  label: 'Grande',  base: '16px', sm: '13px', lg: '20px', xl: '26px', '2xl': '32px', '3xl': '42px' },
+];
+
+export const TITLE_COLOR_PRESETS = [
+  { id: 'auto',    label: 'Auto' },
+  { id: 'accent',  label: 'Acento',  value: 'var(--accent)' },
+  { id: 'white',   label: 'Blanco',  value: '#ffffff' },
+  { id: 'dark',    label: 'Negro',   value: '#111827' },
+  { id: 'muted',   label: 'Suave',   value: 'var(--text-secondary)' },
+];
+
 export const BLUR_PRESETS = [
   { id: 'none',    label: 'Sin blur',  sm: 'blur(0px)',  base: 'blur(0px)',  lg: 'blur(0px)'  },
   { id: 'soft',    label: 'Suave',     sm: 'blur(6px)',  base: 'blur(12px)', lg: 'blur(20px)' },
@@ -61,12 +68,14 @@ export const SPEED_PRESETS = [
 
 // ── Defaults ─────────────────────────────────────────────────────────
 const DEFAULT_SETTINGS = {
-  bgPreset:     'white',
-  glassPreset:  'light',
-  accentPreset: 'blue',
-  blurPreset:   'strong',
-  speedPreset:  'slow',
-  fontPreset:   'auto',
+  bgPreset:         'white',
+  glassPreset:      'light',
+  accentPreset:     'blue',
+  blurPreset:       'strong',
+  speedPreset:      'slow',
+  fontPreset:       'auto',
+  fontSizePreset:   'md',
+  titleColorPreset: 'auto',
 };
 
 const STORAGE_KEY = 'universidad-v1-settings';
@@ -166,6 +175,21 @@ function applySettings(settings) {
   el.style.setProperty('--text-primary',   textPrimary);
   el.style.setProperty('--text-secondary', textSecondary);
   el.style.setProperty('--text-muted',     textMuted);
+
+  // Font size
+  const fontSizePre = FONT_SIZE_PRESETS.find(p => p.id === settings.fontSizePreset) ?? FONT_SIZE_PRESETS[1];
+  el.style.setProperty('--text-xs',  fontSizePre.sm);
+  el.style.setProperty('--text-sm',  fontSizePre.base);
+  el.style.setProperty('--text-base',fontSizePre.base);
+  el.style.setProperty('--text-lg',  fontSizePre.lg);
+  el.style.setProperty('--text-xl',  fontSizePre.xl);
+  el.style.setProperty('--text-2xl', fontSizePre['2xl']);
+  el.style.setProperty('--text-3xl', fontSizePre['3xl']);
+
+  // Title color
+  const titleColorPre = TITLE_COLOR_PRESETS.find(p => p.id === settings.titleColorPreset) ?? TITLE_COLOR_PRESETS[0];
+  const titleColor = titleColorPre.id === 'auto' ? textPrimary : titleColorPre.value;
+  el.style.setProperty('--text-title', titleColor);
 
   // ── Accent ──
   el.style.setProperty('--color-info', accent.value);

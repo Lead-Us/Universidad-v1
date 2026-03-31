@@ -50,7 +50,7 @@ function AppRoutes() {
           <Route path="/ramos/:id"   element={<RamoDetail />} />
           <Route path="/calendario"  element={<Calendario />} />
           <Route path="/aprender"    element={<Aprender />}   />
-          <Route path="/tareas"      element={<Tareas />}     />
+          <Route path="/tareas"      element={<Dashboard />}  />
           <Route path="/settings"    element={<Settings />}   />
           <Route path="/importar"   element={<ImportarArchivos />} />
         </Route>

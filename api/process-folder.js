@@ -23,22 +23,22 @@ export default async function handler(req, res) {
 
   const systemPrompt = `Eres un asistente que analiza la estructura de archivos de un estudiante universitario y genera datos estructurados para una app de gestión académica. Responde ÚNICAMENTE con un JSON válido, sin texto adicional ni bloques de código markdown.`;
 
-  const userPrompt = `Analiza la estructura de carpetas de un estudiante universitario. Cada carpeta de primer nivel es un ramo (asignatura). Infiere a partir de los nombres de archivos:
-- Nombre del ramo (de la carpeta)
-- Código del ramo (si aparece en filenames, ej: "ECO355", "FIN302")
-- Nombre del profesor (si aparece en filenames)
-- Sección, créditos (si aparecen)
-- Color sugerido (hex, colores distintos y bonitos para cada ramo)
-- Unidades: infiere de archivos que digan "Unidad 1", "Unidad 2", "Tema 1", "Cap 1", etc.
-- Materias dentro de cada unidad: subtemas inferidos de los nombres de archivo
-- Módulos de evaluación: infiere de archivos con "Control", "Prueba", "Examen", "Tarea" — pesos deben sumar 100%
-- Horario: si hay archivos de horario, extrae días y horas (day_of_week: 0=Lun…4=Vie)
-- has_attendance: true si el ramo parece tener asistencia obligatoria
+  const userPrompt = `Analiza cuidadosamente la estructura de carpetas de un estudiante universitario chileno. Cada carpeta de primer nivel es un ramo (asignatura universitaria).
+
+INSTRUCCIONES DE EXTRACCIÓN:
+1. **Nombre y código del ramo**: El nombre de la carpeta ES el nombre del ramo. El código suele aparecer en los nombres de archivo (ej: "Syllabus ECO355.pdf" → código ECO355, "FIN302 programa.pdf" → FIN302).
+2. **Profesor**: Busca en nombres de archivo que contengan "Syllabus", "Programa", "programa del curso", "prof", "docente". El nombre del profesor suele aparecer después del código o nombre del ramo.
+3. **Evaluaciones**: Busca archivos con "Control", "Prueba", "Examen", "Certamen", "Tarea", "Quiz", "Test". Crea módulos de evaluación con pesos que sumen exactamente 100%. Infiere las fechas si aparecen números (ej: "Prueba 1", "Prueba 2" → dos ítems en el módulo Pruebas).
+4. **Unidades y materias**: Busca archivos con "Unidad", "Clase", "Cap", "Tema", "Semana". Agrupa archivos relacionados en la misma unidad.
+5. **Horario**: Si hay archivos de horario, extrae días y horas. Usa formato HH:MM para start_time y end_time.
+6. **Archivos**: Lista TODOS los archivos del ramo en el campo "files".
+7. **Color**: Asigna un color hex vibrante y único a cada ramo.
+8. **has_attendance**: true si el ramo tiene "asistencia" en algún archivo o si es un laboratorio/taller.
 
 ## Estructura de carpetas:
 ${structureText}${textsSection}
 
-Responde con exactamente este JSON (sin texto adicional):
+Responde con exactamente este JSON (sin texto adicional, sin bloques de código):
 {
   "ramos": [
     {
@@ -49,7 +49,7 @@ Responde con exactamente este JSON (sin texto adicional):
       "credits": 5,
       "color": "#3B82F6",
       "has_attendance": false,
-      "files": ["archivo1.pdf"],
+      "files": ["archivo1.pdf", "archivo2.pdf"],
       "evaluationModules": [
         {
           "name": "Controles",
