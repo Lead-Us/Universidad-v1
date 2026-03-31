@@ -7,9 +7,10 @@ import Ramos      from './pages/Ramos.jsx';
 import RamoDetail from './pages/RamoDetail.jsx';
 import Calendario from './pages/Calendario.jsx';
 import Aprender   from './pages/Aprender.jsx';
-import Tareas     from './pages/Tareas.jsx';
-import Settings   from './pages/Settings.jsx';
-import Login      from './pages/Login.jsx';
+import Tareas           from './pages/Tareas.jsx';
+import Settings         from './pages/Settings.jsx';
+import Login            from './pages/Login.jsx';
+import ImportarArchivos from './pages/ImportarArchivos.jsx';
 
 function AppRoutes() {
   const { isAuthenticated, loading } = useAuth();
@@ -51,6 +52,7 @@ function AppRoutes() {
           <Route path="/aprender"    element={<Aprender />}   />
           <Route path="/tareas"      element={<Tareas />}     />
           <Route path="/settings"    element={<Settings />}   />
+          <Route path="/importar"   element={<ImportarArchivos />} />
         </Route>
       </Routes>
     </BrowserRouter>

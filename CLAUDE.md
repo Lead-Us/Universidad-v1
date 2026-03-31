@@ -25,7 +25,7 @@ All data currently runs in **mock mode** (`USE_MOCK = true` in every service). T
 2. Each service (`ramosService`, `tasksService`, `scheduleService`, `aprendizajeService`) loads from `localStore.load()` into a module-level `DB_*` array, mutates it directly, then calls `localStore.save()`. The mock path and Supabase path are in the same `if (USE_MOCK)` branches.
 3. To switch a service to Supabase: set `USE_MOCK = false` — the Supabase branches are already written but untested.
 
-**localStorage keys:** `uni_ramos`, `uni_tasks`, `uni_schedule`, `uni_units`, `uni_aprendizaje_models`, `uni_aprendizaje_submodules`, `uni_files_{ramoId}` (files stored as base64 data URLs, max 3 MB each).
+**localStorage keys:** `uni_ramos`, `uni_tasks`, `uni_schedule`, `uni_units`, `uni_aprendizaje_models`, `uni_aprendizaje_submodules`, `uni_files_{ramoId}` (files stored as base64 data URLs, max 10 MB each).
 
 ### Hook pattern
 
