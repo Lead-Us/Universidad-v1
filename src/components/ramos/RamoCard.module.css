@@ -91,6 +91,53 @@
 }
 .editBtn:active { transform: scale(0.88); }
 
+.cardActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.deleteBtn {
+  background: rgba(220,38,38,0.25);
+  border: 1px solid rgba(255,255,255,0.30);
+  color: rgba(255,255,255,0.85);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: var(--lg-radius-sm);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-spring);
+}
+.deleteBtn:hover { background: rgba(220,38,38,0.50); color: #fff; }
+.deleteBtn:active { transform: scale(0.88); }
+
+.confirmLabel {
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  color: #fff;
+  background: rgba(0,0,0,0.30);
+  padding: 3px 8px;
+  border-radius: var(--lg-radius-pill);
+  white-space: nowrap;
+}
+
+.confirmBtn {
+  background: rgba(220,38,38,0.50);
+  border: 1px solid rgba(255,255,255,0.40);
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  padding: 5px;
+  border-radius: var(--lg-radius-sm);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.confirmBtn:hover { background: rgba(220,38,38,0.80); }
+
 /* Name */
 .name {
   font-family: var(--font-display);

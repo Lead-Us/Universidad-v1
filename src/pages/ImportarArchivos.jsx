@@ -164,11 +164,11 @@ export default function ImportarArchivos() {
             if (saved) Object.assign(existing, JSON.parse(saved));
           } catch {}
 
-          if (!existing['Todos los archivos']) existing['Todos los archivos'] = [];
+          if (!existing['todos']) existing['todos'] = [];
           ramo.files.forEach(fileName => {
-            const alreadyExists = existing['Todos los archivos'].some(f => f.name === fileName);
+            const alreadyExists = existing['todos'].some(f => f.name === fileName);
             if (!alreadyExists) {
-              existing['Todos los archivos'].push({
+              existing['todos'].push({
                 name: fileName,
                 size: 0,
                 uploadedAt: new Date().toISOString(),

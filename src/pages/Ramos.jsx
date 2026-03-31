@@ -8,9 +8,9 @@ import Button   from '../components/shared/Button.jsx';
 import LoadingSpinner from '../components/shared/LoadingSpinner.jsx';
 
 export default function Ramos() {
-  const { ramos, loading, error, add, update } = useRamos();
+  const { ramos, loading, error, add, update, remove } = useRamos();
   const [modal,  setModal]  = useState(false);
-  const [edited, setEdited] = useState(null); // ramo being edited
+  const [edited, setEdited] = useState(null);
   const [saving, setSaving] = useState(false);
 
   const openCreate = () => { setEdited(null); setModal(true); };
@@ -26,6 +26,12 @@ export default function Ramos() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleDelete = async (id) => {
+    await remove(id);
+    // Also clear localStorage files for this ramo
+    try { localStorage.removeItem(`uni_files_${id}`); } catch {}
   };
 
   return (
@@ -50,18 +56,14 @@ export default function Ramos() {
         {!loading && (
           <div className="cards-grid stagger">
             {ramos.map(r => (
-              <RamoCard key={r.id} ramo={r} onEdit={openEdit} />
+              <RamoCard key={r.id} ramo={r} onEdit={openEdit} onDelete={handleDelete} />
             ))}
           </div>
         )}
 
       </div>
 
-      <Modal
-        open={modal}
-        onClose={close}
-        title={edited ? 'Editar ramo' : 'Nuevo ramo'}
-      >
+      <Modal open={modal} onClose={close} title={edited ? 'Editar ramo' : 'Nuevo ramo'}>
         <RamoForm
           initial={edited}
           onSave={handleSave}
