@@ -448,6 +448,23 @@
   background: rgba(255,255,255,0.15);
   border-bottom: 1px solid var(--lg-border);
 }
+.collapseBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.collapseBtn:hover { color: var(--text-primary); }
+
 .ramoEditIcon {
   font-size: 16px;
   color: var(--accent);

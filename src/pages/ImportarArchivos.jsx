@@ -6,7 +6,7 @@ import {
   RiFolderOpenLine, RiCheckLine, RiLoader4Line, RiErrorWarningLine,
   RiEyeLine, RiArrowRightLine, RiDeleteBinLine, RiBookLine,
   RiCalendarLine, RiFileTextLine, RiAddLine, RiEditLine,
-  RiCloseLine, RiFileLine,
+  RiCloseLine, RiFileLine, RiArrowDownSLine, RiArrowRightSLine,
 } from 'react-icons/ri';
 import styles from './ImportarArchivos.module.css';
 
@@ -30,6 +30,7 @@ export default function ImportarArchivos() {
   const [newRamoName,    setNewRamoName]    = useState('');
   const [addingRamo,     setAddingRamo]     = useState(false);
   const [newRamoInput,   setNewRamoInput]   = useState('');
+  const [collapsedRamos, setCollapsedRamos] = useState(new Set());
 
   // ── Parse folder ─────────────────────────────────────────────────────────────
   const parseFiles = async (fileList) => {
@@ -82,6 +83,14 @@ export default function ImportarArchivos() {
     setStructure(s => ({ ...s, [name]: [] }));
     setNewRamoInput('');
     setAddingRamo(false);
+  };
+
+  const toggleCollapse = (name) => {
+    setCollapsedRamos(prev => {
+      const next = new Set(prev);
+      next.has(name) ? next.delete(name) : next.add(name);
+      return next;
+    });
   };
 
   // ── Call Gemini API ──────────────────────────────────────────────────────────
@@ -238,8 +247,11 @@ export default function ImportarArchivos() {
                     </div>
                   ) : (
                     <>
+                      <button className={styles.collapseBtn} onClick={() => toggleCollapse(ramo)}>
+                        {collapsedRamos.has(ramo) ? <RiArrowRightSLine /> : <RiArrowDownSLine />}
+                      </button>
                       <RiBookLine className={styles.ramoEditIcon} />
-                      <span className={styles.ramoEditName}>{ramo}</span>
+                      <span className={styles.ramoEditName} onClick={() => toggleCollapse(ramo)} style={{cursor:'pointer'}}>{ramo}</span>
                       <span className={styles.ramoEditCount}>{files.length} archivos</span>
                       <button className={styles.iconBtnMuted} onClick={() => { setEditingRamo(ramo); setNewRamoName(ramo); }} title="Renombrar"><RiEditLine /></button>
                       <button className={styles.iconBtnDanger} onClick={() => removeRamoFromStructure(ramo)} title="Eliminar ramo"><RiDeleteBinLine /></button>
@@ -248,7 +260,7 @@ export default function ImportarArchivos() {
                 </div>
 
                 {/* Files list */}
-                {files.length > 0 && (
+                {!collapsedRamos.has(ramo) && files.length > 0 && (
                   <div className={styles.filesList}>
                     {files.map(file => (
                       <div key={file} className={styles.fileItem}>
@@ -259,7 +271,7 @@ export default function ImportarArchivos() {
                     ))}
                   </div>
                 )}
-                {files.length === 0 && (
+                {!collapsedRamos.has(ramo) && files.length === 0 && (
                   <p className={styles.emptyFiles}>Sin archivos — la IA inferirá solo por el nombre del ramo</p>
                 )}
               </div>
