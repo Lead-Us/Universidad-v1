@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RiPencilLine, RiCloseLine, RiCheckLine, RiAddLine } from 'react-icons/ri';
+import { RiPencilLine, RiCloseLine, RiCheckLine, RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
 import { useSchedule } from '../../hooks/useSchedule.js';
 import { useRamos }    from '../../hooks/useRamos.js';
 import LoadingSpinner  from '../shared/LoadingSpinner.jsx';
@@ -16,7 +16,7 @@ function hexToRgba(hex, alpha) {
 }
 
 // ── Inline block edit form ────────────────────────────────────────────
-function BlockEditPopup({ entry, ramos, onSave, onClose }) {
+function BlockEditPopup({ entry, ramos, onSave, onClose, onDelete }) {
   const [form, setForm] = useState({
     day_of_week:    entry.day_of_week,
     start_time:     entry.start_time,
@@ -97,6 +97,9 @@ function BlockEditPopup({ entry, ramos, onSave, onClose }) {
       </div>
 
       <div className={styles.popupActions}>
+        <button className={`${styles.popupBtn} ${styles.popupBtnDel}`} onClick={onDelete} title="Eliminar bloque">
+          <RiDeleteBinLine />
+        </button>
         <button className={styles.popupBtn} onClick={onClose}>Cancelar</button>
         <button className={`${styles.popupBtn} ${styles.popupBtnSave}`} onClick={() => onSave(form)}>
           <RiCheckLine /> Guardar
@@ -168,7 +171,7 @@ function BlockAddPopup({ ramos, onSave, onClose }) {
 
 // ── Main component ────────────────────────────────────────────────────
 export default function WeeklySchedule() {
-  const { schedule, loading: loadingS, add, update } = useSchedule();
+  const { schedule, loading: loadingS, add, update, remove } = useSchedule();
   const { ramos,    loading: loadingR }              = useRamos();
   const [editId,  setEditId]  = useState(null);
   const [showAdd, setShowAdd] = useState(false);
@@ -187,6 +190,11 @@ export default function WeeklySchedule() {
 
   const handleSave = async (entry, data) => {
     await update(entry.id, data);
+    setEditId(null);
+  };
+
+  const handleDelete = async (entryId) => {
+    await remove(entryId);
     setEditId(null);
   };
 
@@ -228,7 +236,7 @@ export default function WeeklySchedule() {
 
                 const bg = entry.has_attendance
                   ? ramo.color
-                  : hexToRgba(ramo.color, 0.42);
+                  : hexToRgba(ramo.color, 0.75);
 
                 return (
                   <div key={entry.id} className={styles.blockWrap}>
@@ -241,6 +249,9 @@ export default function WeeklySchedule() {
                       <span className={styles.blockTime}>
                         {entry.start_time} – {entry.end_time}
                       </span>
+                      {ramo.professor && (
+                        <span className={styles.blockProf}>{ramo.professor}</span>
+                      )}
                       {entry.sala && (
                         <span className={styles.blockSala}>{entry.sala}</span>
                       )}
@@ -259,6 +270,7 @@ export default function WeeklySchedule() {
                         ramos={ramos}
                         onSave={(data) => handleSave(entry, data)}
                         onClose={() => setEditId(null)}
+                        onDelete={() => handleDelete(entry.id)}
                       />
                     )}
                   </div>

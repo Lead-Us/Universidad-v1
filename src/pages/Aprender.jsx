@@ -10,6 +10,7 @@ import ModelCard    from '../components/aprender/ModelCard.jsx';
 import SubmoduleCard from '../components/aprender/SubmoduleCard.jsx';
 import PromptViewer  from '../components/aprender/PromptViewer.jsx';
 import PromptEditor  from '../components/aprender/PromptEditor.jsx';
+import NotebookView  from '../components/aprender/NotebookView.jsx';
 import Modal         from '../components/shared/Modal.jsx';
 import Button        from '../components/shared/Button.jsx';
 import LoadingSpinner from '../components/shared/LoadingSpinner.jsx';
@@ -201,8 +202,9 @@ function ModelsLevel({ onSelectModel }) {
     setLoading(true);
     try {
       let ms = await getLearningModels();
-      if (ms.length === 0) {
-        await seedDefaultModels();
+      const hasNotebook = ms.some(m => m.name.toLowerCase().includes('notebook'));
+      if (ms.length === 0 || !hasNotebook) {
+        await seedDefaultModels(ms.length === 0);
         ms = await getLearningModels();
       }
       setModels(ms);
@@ -330,6 +332,10 @@ function ModelsLevel({ onSelectModel }) {
   );
 }
 
+function isNotebook(model) {
+  return model.name.toLowerCase().includes('notebook');
+}
+
 // ── Root ──────────────────────────────────────────────────────────────────────
 export default function Aprender() {
   const [selectedModel, setSelectedModel] = useState(null);
@@ -344,14 +350,33 @@ export default function Aprender() {
         {!selectedModel && (
           <ModelsLevel onSelectModel={setSelectedModel} />
         )}
-        {selectedModel && !selectedSub && (
+
+        {selectedModel && isNotebook(selectedModel) && (
+          <>
+            <button className={styles.back} onClick={backToModels}>
+              <RiArrowLeftLine /> Métodos
+            </button>
+            <div className={styles.levelHeader}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
+                <span className={styles.modelDot} style={{ background: selectedModel.color }} />
+                <h1 className="section-title">{selectedModel.name}</h1>
+              </div>
+            </div>
+            <NotebookView
+              model={selectedModel}
+              storageKey={`notebook_${selectedModel.id}`}
+            />
+          </>
+        )}
+
+        {selectedModel && !isNotebook(selectedModel) && !selectedSub && (
           <SubmodulesLevel
             model={selectedModel}
             onBack={backToModels}
             onSelectSub={setSelectedSub}
           />
         )}
-        {selectedModel && selectedSub && (
+        {selectedModel && !isNotebook(selectedModel) && selectedSub && (
           <PromptLevel
             model={selectedModel}
             sub={selectedSub}

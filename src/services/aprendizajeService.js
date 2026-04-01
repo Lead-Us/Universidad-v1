@@ -16,10 +16,21 @@ async function mockSubs() {
 
 // ── Learning Models ────────────────────────────────────────────────────────────
 
-export async function seedDefaultModels() {
+// seedAll=true: seed every mock model; seedAll=false: only seed models missing by name
+export async function seedDefaultModels(seedAll = true) {
   const { MOCK_LEARNING_MODELS, MOCK_SUBMODULES } = await import('./mockData.js');
   const uid = await getUid();
-  for (const mock of MOCK_LEARNING_MODELS) {
+
+  // Determine which models to seed
+  let toSeed = MOCK_LEARNING_MODELS;
+  if (!seedAll) {
+    const { data: existing } = await supabase
+      .from('learning_models').select('name').eq('user_id', uid);
+    const existingNames = new Set((existing ?? []).map(m => m.name.toLowerCase()));
+    toSeed = MOCK_LEARNING_MODELS.filter(m => !existingNames.has(m.name.toLowerCase()));
+  }
+
+  for (const mock of toSeed) {
     const { data: model, error: mErr } = await supabase.from('learning_models').insert({
       user_id:     uid,
       name:        mock.name,

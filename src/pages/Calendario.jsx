@@ -97,7 +97,7 @@ export default function Calendario() {
                         <div
                           key={c.id}
                           className={styles.classChip}
-                          style={ramo ? { borderLeftColor: ramo.color, background: `${ramo.color}12` } : undefined}
+                          style={ramo ? { borderLeftColor: ramo.color, background: `${ramo.color}22` } : undefined}
                         >
                           <span className={styles.classTime}>{c.start_time}–{c.end_time}</span>
                           <span className={styles.className}>{ramo?.name ?? 'Clase'}</span>

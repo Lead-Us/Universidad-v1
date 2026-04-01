@@ -148,7 +148,7 @@ export default function TaskForm({ initialDate, initialTask, onSave, onCancel, l
 
       <div className={styles.actions}>
         <Button type="button" variant="ghost" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" disabled={loading || !form.title || !form.ramo_id}>
+        <Button type="submit" disabled={loading || !form.title || !form.ramo_id || !form.due_date}>
           {loading ? 'Guardando…' : isEdit ? 'Guardar cambios' : 'Crear tarea'}
         </Button>
       </div>

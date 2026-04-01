@@ -640,6 +640,12 @@ export const MOCK_LEARNING_MODELS = [
     description: 'Neurociencia de la mecanización: práctica progresiva y modo emergencia para evaluaciones.',
     color: '#F59E0B',
   },
+  {
+    id: 'lm3',
+    name: 'Notebook',
+    description: 'Sube apuntes o resúmenes y conversa con la IA sobre ellos. Inspirado en Google NotebookLM.',
+    color: '#10B981',
+  },
 ];
 
 export const MOCK_SUBMODULES = {
@@ -768,4 +774,5 @@ Reto rápido de "trampas" de magnitudes (ej: pasar tasas anuales a mensuales, o 
 La IA presenta 3 ejercicios resueltos con un error escondido (conceptual o de cálculo). El alumno debe identificar si es **Verdadero** o **Falso**, o señalar dónde está el fallo en menos de 60 segundos por ejercicio.`,
     },
   ],
+  lm3: [],
 };

@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { RiArrowLeftLine } from 'react-icons/ri';
+import { RiArrowLeftLine, RiPencilLine } from 'react-icons/ri';
 import { useRamo }  from '../hooks/useRamos.js';
 import { useRamos } from '../hooks/useRamos.js';
 import UnitTimeline        from '../components/ramos/UnitTimeline.jsx';
@@ -51,6 +51,16 @@ export default function RamoDetail() {
     try   { await update(id, data); setModal(false); }
     finally { setSaving(false); }
   };
+
+  // Build allFiles list from localStorage for UnitTimeline file-linking
+  const allFiles = useMemo(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(`uni_files_${id}`) ?? '{}');
+      return (saved.todos ?? []).map(f => f.name);
+    } catch {
+      return ramo?.allFiles ?? [];
+    }
+  }, [id, ramo]);
 
   // Inline save para campos del header
   const saveField = async (field, value) => {
@@ -117,8 +127,8 @@ export default function RamoDetail() {
               )}
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={() => setModal(true)}>
-            Horario
+          <Button variant="ghost" size="sm" onClick={() => setModal(true)} title="Editar horario y datos">
+            <RiPencilLine /> Editar
           </Button>
         </div>
 
@@ -142,7 +152,7 @@ export default function RamoDetail() {
             <UnitTimeline
               ramoId={id}
               ramoColor={ramo.color}
-              allFiles={ramo.allFiles ?? []}
+              allFiles={allFiles}
             />
           )}
           {tab === 'Calificaciones' && (
