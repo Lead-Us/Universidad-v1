@@ -78,19 +78,19 @@ export const THEME_PRESETS = [
     id: 'noche',
     label: 'Noche',
     dark: true,
-    accent: '#a78bfa',
-    accentRgb: '167,139,250',
-    textPrimary: '#e2e8f0',
-    textSecondary: 'rgba(226,232,240,0.62)',
-    textMuted: 'rgba(226,232,240,0.36)',
-    surface: 'rgba(255,255,255,0.06)',
-    surfaceHover: 'rgba(255,255,255,0.10)',
-    border: 'rgba(255,255,255,0.10)',
-    shadow: '0 2px 8px rgba(0,0,0,0.45), 0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.07)',
-    shadowHover: '0 4px 16px rgba(0,0,0,0.55), 0 16px 48px rgba(0,0,0,0.65), inset 0 1px 0 rgba(255,255,255,0.09)',
-    gradient: 'radial-gradient(ellipse 60% 45% at 15% 20%, rgba(167,139,250,0.12) 0%, transparent 55%), radial-gradient(ellipse 50% 50% at 85% 80%, rgba(52,211,153,0.08) 0%, transparent 55%), #0d0f14',
-    bgSolid: '#0d0f14',
-    blur: 'blur(20px) saturate(140%) brightness(1.01)',
+    accent: '#d4830e',
+    accentRgb: '212,131,14',
+    textPrimary: '#f2e0c8',
+    textSecondary: 'rgba(242,224,200,0.62)',
+    textMuted: 'rgba(242,224,200,0.38)',
+    surface: 'rgba(255,185,70,0.07)',
+    surfaceHover: 'rgba(255,185,70,0.12)',
+    border: 'rgba(255,175,60,0.14)',
+    shadow: '0 2px 8px rgba(0,0,0,0.50), 0 8px 32px rgba(0,0,0,0.60), inset 0 1px 0 rgba(255,175,60,0.08)',
+    shadowHover: '0 4px 16px rgba(0,0,0,0.60), 0 16px 48px rgba(0,0,0,0.70), inset 0 1px 0 rgba(255,175,60,0.12)',
+    gradient: 'radial-gradient(ellipse 60% 45% at 20% 25%, rgba(200,110,30,0.14) 0%, transparent 55%), radial-gradient(ellipse 50% 50% at 80% 75%, rgba(150,70,20,0.10) 0%, transparent 55%), #110d07',
+    bgSolid: '#110d07',
+    blur: 'blur(20px) saturate(110%) brightness(0.95)',
   },
 ];
 
@@ -136,14 +136,14 @@ function applySettings(settings) {
   el.style.setProperty('--text-muted',     theme.textMuted);
   el.style.setProperty('--text-title',     theme.textPrimary);
 
-  // Font sizes (fixed to normal scale)
-  el.style.setProperty('--text-xs',   '12px');
-  el.style.setProperty('--text-sm',   '14px');
-  el.style.setProperty('--text-base', '14px');
-  el.style.setProperty('--text-lg',   '18px');
-  el.style.setProperty('--text-xl',   '22px');
-  el.style.setProperty('--text-2xl',  '28px');
-  el.style.setProperty('--text-3xl',  '36px');
+  // Font sizes (rem-based, accessible scale)
+  el.style.setProperty('--text-xs',   '0.75rem');
+  el.style.setProperty('--text-sm',   '0.875rem');
+  el.style.setProperty('--text-base', '1rem');
+  el.style.setProperty('--text-lg',   '1.125rem');
+  el.style.setProperty('--text-xl',   '1.375rem');
+  el.style.setProperty('--text-2xl',  '1.75rem');
+  el.style.setProperty('--text-3xl',  '2.5rem');
 
   // Accent
   el.style.setProperty('--accent',     theme.accent);
@@ -171,6 +171,18 @@ function applySettings(settings) {
   el.style.setProperty('--border-subtle', theme.border);
   el.style.setProperty('--border-color',  theme.border);
   el.style.setProperty('--border-strong', theme.dark ? 'rgba(255,255,255,0.28)' : 'rgba(255,255,255,0.55)');
+
+  // Input field vars (adapt for dark themes)
+  el.style.setProperty('--input-bg',       theme.dark ? 'rgba(255,255,255,0.07)' : 'rgba(255,255,255,0.55)');
+  el.style.setProperty('--input-bg-focus', theme.dark ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.80)');
+  el.style.setProperty('--input-border',   theme.dark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.12)');
+
+  // Anti-blue light filter for noche theme
+  if (theme.id === 'noche') {
+    document.documentElement.style.filter = 'sepia(18%) saturate(82%) brightness(0.97)';
+  } else {
+    document.documentElement.style.filter = '';
+  }
 }
 
 // ── Context ───────────────────────────────────────────────────────────

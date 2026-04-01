@@ -66,6 +66,7 @@ export default function Calendario() {
         <div className={styles.layout}>
           <div className={styles.calWrap}>
             <CalendarView
+              tasks={tasks}
               onSelectDay={setSelDay}
               selectedDay={selDay}
               onMonthChange={(y, m) => { setYear(y); setMonth(m); }}

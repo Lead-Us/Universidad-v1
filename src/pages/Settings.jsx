@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { RiUserLine, RiPaletteLine, RiRefreshLine, RiCheckLine } from 'react-icons/ri';
+import { useNavigate } from 'react-router-dom';
+import { RiUserLine, RiPaletteLine, RiRefreshLine, RiCheckLine, RiFolderUploadLine, RiArrowRightSLine } from 'react-icons/ri';
 import { useAuth } from '../lib/AuthContext.jsx';
 import { useSettings, THEME_PRESETS } from '../lib/SettingsContext.jsx';
 import styles from './Settings.module.css';
@@ -48,6 +49,7 @@ function ProfileSection() {
 
 export default function Settings() {
   const { settings, update, reset } = useSettings();
+  const navigate = useNavigate();
 
   return (
     <div className="page">
@@ -77,6 +79,17 @@ export default function Settings() {
                 </button>
               ))}
             </div>
+          </Section>
+
+          <Section icon={RiFolderUploadLine} title="Importar">
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
+              Importa tus archivos y syllabus para poblar tus ramos automáticamente.
+            </p>
+            <button className={styles.aprenderBtn} onClick={() => navigate('/importar')}>
+              <RiFolderUploadLine />
+              <span>Ir a Importar</span>
+              <RiArrowRightSLine className={styles.aprenderArrow} />
+            </button>
           </Section>
         </div>
 

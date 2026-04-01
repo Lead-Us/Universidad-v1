@@ -25,12 +25,18 @@ export default function RamoDetail() {
   const [modal,  setModal]  = useState(false);
   const [saving, setSaving] = useState(false);
 
+  // Must be before any conditional returns (Rules of Hooks)
+  const allFiles = useMemo(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(`uni_files_${id}`) ?? '{}');
+      return (saved.todos ?? []).map(f => f.name);
+    } catch {
+      return ramo?.allFiles ?? [];
+    }
+  }, [id, ramo]);
+
   if (loading) {
-    return (
-      <div className="page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <LoadingSpinner size="lg" />
-      </div>
-    );
+    return <div className="page" />;
   }
 
   if (!ramo) {
@@ -51,16 +57,6 @@ export default function RamoDetail() {
     try   { await update(id, data); setModal(false); }
     finally { setSaving(false); }
   };
-
-  // Build allFiles list from localStorage for UnitTimeline file-linking
-  const allFiles = useMemo(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(`uni_files_${id}`) ?? '{}');
-      return (saved.todos ?? []).map(f => f.name);
-    } catch {
-      return ramo?.allFiles ?? [];
-    }
-  }, [id, ramo]);
 
   // Inline save para campos del header
   const saveField = async (field, value) => {

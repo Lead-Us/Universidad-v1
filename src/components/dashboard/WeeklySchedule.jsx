@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { RiPencilLine, RiCloseLine, RiCheckLine, RiAddLine, RiDeleteBinLine } from 'react-icons/ri';
 import { useSchedule } from '../../hooks/useSchedule.js';
 import { useRamos }    from '../../hooks/useRamos.js';
-import LoadingSpinner  from '../shared/LoadingSpinner.jsx';
 import styles from './WeeklySchedule.module.css';
 
 const DAYS      = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
@@ -170,14 +169,20 @@ function BlockAddPopup({ ramos, onSave, onClose }) {
 }
 
 // ── Main component ────────────────────────────────────────────────────
-export default function WeeklySchedule() {
+export default function WeeklySchedule({ showAdd: showAddProp, onAddClose }) {
   const { schedule, loading: loadingS, add, update, remove } = useSchedule();
   const { ramos,    loading: loadingR }              = useRamos();
   const [editId,  setEditId]  = useState(null);
-  const [showAdd, setShowAdd] = useState(false);
+  const [showAddLocal, setShowAddLocal] = useState(false);
+
+  const showAdd = showAddProp ?? showAddLocal;
+  const setShowAdd = (v) => {
+    if (showAddProp !== undefined) { if (!v) onAddClose?.(); }
+    else setShowAddLocal(v);
+  };
 
   if (loadingS || loadingR) {
-    return <div className={styles.loadingWrap}><LoadingSpinner /></div>;
+    return <div className={styles.loadingWrap} />;
   }
 
   const ramoMap = Object.fromEntries(ramos.map(r => [r.id, r]));
@@ -205,15 +210,6 @@ export default function WeeklySchedule() {
 
   return (
     <div className={styles.wrapper}>
-      <div className={styles.scheduleHeader}>
-        <span className={styles.scheduleTitle}>Horario semanal</span>
-        {ramos.length > 0 && (
-          <button className={styles.addBlockBtn} onClick={() => setShowAdd(true)}>
-            <RiAddLine /> Agregar bloque
-          </button>
-        )}
-      </div>
-
       {showAdd && (
         <BlockAddPopup
           ramos={ramos}
@@ -245,15 +241,17 @@ export default function WeeklySchedule() {
                       style={{ background: bg }}
                       onClick={() => setEditId(editId === entry.id ? null : entry.id)}
                     >
-                      <span className={styles.blockName}>{ramo.name}</span>
+                      <div className={styles.blockHeader}>
+                        <span className={styles.blockName}>{ramo.name}</span>
+                        {entry.sala && (
+                          <span className={styles.blockSalaInline}>{entry.sala}</span>
+                        )}
+                      </div>
                       <span className={styles.blockTime}>
                         {entry.start_time} – {entry.end_time}
                       </span>
                       {ramo.professor && (
                         <span className={styles.blockProf}>{ramo.professor}</span>
-                      )}
-                      {entry.sala && (
-                        <span className={styles.blockSala}>{entry.sala}</span>
                       )}
                       <span
                         className={entry.has_attendance ? styles.hasAtt : styles.noAtt}

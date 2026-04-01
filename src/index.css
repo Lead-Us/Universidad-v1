@@ -3,7 +3,7 @@
    Apple WWDC 2025 · Translucent · Specular · Spring Physics
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
 
 /* ============================================================
    VARIABLES — Liquid Glass Core
@@ -132,16 +132,21 @@
   --btn-text:     #111827;
 
   /* ── Tipografía ── */
-  --font-display: 'Crimson Pro', Georgia, serif;
+  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-ui:      'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
 
-  --text-xs:   0.70rem;
+  --text-xs:   0.75rem;
   --text-sm:   0.875rem;
   --text-base: 1rem;
   --text-lg:   1.125rem;
   --text-xl:   1.375rem;
   --text-2xl:  1.75rem;
-  --text-3xl:  2.25rem;
+  --text-3xl:  2.5rem;
+
+  /* ── Input fields ── */
+  --input-bg:       rgba(255, 255, 255, 0.55);
+  --input-bg-focus: rgba(255, 255, 255, 0.80);
+  --input-border:   rgba(0, 0, 0, 0.12);
 
   --weight-normal:   400;
   --weight-medium:   500;
@@ -197,7 +202,7 @@ body {
   height: 100%;
   font-family: var(--font-ui);
   font-size: var(--text-base);
-  line-height: 1.6;
+  line-height: 1.5;
   color: var(--text-title, var(--text-primary));
   background: var(--bg-app, #f0f0f0);
   -webkit-font-smoothing: antialiased;
@@ -271,15 +276,16 @@ body::before {
    TIPOGRAFÍA
    ============================================================ */
 h1, h2, h3 {
-  font-family: var(--font-display);
-  font-weight: var(--weight-semibold);
-  letter-spacing: -0.02em;
-  line-height: 1.15;
+  font-family: var(--font-ui);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.015em;
+  line-height: 1.2;
   color: var(--text-title, var(--text-primary));
 }
 h4, h5, h6 {
   font-family: var(--font-ui);
   font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
   color: var(--text-title, var(--text-primary));
 }
 p { color: var(--text-secondary); }
@@ -294,10 +300,10 @@ input, select, textarea, button {
 }
 
 input, select, textarea {
-  background: rgba(255, 255, 255, 0.55);
+  background: var(--input-bg);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(0,0,0,0.12);
+  border: 1px solid var(--input-border);
   color: var(--text-title, var(--text-primary));
   border-radius: var(--lg-radius-sm);
   padding: var(--space-2) var(--space-3);
@@ -313,7 +319,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.80);
+  background: var(--input-bg-focus);
   box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15);
 }
 
@@ -393,9 +399,9 @@ label {
 }
 
 .section-title {
-  font-family: var(--font-display);
+  font-family: var(--font-ui);
   font-size: var(--text-2xl);
-  font-weight: var(--weight-semibold);
+  font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
   color: var(--text-title, var(--text-primary));
 }

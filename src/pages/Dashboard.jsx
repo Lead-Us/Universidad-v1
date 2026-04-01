@@ -56,6 +56,7 @@ export default function Dashboard() {
   const [editTask, setEditTask] = useState(null);
   const [saving,   setSaving]   = useState(false);
   const [confirmDel, setConfirmDel] = useState(null);
+  const [showAddBlock, setShowAddBlock] = useState(false);
 
   const ramoMap = Object.fromEntries(ramos.map(r => [r.id, r]));
 
@@ -110,8 +111,13 @@ export default function Dashboard() {
         <section className={dashStyles.section}>
           <div className="section-header">
             <h1 className="section-title">Horario</h1>
+            {ramos.length > 0 && (
+              <Button onClick={() => setShowAddBlock(true)}>
+                <RiAddLine /> Agregar bloque
+              </Button>
+            )}
           </div>
-          <WeeklySchedule />
+          <WeeklySchedule showAdd={showAddBlock} onAddClose={() => setShowAddBlock(false)} />
         </section>
 
         <hr className="divider" />

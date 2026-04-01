@@ -257,6 +257,36 @@
   white-space: nowrap;
 }
 
+/* ── Aprender button ─────────────────────────────── */
+.aprenderBtn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  background: var(--input-bg, rgba(255,255,255,0.07));
+  border: 1.5px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-primary);
+  text-align: left;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.aprenderBtn:hover {
+  background: rgba(255,255,255,0.10);
+  border-color: var(--accent);
+}
+
+.aprenderArrow {
+  margin-left: auto;
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
 /* ── Theme pills ─────────────────────────────────── */
 .themeGrid {
   display: flex;

@@ -20,12 +20,13 @@ function buildGrid(year, month) {
   return cells;
 }
 
-export default function CalendarView({ onSelectDay, selectedDay, onMonthChange }) {
+export default function CalendarView({ onSelectDay, selectedDay, onMonthChange, tasks: tasksProp }) {
   const today = new Date();
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
 
-  const { tasks } = useTasksByMonth(year, month);
+  const { tasks: tasksInternal } = useTasksByMonth(year, month);
+  const tasks = tasksProp ?? tasksInternal;
   const { ramos } = useRamos();
 
   const ramoMap = Object.fromEntries(ramos.map(r => [r.id, r]));
