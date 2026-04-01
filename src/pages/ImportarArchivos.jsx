@@ -119,7 +119,7 @@ export default function ImportarArchivos() {
     setTexts(txtMap);
     setRawFileMap(rawMap);
     setProgramFiles(detected);
-    setCollapsedRamos(new Set(Object.keys(tree)));
+    setCollapsedRamos(new Set()); // start all expanded so program selector is visible
     setStep(1);
   };
 
@@ -168,6 +168,11 @@ export default function ImportarArchivos() {
   // ── Process with AI ──────────────────────────────────────────────────
   const processWithAI = async () => {
     if (!Object.keys(structure).length) { setError('Agrega al menos un ramo.'); return; }
+    const ramosSinPrograma = Object.keys(structure).filter(r => !programFiles[r]);
+    if (ramosSinPrograma.length) {
+      setError(`Sin programa seleccionado: ${ramosSinPrograma.join(', ')}. Selecciona el archivo del programa para cada ramo.`);
+      return;
+    }
     setError('');
     setStep(2);
     setProgress('Extrayendo texto de programas…');
@@ -207,15 +212,21 @@ export default function ImportarArchivos() {
     setError('');
     try {
       const uid = await getUid();
-      for (const ramo of result.ramos) {
+      const structureEntries = Object.entries(structure); // preserve order for index fallback
+
+      for (const [ramoIdx, ramo] of result.ramos.entries()) {
         setProgress(`Guardando: ${ramo.name}…`);
+
+        // Sanitize integer fields — AI may return strings like "No especificado"
+        const credits = parseInt(ramo.credits, 10);
+
         const { data: ramoRow, error: ramoErr } = await supabase.from('ramos').insert({
           user_id:             uid,
           name:                ramo.name,
-          code:                ramo.code || null,
-          professor:           ramo.professor || null,
-          section:             ramo.section || null,
-          credits:             ramo.credits ?? 0,
+          code:                ramo.code && /\S/.test(ramo.code) ? ramo.code : null,
+          professor:           ramo.professor && /\S/.test(ramo.professor) ? ramo.professor : null,
+          section:             ramo.section && /\S/.test(ramo.section) ? ramo.section : null,
+          credits:             Number.isFinite(credits) ? credits : 0,
           color:               ramo.color ?? '#4f8ef7',
           has_attendance:      ramo.has_attendance ?? false,
           evaluation_modules:  (ramo.evaluationModules ?? []).map(m => ({
@@ -226,25 +237,31 @@ export default function ImportarArchivos() {
         }).select().single();
         if (ramoErr) throw ramoErr;
         const ramoId = ramoRow.id;
+
         if (ramo.schedule?.length) {
           await supabase.from('schedule').insert(ramo.schedule.map(b => ({
             user_id: uid, ramo_id: ramoId,
-            day_of_week: b.day_of_week, start_time: b.start_time,
-            end_time: b.end_time, sala: b.sala || '',
+            day_of_week: parseInt(b.day_of_week, 10) || 0,
+            start_time: b.start_time, end_time: b.end_time, sala: b.sala || '',
           })));
         }
         if (ramo.units?.length) {
-          await supabase.from('units').insert(ramo.units.map(u => ({
+          await supabase.from('units').insert(ramo.units.map((u, ui) => ({
             user_id: uid, ramo_id: ramoId,
-            name: u.name, order: u.order ?? 0, materias: u.materias ?? [],
+            name: u.name, order: parseInt(u.order, 10) || ui, materias: u.materias ?? [],
           })));
         }
 
-        // Save ALL files from the original folder structure to "Todos los archivos"
-        const structureEntry = Object.entries(structure).find(
-          ([sName]) => sName === ramo.name ||
-            sName.toLowerCase() === ramo.name.toLowerCase()
-        );
+        // Save ALL files from original folder structure to "Todos los archivos"
+        // Match by name (exact, case-insensitive, or substring), fall back to index
+        const rn = ramo.name.toLowerCase();
+        let structureEntry = structureEntries.find(([sName]) => {
+          const s = sName.toLowerCase();
+          return s === rn || s.includes(rn) || rn.includes(s);
+        });
+        if (!structureEntry && structureEntries[ramoIdx]) {
+          structureEntry = structureEntries[ramoIdx];
+        }
         const allFiles = [
           ...new Set([
             ...(structureEntry ? structureEntry[1] : []),
