@@ -199,7 +199,7 @@
     color var(--dur-fast) var(--ease-out),
     transform var(--dur-instant) var(--ease-spring);
 }
-.iconBtn:hover { background: rgba(0,0,0,0.06); }
+.iconBtn:hover { background: var(--neutral-hover); }
 .iconBtn:active { transform: scale(0.88); }
 .iconBtn.del:hover { color: var(--color-danger); background: rgba(220,38,38,0.08); }
 .iconBtn.confirm { color: var(--color-success); }

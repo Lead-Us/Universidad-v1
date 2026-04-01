@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Lock files
+package-lock.json
+
+# Logs
+logs/
+*.log
+
+# Local environment (never read secrets)
+.env
+.env.local
+.env.*.local
+
+# Vite cache
+.vite/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Static assets (binary, not useful as text context)
+public/
+*.pdf
+*.docx
+*.xlsx
+*.png
+*.jpg
+*.jpeg
+*.svg
+*.ico
+*.woff
+*.woff2
+
+# Student content directories (real files, not source code)
+Ramos/
+"Aprender modelos"/
+
+# Supabase local dev artifacts
+supabase/.branches/
+supabase/.temp/
+
+# Git history
+.git/

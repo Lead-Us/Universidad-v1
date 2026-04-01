@@ -1,70 +1,151 @@
-# CLAUDE.md
+# Universidad V1 — Claude Code Guide
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Chilean university student management app. React 19 + Vite + Supabase + Groq/Claude AI. Deployed on Vercel.
 
 ## Commands
-
 ```bash
-npm run dev        # Start dev server at http://localhost:5173
-npm run build      # Production build (output: dist/)
-npm run lint       # ESLint
-npm run preview    # Preview production build locally
+npm run dev        # Vite dev server (port 5173)
+npm run build      # Production build → dist/
+npm run lint       # ESLint flat config (eslint.config.js)
+npm run preview    # Preview built dist
 ```
 
-No test suite exists yet. There is no test runner configured.
-
 ## Architecture
+```
+src/
+  lib/          # supabase.js, AuthContext.jsx, SettingsContext.jsx, grades.js
+  services/     # All Supabase queries — one file per domain
+  hooks/        # Custom hooks as controllers — one file per domain
+  pages/        # Route-level components — one .jsx + one .module.css each
+  components/   # Grouped by domain: shared/ ramos/ dashboard/ calendario/ aprender/ layout/
+  styles/       # Global CSS utilities and animations
+api/            # Vercel serverless functions (CommonJS, NOT Vite-bundled)
+supabase/       # schema.sql + Deno edge functions
+```
 
-**Stack:** React 19 + Vite + CSS Modules. No TypeScript. No state management library — all state is React hooks + context.
+## Supabase Tables
+| Table | JSONB columns | Notes |
+|---|---|---|
+| `ramos` | `evaluation_modules`, `attendance_sessions` | Core entity |
+| `units` | `materias` | Belongs to ramo |
+| `schedule` | — | `day_of_week` 0=Mon…6=Sun (not JS convention) |
+| `tasks` | — | `type` ∈ {tarea, evaluación, control, quiz} |
+| `learning_models` | — | Custom study strategies |
+| `learning_submodules` | — | Belongs to learning_model |
+| `profiles` | — | Mirrors auth.users, has `name` |
 
-### Data layer
+All tables: RLS enabled, `auth.uid() = user_id` policy on every row.
 
-All data currently runs in **mock mode** (`USE_MOCK = true` in every service). The pattern is identical across services:
+## snake_case → camelCase Rule
+Supabase returns snake_case. Services normalize to camelCase before returning.
+```js
+function normalizeRamo(r) {
+  return {
+    ...r,
+    evaluationModules:  r.evaluation_modules  ?? r.evaluationModules  ?? [],
+    attendanceSessions: r.attendance_sessions ?? r.attendanceSessions ?? [],
+    hasAttendance:      r.has_attendance      ?? r.hasAttendance      ?? false,
+  };
+}
+```
+When writing to Supabase: always use snake_case in `.insert()` / `.update()` payloads.
 
-1. `src/services/localStore.js` — the persistence layer. Uses an in-memory `Map` cache so multiple services sharing the same localStorage key get the same array reference. Bumping `VERSION` clears all localStorage keys and re-seeds from `mockData.js`.
-2. Each service (`ramosService`, `tasksService`, `scheduleService`, `aprendizajeService`) loads from `localStore.load()` into a module-level `DB_*` array, mutates it directly, then calls `localStore.save()`. The mock path and Supabase path are in the same `if (USE_MOCK)` branches.
-3. To switch a service to Supabase: set `USE_MOCK = false` — the Supabase branches are already written but untested.
+## Service Pattern
+```js
+import { supabase, getUid } from '../lib/supabase.js';
+import { v4 as uuidv4 } from 'uuid';
 
-**localStorage keys:** `uni_ramos`, `uni_tasks`, `uni_schedule`, `uni_units`, `uni_aprendizaje_models`, `uni_aprendizaje_submodules`, `uni_files_{ramoId}` (files stored as base64 data URLs, max 10 MB each).
+const USE_MOCK = false; // keep false; mock block is a dev stub only
 
-### Hook pattern
+export async function getFoos() {
+  if (USE_MOCK) return [];
+  const { data, error } = await supabase.from('foos').select('*').order('name');
+  if (error) throw error;
+  return (data ?? []).map(normalizeFoo);
+}
 
-Every hook (`useRamos`, `useTasks`, `useSchedule`, `useRamo`, `useEvaluations`, `useAttendance`) follows the same structure: fetch on mount via `useCallback`-wrapped `reload()`, expose CRUD methods that call the service then call `reload()`. Components never call services directly — always through hooks.
+export async function createFoo(item) {
+  const uid = await getUid(); // throws if not authenticated
+  const { data, error } = await supabase.from('foos')
+    .insert({ user_id: uid, name: item.name, some_field: item.someField })
+    .select().single();
+  if (error) throw error;
+  return normalizeFoo(data);
+}
+```
 
-`useRamo(id)` is special: `getRamo(id)` automatically joins `DB_SCHEDULE` blocks onto the ramo object. RamoForm reads `initial.blocks` from this.
+## Hook Pattern
+```js
+export function useFoos() {
+  const [foos, setFoos]       = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState(null);
 
-### Contexts
+  const reload = useCallback(async () => {
+    setLoading(true);
+    try { setFoos(await getFoos()); setError(null); }
+    catch (e) { setError(e.message); }
+    finally { setLoading(false); }
+  }, []);
 
-- `src/lib/SettingsContext.jsx` — manages appearance (background, glass opacity, accent color, font color, blur, speed). On every change it writes CSS custom properties directly to `document.documentElement` via `applySettings()`. Presets have a `dark: true` flag that switches all `--lg-*` surface/shadow/border vars to dark-optimized values. Persisted to `universidad-v1-settings` in localStorage.
-- `src/lib/AuthContext.jsx` — currently a mock with a hardcoded user. Supabase auth stubs exist but are empty. Multi-tenant Supabase auth is the next migration target.
+  useEffect(() => { reload(); }, [reload]);
 
-### Design system
+  const add    = async (item)        => { await createFoo(item);        await reload(); };
+  const update = async (id, changes) => { await updateFoo(id, changes); await reload(); };
+  const remove = async (id)          => { await deleteFoo(id);          await reload(); };
 
-All visual tokens are CSS custom properties defined in `src/index.css`. The Liquid Glass system uses `--lg-*` variables. `SettingsContext.applySettings()` overrides these at runtime. Do not hardcode colors/shadows in component CSS — always use the variables.
+  return { foos, loading, error, reload, add, update, remove };
+}
+```
 
-Key variables: `--lg-surface`, `--lg-blur-base`, `--lg-shadow`, `--lg-border`, `--lg-radius-*`, `--accent`, `--accent-rgb`, `--text-primary/secondary/muted`.
+## Page Pattern
+```jsx
+export default function MiPagina() {
+  return (
+    <div className="page">
+      <div className="page-content">
+        <div className="section-header">
+          <h1 className="section-title">Título</h1>
+        </div>
+        {/* content */}
+      </div>
+    </div>
+  );
+}
+```
+Routes are registered in `src/App.jsx` inside `<Route element={<Layout />}>`.
 
-The `body::before` pseudo-element renders the gradient blob background via `var(--lg-bg-gradient)`, which `SettingsContext` updates when the background preset changes.
+## CSS / Theming
+ALL visual tokens are CSS custom properties — never hardcode colors, shadows, or blur.
+```css
+/* Surfaces */      var(--lg-surface)  var(--lg-surface-hover)  var(--lg-border)
+/* Shadows */       var(--lg-shadow)   var(--lg-shadow-hover)
+/* Blur */          var(--blur-sm)     var(--blur-base)  var(--blur-lg)
+/* Text */          var(--text-primary) var(--text-secondary) var(--text-muted)
+/* Accent */        var(--accent)      var(--accent-rgb)  var(--accent-bg)
+/* Typography */    var(--text-xs/sm/base/lg/xl/2xl/3xl)
+/* Timing */        var(--dur-fast) = 280ms   var(--dur-base) = 380ms
+```
+Themes: `claro · calido · colorido · oscuro · noche` — applied by `SettingsContext` at runtime.
+Icons: `react-icons/ri` only (Remix Icons). Example: `import { RiAddLine } from 'react-icons/ri'`.
 
-### Inline editing
+## AI Integration
+- `/api/process-folder.js` — Vercel serverless, POST, uses `GROQ_API_KEY`
+  - Receives `{ structure, textContents }`, returns `{ ramos: [...] }`
+  - Tries 4 Groq models in fallback chain (llama-3.3-70b → llama3-70b → llama3-8b → mixtral)
+- `supabase/functions/process-folder/` — Deno edge function, uses `ANTHROPIC_API_KEY`, same interface
 
-`src/components/shared/InlineEdit.jsx` — click-to-edit pattern used throughout. Props: `value`, `onSave`, `tag` (default `span`), `type`, `min/max/step`, `placeholder`. Saves on blur or Enter, cancels on Escape.
+## Env Vars
+| Var | Where | Purpose |
+|---|---|---|
+| `VITE_SUPABASE_URL` | Vite client | Supabase project URL |
+| `VITE_SUPABASE_ANON_KEY` | Vite client | Supabase anon key |
+| `GROQ_API_KEY` | Vercel server-only | Groq API for folder import |
+| `ANTHROPIC_API_KEY` | Supabase edge fn | Claude API for edge fn |
 
-### Grade calculation
-
-`src/lib/grades.js` — Chilean 1.0–7.0 scale. `moduleAverage(items)` averages graded items. `weightedFinalGrade(modules)` does weighted partial average (only modules that have at least one grade contribute). Used by `useEvaluations` hook and `EvaluationSchedule` component.
-
-### Key data relationships
-
-- Ramo → has many Units (with nested `materias[]` array) → stored in `uni_units`
-- Ramo → has many schedule blocks → stored in `uni_schedule` (separate from ramo object, joined in `getRamo`)
-- Ramo → has `evaluationModules[]` → embedded in ramo object in `uni_ramos`
-- Ramo → has `attendanceSessions[]` → embedded in ramo object in `uni_ramos`
-- Task → references `ramo_id`, `unit_id`, `materia` (string)
-- Learning model → has submodules keyed by `model_id` in `uni_aprendizaje_submodules` (object shape: `{ modelId: [...] }`)
-
-### Supabase / deployment
-
-- `src/lib/supabase.js` reads `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` from env. Defaults to placeholder strings when missing.
-- Environment variables go in `.env.local` (not committed).
-- `vercel.json` does not exist yet — needs to be created with SPA rewrite rules for React Router.
+## Gotchas
+1. `getUid()` throws if not authenticated — wrap write operations in try/catch
+2. **JSONB mutations**: read full array → modify in JS → write entire array back (no partial patch)
+3. `schedule.day_of_week`: 0=Monday through 6=Sunday — NOT JavaScript's 0=Sunday
+4. `tasks.due_date` is a `date` string (`YYYY-MM-DD`) — append `T12:00:00` when constructing `Date` to avoid timezone shifts
+5. `/api/*` files are Vercel serverless (CommonJS) — not processed by Vite, no ESM imports

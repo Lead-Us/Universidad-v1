@@ -3,6 +3,7 @@ import { RiArrowLeftLine, RiAddLine, RiPencilLine } from 'react-icons/ri';
 import {
   getLearningModels, createLearningModel, updateLearningModel, deleteLearningModel,
   getSubmodules, createSubmodule, updateSubmodule, deleteSubmodule,
+  seedDefaultModels,
 } from '../services/aprendizajeService.js';
 import { RAMO_COLORS } from '../lib/ramoColors.js';
 import ModelCard    from '../components/aprender/ModelCard.jsx';
@@ -199,7 +200,11 @@ function ModelsLevel({ onSelectModel }) {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const ms = await getLearningModels();
+      let ms = await getLearningModels();
+      if (ms.length === 0) {
+        await seedDefaultModels();
+        ms = await getLearningModels();
+      }
       setModels(ms);
       const counts = {};
       await Promise.all(ms.map(async m => {

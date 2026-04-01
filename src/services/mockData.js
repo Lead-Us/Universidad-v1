@@ -631,13 +631,13 @@ export const MOCK_LEARNING_MODELS = [
   {
     id: 'lm1',
     name: 'Método Herrera',
-    description: 'Sistema de aprendizaje activo: comprensión → práctica → consolidación.',
+    description: 'Construcción de arquitectura mental y transferencia a memoria de largo plazo.',
     color: '#3B82F6',
   },
   {
     id: 'lm2',
     name: 'Método Matemático',
-    description: 'Neurociencia de la mecanización: práctica progresiva y flash para emergencias.',
+    description: 'Neurociencia de la mecanización: práctica progresiva y modo emergencia para evaluaciones.',
     color: '#F59E0B',
   },
 ];

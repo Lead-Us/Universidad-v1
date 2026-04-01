@@ -218,7 +218,7 @@
   transition: background var(--dur-fast) var(--ease-out);
 }
 
-.itemRow:hover { background: rgba(0,0,0,0.03); }
+.itemRow:hover { background: var(--neutral-bubble-faint); }
 
 .itemName { display: flex; align-items: center; }
 
@@ -274,7 +274,7 @@
     transform var(--dur-instant) var(--ease-spring);
 }
 
-.iconBtn:hover { background: rgba(0,0,0,0.06); color: var(--text-secondary); }
+.iconBtn:hover { background: var(--neutral-hover); color: var(--text-secondary); }
 .iconBtn:active { transform: scale(0.88); }
 .iconBtn.del:hover { color: var(--color-danger); background: rgba(220,38,38,0.08); }
 .iconBtn.confirm { color: var(--color-success); }

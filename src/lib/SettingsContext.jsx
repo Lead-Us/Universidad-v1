@@ -158,6 +158,11 @@ function applySettings(settings) {
   el.style.setProperty('--dur-slow',    '520ms');
   el.style.setProperty('--dur-xslow',   '700ms');
 
+  // Neutral bubble (pill badges on text) — adapts to dark/light
+  el.style.setProperty('--neutral-bubble',       theme.dark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.07)');
+  el.style.setProperty('--neutral-bubble-faint', theme.dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)');
+  el.style.setProperty('--neutral-hover',        theme.dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)');
+
   // Legacy compat aliases
   el.style.setProperty('--glass',         theme.surface);
   el.style.setProperty('--glass-border',  theme.border);

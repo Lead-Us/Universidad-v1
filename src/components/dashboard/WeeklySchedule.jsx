@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RiPencilLine, RiCloseLine, RiCheckLine } from 'react-icons/ri';
+import { RiPencilLine, RiCloseLine, RiCheckLine, RiAddLine } from 'react-icons/ri';
 import { useSchedule } from '../../hooks/useSchedule.js';
 import { useRamos }    from '../../hooks/useRamos.js';
 import LoadingSpinner  from '../shared/LoadingSpinner.jsx';
@@ -106,11 +106,72 @@ function BlockEditPopup({ entry, ramos, onSave, onClose }) {
   );
 }
 
+// ── Quick-add block popup ─────────────────────────────────────────────
+function BlockAddPopup({ ramos, onSave, onClose }) {
+  const [form, setForm] = useState({
+    ramo_id:        ramos[0]?.id ?? '',
+    day_of_week:    0,
+    start_time:     '08:30',
+    end_time:       '10:00',
+    sala:           '',
+    has_attendance: false,
+  });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <div className={styles.addOverlay} onClick={onClose}>
+      <div className={styles.popup} style={{ position: 'static', width: 240, animation: 'scaleIn 220ms var(--ease-spring) both' }} onClick={e => e.stopPropagation()}>
+        <div className={styles.popupHeader}>
+          <span className={styles.popupTitle}>Nuevo bloque</span>
+          <button className={styles.popupClose} onClick={onClose}><RiCloseLine /></button>
+        </div>
+        <div className={styles.popupBody}>
+          <label className={styles.popupLabel}>Ramo</label>
+          <select value={form.ramo_id} onChange={e => set('ramo_id', e.target.value)} className={styles.popupSelect}>
+            {ramos.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+          </select>
+
+          <label className={styles.popupLabel}>Día</label>
+          <select value={form.day_of_week} onChange={e => set('day_of_week', Number(e.target.value))} className={styles.popupSelect}>
+            {DAYS_ALL.map((d, i) => <option key={i} value={i}>{d}</option>)}
+          </select>
+
+          <div className={styles.popupRow}>
+            <div>
+              <label className={styles.popupLabel}>Inicio</label>
+              <input type="time" value={form.start_time} onChange={e => set('start_time', e.target.value)} className={styles.popupInput} />
+            </div>
+            <div>
+              <label className={styles.popupLabel}>Fin</label>
+              <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)} className={styles.popupInput} />
+            </div>
+          </div>
+
+          <label className={styles.popupLabel}>Sala</label>
+          <input value={form.sala} onChange={e => set('sala', e.target.value)} placeholder="B-201" className={styles.popupInput} />
+
+          <label className={styles.popupCheck}>
+            <input type="checkbox" checked={form.has_attendance} onChange={e => set('has_attendance', e.target.checked)} />
+            <span>Control de asistencia</span>
+          </label>
+        </div>
+        <div className={styles.popupActions}>
+          <button className={styles.popupBtn} onClick={onClose}>Cancelar</button>
+          <button className={`${styles.popupBtn} ${styles.popupBtnSave}`} onClick={() => onSave(form)} disabled={!form.ramo_id}>
+            <RiCheckLine /> Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main component ────────────────────────────────────────────────────
 export default function WeeklySchedule() {
-  const { schedule, loading: loadingS, update } = useSchedule();
-  const { ramos,    loading: loadingR }         = useRamos();
-  const [editId, setEditId] = useState(null);
+  const { schedule, loading: loadingS, add, update } = useSchedule();
+  const { ramos,    loading: loadingR }              = useRamos();
+  const [editId,  setEditId]  = useState(null);
+  const [showAdd, setShowAdd] = useState(false);
 
   if (loadingS || loadingR) {
     return <div className={styles.loadingWrap}><LoadingSpinner /></div>;
@@ -129,7 +190,30 @@ export default function WeeklySchedule() {
     setEditId(null);
   };
 
+  const handleAdd = async (data) => {
+    await add(data);
+    setShowAdd(false);
+  };
+
   return (
+    <div className={styles.wrapper}>
+      <div className={styles.scheduleHeader}>
+        <span className={styles.scheduleTitle}>Horario semanal</span>
+        {ramos.length > 0 && (
+          <button className={styles.addBlockBtn} onClick={() => setShowAdd(true)}>
+            <RiAddLine /> Agregar bloque
+          </button>
+        )}
+      </div>
+
+      {showAdd && (
+        <BlockAddPopup
+          ramos={ramos}
+          onSave={handleAdd}
+          onClose={() => setShowAdd(false)}
+        />
+      )}
+
     <div className={styles.grid}>
       {DAYS.map((day, i) => (
         <div key={day} className={styles.col}>
@@ -184,6 +268,7 @@ export default function WeeklySchedule() {
           </div>
         </div>
       ))}
+    </div>
     </div>
   );
 }

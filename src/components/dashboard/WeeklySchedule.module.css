@@ -4,6 +4,66 @@
   padding: var(--space-8);
 }
 
+/* ── Wrapper & header ── */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.scheduleHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.scheduleTitle {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.addBlockBtn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  font-family: var(--font-ui);
+  color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.10);
+  border: 1px solid rgba(var(--accent-rgb), 0.25);
+  border-radius: var(--lg-radius-pill);
+  cursor: pointer;
+  transition: all var(--dur-fast) var(--ease-out);
+}
+.addBlockBtn:hover {
+  background: rgba(var(--accent-rgb), 0.18);
+  border-color: rgba(var(--accent-rgb), 0.45);
+}
+
+/* ── Add block overlay ── */
+.addOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.15);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: overlayFadeIn 180ms ease both;
+}
+
+@keyframes overlayFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -21,11 +81,11 @@
 .dayLabel {
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
-  color: var(--text-page-secondary);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   padding-bottom: var(--space-1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.10);
+  border-bottom: 1px solid var(--lg-border);
 }
 
 .blocks {
@@ -35,7 +95,7 @@
 }
 
 .empty {
-  color: rgba(0, 0, 0, 0.20);
+  color: var(--text-muted);
   font-size: var(--text-sm);
   padding: var(--space-2) 0;
 }
@@ -137,7 +197,7 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3) var(--space-3) var(--space-2);
-  border-bottom: 1px solid rgba(0,0,0,0.07);
+  border-bottom: 1px solid var(--lg-border);
 }
 
 .popupTitle {
@@ -181,8 +241,8 @@
 .popupInput,
 .popupSelect {
   width: 100%;
-  background: rgba(255,255,255,0.55);
-  border: 1px solid rgba(0,0,0,0.12);
+  background: var(--lg-surface);
+  border: 1px solid var(--lg-border);
   color: var(--text-primary);
   border-radius: var(--radius-xs);
   padding: 5px 8px;

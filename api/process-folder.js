@@ -19,15 +19,23 @@ export default async function handler(req, res) {
   const otherEntries    = Object.entries(textContents || {}).filter(([k]) => !k.includes('/__programa__'));
 
   const programaSection = programaEntries.length > 0
-    ? '\n\n## ⭐ PROGRAMAS OFICIALES DE RAMOS (FUENTE PRIORITARIA):\n' +
-      'Usa estos textos como fuente PRINCIPAL para extraer: profesor (busca "Docente:", "Profesor:", "Prof."), código, sección, créditos, ponderaciones exactas (busca "%" en tablas de evaluación), has_attendance (busca "asistencia obligatoria" o "% mínimo de asistencia").\n' +
+    ? '\n\n## ⭐ PROGRAMAS OFICIALES DE RAMOS (FUENTE PRIORITARIA — LEE COMPLETO):\n' +
+      'Este es el documento oficial del ramo (programa, syllabus, "letras" o guía del curso). DEBES extraer de aquí:\n' +
+      '- profesor/docente: busca "Docente:", "Profesor:", "Prof.", "Instructor:", nombre antes de "@" en correos\n' +
+      '- código del ramo: busca código alfanumérico de 3-8 caracteres (ej: ECO355, FIN302, ADM201)\n' +
+      '- sección: busca "Sección", "Section", número después del código\n' +
+      '- créditos: busca "créditos", "SCT", "unidades"\n' +
+      '- evaluaciones y ponderaciones: busca tablas con "%" — RESPETA los porcentajes exactos del documento\n' +
+      '- asistencia: has_attendance=true si menciona "% mínimo de asistencia", "asistencia obligatoria"\n' +
+      '- unidades/contenidos: busca "Unidad", "Módulo", "Semana", "Contenidos"\n' +
+      '- horario: busca días (Lunes, Martes…) con horas\n\n' +
       programaEntries
         .map(([path, content]) => {
           const ramo = path.split('/__programa__')[0].split('/').pop();
           return `\n### Programa oficial de "${ramo}":\n${String(content).slice(0, 6000)}`;
         })
         .join('\n')
-    : '';
+    : '\n\n⚠️ No se encontró programa oficial. Infiere lo que puedas de los nombres de archivos.';
 
   const textsSection = otherEntries.length > 0
     ? '\n\n## Contenido de otros archivos de texto:\n' +
@@ -42,7 +50,7 @@ export default async function handler(req, res) {
 
 INSTRUCCIONES DE EXTRACCIÓN:
 1. **Nombre y código del ramo**: El nombre de la carpeta ES el nombre del ramo. El código suele aparecer en los nombres de archivo (ej: "Syllabus ECO355.pdf" → código ECO355, "FIN302 programa.pdf" → FIN302).
-2. **Profesor**: Busca en nombres de archivo que contengan "Syllabus", "Programa", "programa del curso", "prof", "docente". El nombre del profesor suele aparecer después del código o nombre del ramo.
+2. **Profesor**: Extrae del programa oficial si está disponible. Busca patrones: "Docente:", "Profesor:", "Prof.", nombre antes de "@" en correos, nombre en la primera página del documento. Si no hay programa, infiere del nombre de archivo.
 3. **Evaluaciones**: Busca archivos con "Control", "Prueba", "Examen", "Certamen", "Tarea", "Quiz", "Test". Crea módulos de evaluación con pesos que sumen exactamente 100%. Infiere las fechas si aparecen números (ej: "Prueba 1", "Prueba 2" → dos ítems en el módulo Pruebas).
 4. **Unidades y materias**: Busca archivos con "Unidad", "Clase", "Cap", "Tema", "Semana". Agrupa archivos relacionados en la misma unidad.
 5. **Horario**: Si hay archivos de horario, extrae días y horas. Usa formato HH:MM para start_time y end_time.

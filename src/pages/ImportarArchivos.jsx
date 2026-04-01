@@ -8,7 +8,7 @@ import {
   RiEyeLine, RiArrowRightLine, RiDeleteBinLine, RiBookLine,
   RiCalendarLine, RiFileTextLine, RiAddLine, RiEditLine,
   RiCloseLine, RiFileLine, RiArrowDownSLine, RiArrowRightSLine,
-  RiFileSearchLine,
+  RiFileSearchLine, RiAlertLine,
 } from 'react-icons/ri';
 import styles from './ImportarArchivos.module.css';
 
@@ -28,7 +28,7 @@ function detectProgramCandidates(fileNames) {
       .replace(/[áàä]/g, 'a').replace(/[éèë]/g, 'e').replace(/[íìï]/g, 'i')
       .replace(/[óòö]/g, 'o').replace(/[úùü]/g, 'u').replace(/ñ/g, 'n')
       .replace(/\.[^.]+$/, '');
-    if (/programa|syllabus|reglas|guia|plan de estudios|course outline/.test(name)) return true;
+    if (/programa|syllabus|reglas|guia|plan de estudios|course outline|letras/.test(name)) return true;
     // Code-only or numeric filename (e.g. "ECO355.pdf", "12345.pdf")
     if (/^[a-z0-9]{3,12}$/.test(name)) return true;
     return false;
@@ -240,15 +240,25 @@ export default function ImportarArchivos() {
           })));
         }
 
-        // Save file list to localStorage for the files browser
-        if (ramo.files?.length) {
+        // Save ALL files from the original folder structure to "Todos los archivos"
+        const structureEntry = Object.entries(structure).find(
+          ([sName]) => sName === ramo.name ||
+            sName.toLowerCase() === ramo.name.toLowerCase()
+        );
+        const allFiles = [
+          ...new Set([
+            ...(structureEntry ? structureEntry[1] : []),
+            ...(ramo.files ?? []),
+          ]),
+        ];
+        if (allFiles.length) {
           const existing = {};
           try {
             const saved = localStorage.getItem(`uni_files_${ramoId}`);
             if (saved) Object.assign(existing, JSON.parse(saved));
           } catch {}
           if (!existing['todos']) existing['todos'] = [];
-          ramo.files.forEach(fileName => {
+          allFiles.forEach(fileName => {
             if (!existing['todos'].some(f => f.name === fileName)) {
               existing['todos'].push({
                 name: fileName, size: 0,
@@ -389,12 +399,14 @@ export default function ImportarArchivos() {
                   {!collapsedRamos.has(ramo) && (
                     <div className={styles.programRow}>
                       <RiFileSearchLine className={styles.programIcon} />
-                      <span className={styles.programLabel}>Programa:</span>
-                      {candidates.length === 1 && selected === candidates[0] ? (
-                        <span className={styles.programDetected} title="Detectado automáticamente">
-                          ✓ {selected}
-                        </span>
-                      ) : null}
+                      <div className={styles.programContent}>
+                        <span className={styles.programLabel}>Programa del curso</span>
+                        {selected ? (
+                          <span className={styles.programDetected}><RiCheckLine /> {selected}</span>
+                        ) : (
+                          <span className={styles.programWarning}><RiAlertLine /> No detectado — selecciona manualmente</span>
+                        )}
+                      </div>
                       <select
                         className={styles.programSelect}
                         value={selected ?? ''}

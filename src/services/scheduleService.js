@@ -43,12 +43,13 @@ export async function createScheduleEntry(entry) {
   }
   const uid = await getUid();
   const { data, error } = await supabase.from('schedule').insert({
-    user_id:     uid,
-    ramo_id:     entry.ramo_id,
-    day_of_week: entry.day_of_week,
-    start_time:  entry.start_time,
-    end_time:    entry.end_time,
-    sala:        entry.sala || null,
+    user_id:        uid,
+    ramo_id:        entry.ramo_id,
+    day_of_week:    entry.day_of_week,
+    start_time:     entry.start_time,
+    end_time:       entry.end_time,
+    sala:           entry.sala || null,
+    has_attendance: entry.has_attendance ?? false,
   }).select().single();
   if (error) throw error;
   return data;

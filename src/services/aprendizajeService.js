@@ -16,6 +16,31 @@ async function mockSubs() {
 
 // ── Learning Models ────────────────────────────────────────────────────────────
 
+export async function seedDefaultModels() {
+  const { MOCK_LEARNING_MODELS, MOCK_SUBMODULES } = await import('./mockData.js');
+  const uid = await getUid();
+  for (const mock of MOCK_LEARNING_MODELS) {
+    const { data: model, error: mErr } = await supabase.from('learning_models').insert({
+      user_id:     uid,
+      name:        mock.name,
+      description: mock.description ?? '',
+      color:       mock.color ?? '#3B82F6',
+    }).select().single();
+    if (mErr) throw mErr;
+    const subs = MOCK_SUBMODULES[mock.id] ?? [];
+    for (const sub of subs) {
+      const { error: sErr } = await supabase.from('learning_submodules').insert({
+        user_id:        uid,
+        model_id:       model.id,
+        name:           sub.name,
+        order:          sub.order ?? 0,
+        prompt_content: sub.prompt_content ?? '',
+      });
+      if (sErr) throw sErr;
+    }
+  }
+}
+
 export async function getLearningModels() {
   if (USE_MOCK) {
     const db = await mockModels();
