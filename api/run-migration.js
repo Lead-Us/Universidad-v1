@@ -1,35 +1,29 @@
-// GET /api/run-migration?secret=MIGRATION_SECRET
-// One-time endpoint to run schema_v2.sql via pg direct connection.
-// Called automatically after deploy. Delete or disable after successful run.
-// Env vars: MIGRATION_SECRET, SUPABASE_DB_URL (postgres connection string)
+// GET /api/run-migration?secret=universidad-migrate-2026
+// One-time endpoint to create aprender tables and profile columns.
+// Env vars: SUPABASE_DB_URL, MIGRATION_SECRET
 
-const postgres = require('postgres');
+import postgres from 'postgres';
 
 const SQL = `
--- Profiles new columns
 alter table profiles
-  add column if not exists username            text,
-  add column if not exists apellido1           text default '',
-  add column if not exists apellido2           text default '',
-  add column if not exists university          text default '',
-  add column if not exists study_year          text default '',
-  add column if not exists subscription_status text default 'pending',
-  add column if not exists flow_customer_id    text,
+  add column if not exists username             text,
+  add column if not exists apellido1            text default '',
+  add column if not exists apellido2            text default '',
+  add column if not exists university           text default '',
+  add column if not exists study_year           text default '',
+  add column if not exists subscription_status  text default 'pending',
+  add column if not exists flow_customer_id     text,
   add column if not exists flow_subscription_id text;
 
--- Add check constraint if it doesn't exist
 do $$ begin
   if not exists (
-    select 1 from information_schema.constraint_column_usage
-    where table_name = 'profiles' and constraint_name = 'profiles_subscription_status_check'
+    select 1 from pg_constraint where conname = 'profiles_subscription_status_check'
   ) then
-    alter table profiles
-      add constraint profiles_subscription_status_check
+    alter table profiles add constraint profiles_subscription_status_check
       check (subscription_status in ('pending','active','cancelled','free'));
   end if;
 end $$;
 
--- Update handle_new_user trigger
 create or replace function handle_new_user()
 returns trigger as $$
 begin
@@ -46,16 +40,15 @@ begin
   )
   on conflict (id) do update set
     name       = excluded.name,
-    username   = excluded.username,
-    apellido1  = excluded.apellido1,
-    apellido2  = excluded.apellido2,
-    university = excluded.university,
-    study_year = excluded.study_year;
+    username   = coalesce(excluded.username, profiles.username),
+    apellido1  = coalesce(excluded.apellido1, profiles.apellido1),
+    apellido2  = coalesce(excluded.apellido2, profiles.apellido2),
+    university = coalesce(excluded.university, profiles.university),
+    study_year = coalesce(excluded.study_year, profiles.study_year);
   return new;
 end;
 $$ language plpgsql security definer;
 
--- Aprender blocks
 create table if not exists aprender_blocks (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references auth.users(id) on delete cascade,
@@ -71,7 +64,6 @@ do $$ begin
   end if;
 end $$;
 
--- Aprender block sources
 create table if not exists aprender_block_sources (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references auth.users(id) on delete cascade,
@@ -90,7 +82,6 @@ do $$ begin
   end if;
 end $$;
 
--- Aprender block chats
 create table if not exists aprender_block_chats (
   id         uuid primary key default gen_random_uuid(),
   user_id    uuid not null references auth.users(id) on delete cascade,
@@ -107,7 +98,7 @@ do $$ begin
 end $$;
 `;
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
   const secret = process.env.MIGRATION_SECRET;
@@ -117,20 +108,17 @@ module.exports = async function handler(req, res) {
 
   const dbUrl = process.env.SUPABASE_DB_URL;
   if (!dbUrl) {
-    return res.status(500).json({
-      error: 'SUPABASE_DB_URL not set',
-      hint: 'Add your Supabase postgres connection string as SUPABASE_DB_URL in Vercel env vars. Find it at: Supabase Dashboard → Settings → Database → Connection string → URI',
-    });
+    return res.status(500).json({ error: 'SUPABASE_DB_URL not configured' });
   }
 
   const sql = postgres(dbUrl, { ssl: 'require', max: 1, idle_timeout: 20, connect_timeout: 15 });
   try {
     await sql.unsafe(SQL);
     await sql.end();
-    return res.status(200).json({ ok: true, message: 'Migración completada exitosamente.' });
+    return res.status(200).json({ ok: true, message: 'Migración completada.' });
   } catch (err) {
     console.error('Migration error:', err);
     try { await sql.end({ timeout: 3 }); } catch {}
     return res.status(500).json({ error: err.message });
   }
-};
+}

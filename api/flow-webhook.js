@@ -1,10 +1,9 @@
 // GET /api/flow-webhook?token=...
 // Flow calls this URL (urlConfirmation) when a subscription payment is processed.
-// Must return HTTP 200. Updates Supabase subscription_status.
-// Env vars: FLOW_API_KEY, FLOW_SECRET_KEY, VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+// Must return HTTP 200.
 
-const crypto = require('crypto');
-const { createClient } = require('@supabase/supabase-js');
+import crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 
 const FLOW_API = 'https://www.flow.cl/api';
 
@@ -23,10 +22,9 @@ async function flowGet(path, params) {
   return res.json();
 }
 
-module.exports = async function handler(req, res) {
-  // Flow sends GET for subscription confirmations
+export default async function handler(req, res) {
   const token = req.query.token || req.body?.token;
-  if (!token) return res.status(200).end(); // Always return 200 to Flow
+  if (!token) return res.status(200).end();
 
   const supabaseAdmin = createClient(
     process.env.VITE_SUPABASE_URL,
@@ -37,14 +35,12 @@ module.exports = async function handler(req, res) {
     const payment = await flowGet('/payment/getStatus', { token });
 
     if (payment.status === 2) {
-      // Paid — activate via app_metadata (works without schema migration)
       const userId     = payment.commerceOrder;
       const customerId = payment.customerId ?? null;
       await supabaseAdmin.auth.admin.updateUserById(userId, {
         app_metadata: { subscription_status: 'active', flow_customer_id: customerId },
       });
     } else if (payment.status === 5 || payment.status === 12) {
-      // Reversed or cancelled — deactivate
       const userId = payment.commerceOrder;
       if (userId) {
         await supabaseAdmin.auth.admin.updateUserById(userId, {
@@ -54,8 +50,7 @@ module.exports = async function handler(req, res) {
     }
   } catch (err) {
     console.error('Flow webhook error:', err);
-    // Still return 200 so Flow doesn't retry indefinitely
   }
 
   return res.status(200).end();
-};
+}

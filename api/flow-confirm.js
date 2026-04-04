@@ -1,10 +1,8 @@
 // GET /api/flow-confirm?token=...
 // Verifies a Flow subscription payment token and updates Supabase profile.
-// Called from the success page to confirm the subscription is active.
-// Env vars: FLOW_API_KEY, FLOW_SECRET_KEY, VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
 
-const crypto = require('crypto');
-const { createClient } = require('@supabase/supabase-js');
+import crypto from 'crypto';
+import { createClient } from '@supabase/supabase-js';
 
 const FLOW_API = 'https://www.flow.cl/api';
 
@@ -23,7 +21,7 @@ async function flowGet(path, params) {
   return res.json();
 }
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'GET') return res.status(405).end();
 
   const { token } = req.query;
@@ -35,10 +33,8 @@ module.exports = async function handler(req, res) {
   );
 
   try {
-    // Verify payment status with Flow
     const payment = await flowGet('/payment/getStatus', { token });
 
-    // Flow status 2 = paid
     if (payment.status !== 2) {
       return res.status(402).json({ error: 'Pago no completado', flowStatus: payment.status });
     }
@@ -46,15 +42,14 @@ module.exports = async function handler(req, res) {
     const userId     = payment.commerceOrder;
     const customerId = payment.customerId ?? null;
 
-    // Update app_metadata via Auth Admin API (works without schema migration)
     await supabaseAdmin.auth.admin.updateUserById(userId, {
       app_metadata: { subscription_status: 'active', flow_customer_id: customerId },
     });
 
-    // Also try to update profiles table (works after schema migration)
-    await supabaseAdmin.from('profiles').update({
-      subscription_status:  'active',
-      updated_at:           new Date().toISOString(),
+    // Also try profiles table (works after schema migration)
+    supabaseAdmin.from('profiles').update({
+      subscription_status: 'active',
+      updated_at:          new Date().toISOString(),
     }).eq('id', userId).then(() => {}).catch(() => {});
 
     return res.status(200).json({ status: 'active' });
@@ -62,4 +57,4 @@ module.exports = async function handler(req, res) {
     console.error('Flow confirm error:', err);
     return res.status(500).json({ error: err.message });
   }
-};
+}
