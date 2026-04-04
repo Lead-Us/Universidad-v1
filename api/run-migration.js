@@ -3,7 +3,7 @@
 // Called automatically after deploy. Delete or disable after successful run.
 // Env vars: MIGRATION_SECRET, SUPABASE_DB_URL (postgres connection string)
 
-const { Client } = require('pg');
+const postgres = require('postgres');
 
 const SQL = `
 -- Profiles new columns
@@ -123,15 +123,14 @@ module.exports = async function handler(req, res) {
     });
   }
 
-  const client = new Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
+  const sql = postgres(dbUrl, { ssl: 'require', max: 1, idle_timeout: 20, connect_timeout: 15 });
   try {
-    await client.connect();
-    await client.query(SQL);
-    await client.end();
+    await sql.unsafe(SQL);
+    await sql.end();
     return res.status(200).json({ ok: true, message: 'Migración completada exitosamente.' });
   } catch (err) {
     console.error('Migration error:', err);
-    try { await client.end(); } catch {}
+    try { await sql.end({ timeout: 3 }); } catch {}
     return res.status(500).json({ error: err.message });
   }
 };
