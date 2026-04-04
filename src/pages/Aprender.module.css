@@ -1,36 +1,170 @@
-.back {
+/* ── Project Card ── */
+.projectCard {
+  border-radius: var(--lg-radius-xl);
+  padding: var(--space-5);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  backdrop-filter: var(--lg-blur-base);
+  -webkit-backdrop-filter: var(--lg-blur-base);
+  border: 1px solid rgba(255,255,255,0.55);
+  border-bottom-color: rgba(255,255,255,0.25);
+  box-shadow: var(--lg-shadow);
+  transition:
+    transform    var(--dur-fast) var(--ease-spring),
+    box-shadow   var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.specular {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 55%;
+  background: linear-gradient(
+    170deg,
+    rgba(255,255,255,0.55) 0%,
+    rgba(255,255,255,0.10) 45%,
+    transparent 100%
+  );
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.projectCard:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: var(--lg-shadow-hover);
+  border-color: rgba(255,255,255,0.75);
+}
+.projectCard:active { transform: scale(0.98); }
+.projectCard > * { position: relative; z-index: 1; }
+
+.cardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.blockCount {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-2);
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  font-size: var(--text-sm);
-  cursor: pointer;
-  padding: 0;
-  margin-bottom: var(--space-5);
-  transition: color var(--dur-fast) var(--ease-out);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  color: rgba(255,255,255,0.85);
+  background: rgba(0,0,0,0.18);
+  backdrop-filter: blur(4px);
+  padding: 3px 10px;
+  border-radius: var(--lg-radius-pill);
 }
 
-.back:hover { color: var(--text-primary); }
+.cardActions { display: flex; align-items: center; gap: 4px; }
 
-.levelHeader {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.editBtn {
+  background: rgba(255,255,255,0.25);
+  border: 1px solid rgba(255,255,255,0.40);
+  color: rgba(255,255,255,0.85);
+  font-size: 15px; cursor: pointer; padding: 5px;
+  border-radius: var(--lg-radius-sm); line-height: 1; display: flex; align-items: center;
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-spring);
+}
+.editBtn:hover { background: rgba(255,255,255,0.40); color: #fff; }
+.editBtn:active { transform: scale(0.88); }
+
+.deleteBtn {
+  background: rgba(220,38,38,0.25); border: 1px solid rgba(255,255,255,0.30);
+  color: rgba(255,255,255,0.85); font-size: 15px; cursor: pointer; padding: 5px;
+  border-radius: var(--lg-radius-sm); line-height: 1; display: flex; align-items: center;
+  transition: background var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-spring);
+}
+.deleteBtn:hover { background: rgba(220,38,38,0.50); color: #fff; }
+.deleteBtn:active { transform: scale(0.88); }
+
+.confirmLabel {
+  font-size: 11px; font-weight: var(--weight-semibold); color: #fff;
+  background: rgba(0,0,0,0.30); padding: 3px 8px;
+  border-radius: var(--lg-radius-pill); white-space: nowrap;
+}
+
+.confirmBtn {
+  background: rgba(220,38,38,0.50); border: 1px solid rgba(255,255,255,0.40); color: #fff;
+  font-size: 15px; cursor: pointer; padding: 5px; border-radius: var(--lg-radius-sm);
+  line-height: 1; display: flex; align-items: center;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.confirmBtn:hover { background: rgba(220,38,38,0.80); }
+
+.cardName {
+  font-family: var(--font-display); font-size: var(--text-xl);
+  font-weight: var(--weight-semibold); color: #fff;
+  letter-spacing: -0.01em; line-height: 1.2; margin: 0;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.cardDesc {
+  font-size: var(--text-sm); color: rgba(255,255,255,0.75); line-height: 1.45; margin: 0;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+
+.cardFooter { margin-top: auto; }
+
+.progressBar {
+  height: 4px; background: rgba(255,255,255,0.25);
+  border-radius: var(--lg-radius-pill); overflow: hidden;
+}
+
+.progressFill {
+  height: 100%; background: rgba(255,255,255,0.70);
+  border-radius: inherit; transition: width var(--dur-base) var(--ease-out); min-width: 4px;
+}
+
+/* ── Loading skeleton ── */
+.loadingGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: var(--space-4);
-  margin-bottom: var(--space-6);
 }
 
-.breadcrumb {
-  font-size: var(--text-sm);
-  color: var(--text-muted);
-  margin: 0;
+.skeleton {
+  height: 180px; border-radius: var(--lg-radius-xl);
+  background: linear-gradient(90deg, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.08) 50%, rgba(0,0,0,0.04) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
 }
 
-.modelDot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  flex-shrink: 0;
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
+
+/* ── Empty state ── */
+.empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: var(--space-3);
+  padding: var(--space-16) var(--space-6); text-align: center;
+}
+
+.emptyIcon {
+  width: 64px; height: 64px; border-radius: var(--lg-radius-xl);
+  background: var(--lg-surface); display: flex; align-items: center;
+  justify-content: center; font-size: 28px; color: var(--text-muted);
+}
+
+.emptyTitle { font-size: var(--text-lg); font-weight: var(--weight-semibold); color: var(--text-primary); margin: 0; }
+.emptyText { font-size: var(--text-sm); color: var(--text-muted); line-height: 1.6; max-width: 320px; margin: 0; }
+
+/* ── Legacy back button ── */
+.back {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  background: none; border: none; font-size: var(--text-sm); font-weight: var(--weight-medium);
+  font-family: var(--font-ui); color: var(--text-muted); cursor: pointer; padding: 0;
+  margin-bottom: var(--space-4); transition: color var(--dur-fast) var(--ease-out);
+}
+.back:hover { color: var(--text-secondary); }
+
+.levelHeader { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-6); }
+.modelDot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.breadcrumb { font-size: var(--text-sm); color: var(--text-muted); margin: var(--space-1) 0 0; }

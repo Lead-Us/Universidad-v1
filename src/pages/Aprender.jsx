@@ -1,219 +1,92 @@
 import { useState, useEffect, useCallback } from 'react';
-import { RiArrowLeftLine, RiAddLine, RiPencilLine } from 'react-icons/ri';
+import { useNavigate } from 'react-router-dom';
+import { RiAddLine, RiPencilLine, RiDeleteBinLine, RiCheckLine, RiCloseLine, RiArchive2Line as RiBoxLine } from 'react-icons/ri';
 import {
   getLearningModels, createLearningModel, updateLearningModel, deleteLearningModel,
-  getSubmodules, createSubmodule, updateSubmodule, deleteSubmodule,
-  seedDefaultModels,
+  getBlocks,
 } from '../services/aprendizajeService.js';
 import { RAMO_COLORS } from '../lib/ramoColors.js';
-import ModelCard    from '../components/aprender/ModelCard.jsx';
-import SubmoduleCard from '../components/aprender/SubmoduleCard.jsx';
-import PromptViewer  from '../components/aprender/PromptViewer.jsx';
-import PromptEditor  from '../components/aprender/PromptEditor.jsx';
-import NotebookView  from '../components/aprender/NotebookView.jsx';
-import Modal         from '../components/shared/Modal.jsx';
-import Button        from '../components/shared/Button.jsx';
-import LoadingSpinner from '../components/shared/LoadingSpinner.jsx';
+import Modal  from '../components/shared/Modal.jsx';
+import Button from '../components/shared/Button.jsx';
 import styles from './Aprender.module.css';
 
-// ── Level 3 — Prompt view/edit ────────────────────────────────────────────────
-function PromptLevel({ model, sub, onBack, onSaved }) {
-  const [editing, setEditing] = useState(false);
-  const [saving,  setSaving]  = useState(false);
-  const [current, setCurrent] = useState(sub);
+function ProjectCard({ project, blockCount, onEdit, onDelete, onClick }) {
+  const [confirming, setConfirming] = useState(false);
 
-  const handleSave = async (content) => {
-    setSaving(true);
-    try {
-      const updated = await updateSubmodule(current.id, model.id, { prompt_content: content });
-      setCurrent(updated);
-      setEditing(false);
-      onSaved();
-    } finally {
-      setSaving(false);
-    }
-  };
+  const handleDelete = (e) => { e.stopPropagation(); setConfirming(true); }
+  const handleConfirm = (e) => { e.stopPropagation(); onDelete(project.id); }
+  const handleCancel  = (e) => { e.stopPropagation(); setConfirming(false); }
 
   return (
-    <div className="animate-fadeIn">
-      <button className={styles.back} onClick={onBack}>
-        <RiArrowLeftLine /> {model.name} › {current.name}
-      </button>
+    <div
+      className={styles.projectCard}
+      style={{ background: project.color }}
+      onClick={() => !confirming && onClick(project)}
+    >
+      {/* Specular highlight */}
+      <div className={styles.specular} />
 
-      <div className={styles.levelHeader}>
-        <div>
-          <h1 className="section-title">{current.name}</h1>
-          <p className={styles.breadcrumb}>{model.name}</p>
-        </div>
-        {!editing && (
-          <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>
-            <RiPencilLine /> Editar
-          </Button>
-        )}
-      </div>
-
-      {editing ? (
-        <PromptEditor
-          initialContent={current.prompt_content}
-          onSave={handleSave}
-          onCancel={() => setEditing(false)}
-          loading={saving}
-        />
-      ) : (
-        <PromptViewer content={current.prompt_content} />
-      )}
-    </div>
-  );
-}
-
-// ── Level 2 — Submodules list ─────────────────────────────────────────────────
-function SubmodulesLevel({ model, onBack, onSelectSub }) {
-  const [subs, setSubs]       = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [modal, setModal]     = useState(false);
-  const [editing, setEditing] = useState(null); // sub being edited
-  const [form, setForm]       = useState({ name: '', order: 1 });
-  const [saving, setSaving]   = useState(false);
-
-  const load = useCallback(async () => {
-    setLoading(true);
-    try   { setSubs(await getSubmodules(model.id)); }
-    finally { setLoading(false); }
-  }, [model.id]);
-
-  useEffect(() => { load(); }, [load]);
-
-  const openAdd = () => {
-    setEditing(null);
-    setForm({ name: '', order: subs.length + 1 });
-    setModal(true);
-  };
-
-  const openEdit = (sub) => {
-    setEditing(sub);
-    setForm({ name: sub.name, order: sub.order });
-    setModal(true);
-  };
-
-  const handleSave = async () => {
-    setSaving(true);
-    try {
-      if (editing) {
-        await updateSubmodule(editing.id, model.id, form);
-      } else {
-        await createSubmodule({ ...form, model_id: model.id, prompt_content: '' });
-      }
-      await load();
-      setModal(false);
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    await deleteSubmodule(id, model.id);
-    await load();
-  };
-
-  return (
-    <div className="animate-fadeIn">
-      <button className={styles.back} onClick={onBack}>
-        <RiArrowLeftLine /> Métodos
-      </button>
-
-      <div className={styles.levelHeader}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-          <span className={styles.modelDot} style={{ background: model.color }} />
-          <h1 className="section-title">{model.name}</h1>
-        </div>
-        <Button size="sm" onClick={openAdd}>
-          <RiAddLine /> Sub-módulo
-        </Button>
-      </div>
-
-      {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-8)' }}>
-          <LoadingSpinner />
-        </div>
-      ) : (
-        <div className={`cards-grid stagger`}>
-          {subs.map(s => (
-            <SubmoduleCard
-              key={s.id}
-              sub={s}
-              modelColor={model.color}
-              onClick={() => onSelectSub(s)}
-              onEdit={openEdit}
-              onDelete={handleDelete}
-            />
-          ))}
-          {subs.length === 0 && (
-            <p style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
-              Sin sub-módulos aún. Agrega el primero.
-            </p>
+      <div className={styles.cardTop}>
+        <span className={styles.blockCount}>
+          <RiBoxLine style={{ marginRight: 4 }} />
+          {blockCount} / 21 bloques
+        </span>
+        <div className={styles.cardActions} onClick={e => e.stopPropagation()}>
+          {confirming ? (
+            <>
+              <span className={styles.confirmLabel}>¿Eliminar?</span>
+              <button className={styles.confirmBtn} onClick={handleConfirm}><RiCheckLine /></button>
+              <button className={styles.editBtn}    onClick={handleCancel}><RiCloseLine /></button>
+            </>
+          ) : (
+            <>
+              <button className={styles.editBtn}   onClick={e => { e.stopPropagation(); onEdit(project); }}><RiPencilLine /></button>
+              <button className={styles.deleteBtn} onClick={handleDelete}><RiDeleteBinLine /></button>
+            </>
           )}
         </div>
+      </div>
+
+      <h3 className={styles.cardName}>{project.name}</h3>
+      {project.description && (
+        <p className={styles.cardDesc}>{project.description}</p>
       )}
 
-      <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Editar sub-módulo' : 'Nuevo sub-módulo'}>
-        <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
-          <div>
-            <label>Nombre</label>
-            <input
-              value={form.name}
-              onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              placeholder="Aprender, Pulir, Practicar…"
-              autoFocus
-            />
-          </div>
-          <div>
-            <label>Orden</label>
-            <input
-              type="number"
-              min="1"
-              value={form.order}
-              onChange={e => setForm(f => ({ ...f, order: Number(e.target.value) }))}
-              style={{ width: '80px' }}
-            />
-          </div>
+      <div className={styles.cardFooter}>
+        <div className={styles.progressBar}>
+          <div
+            className={styles.progressFill}
+            style={{ width: `${Math.min((blockCount / 21) * 100, 100)}%` }}
+          />
         </div>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-3)' }}>
-          <Button variant="ghost" onClick={() => setModal(false)}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={saving || !form.name}>
-            {saving ? 'Guardando…' : editing ? 'Guardar' : 'Crear'}
-          </Button>
-        </div>
-      </Modal>
+      </div>
     </div>
   );
 }
 
-// ── Level 1 — Models list (root) ──────────────────────────────────────────────
-function ModelsLevel({ onSelectModel }) {
-  const [models,  setModels]  = useState([]);
-  const [subCounts, setSubCounts] = useState({});
-  const [loading, setLoading] = useState(true);
-  const [modal,   setModal]   = useState(false);
-  const [editing, setEditing] = useState(null);
-  const [form,    setForm]    = useState({ name: '', description: '', color: RAMO_COLORS[0].hex });
-  const [saving,  setSaving]  = useState(false);
+export default function Aprender() {
+  const navigate = useNavigate();
+
+  const [projects,   setProjects]   = useState([]);
+  const [blockCounts, setBlockCounts] = useState({});
+  const [loading,    setLoading]    = useState(true);
+  const [modal,      setModal]      = useState(false);
+  const [editing,    setEditing]    = useState(null);
+  const [form,       setForm]       = useState({ name: '', description: '', color: RAMO_COLORS[0].hex });
+  const [saving,     setSaving]     = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      let ms = await getLearningModels();
-      const hasNotebook = ms.some(m => m.name.toLowerCase().includes('notebook'));
-      if (ms.length === 0 || !hasNotebook) {
-        await seedDefaultModels(ms.length === 0);
-        ms = await getLearningModels();
-      }
-      setModels(ms);
+      const models = await getLearningModels();
+      setProjects(models);
+      // Load block counts in parallel
       const counts = {};
-      await Promise.all(ms.map(async m => {
-        const subs = await getSubmodules(m.id);
-        counts[m.id] = subs.length;
+      await Promise.all(models.map(async m => {
+        const blocks = await getBlocks(m.id);
+        counts[m.id] = blocks.length;
       }));
-      setSubCounts(counts);
+      setBlockCounts(counts);
     } finally {
       setLoading(false);
     }
@@ -221,15 +94,15 @@ function ModelsLevel({ onSelectModel }) {
 
   useEffect(() => { load(); }, [load]);
 
-  const openAdd = () => {
+  const openCreate = () => {
     setEditing(null);
     setForm({ name: '', description: '', color: RAMO_COLORS[0].hex });
     setModal(true);
   };
 
-  const openEdit = (model) => {
-    setEditing(model);
-    setForm({ name: model.name, description: model.description ?? '', color: model.color });
+  const openEdit = (project) => {
+    setEditing(project);
+    setForm({ name: project.name, description: project.description ?? '', color: project.color });
     setModal(true);
   };
 
@@ -251,50 +124,61 @@ function ModelsLevel({ onSelectModel }) {
   };
 
   return (
-    <div>
-      <div className="section-header">
-        <h1 className="section-title">Aprender</h1>
-        <Button onClick={openAdd}>
-          <RiAddLine /> Nuevo método
-        </Button>
+    <div className="page">
+      <div className="page-content">
+        <div className="section-header">
+          <h1 className="section-title">Aprender</h1>
+          <Button onClick={openCreate}>
+            <RiAddLine /> Nuevo proyecto
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className={styles.loadingGrid}>
+            {[1, 2, 3].map(i => <div key={i} className={styles.skeleton} />)}
+          </div>
+        ) : projects.length === 0 ? (
+          <div className={styles.empty}>
+            <div className={styles.emptyIcon}><RiBoxLine /></div>
+            <h3 className={styles.emptyTitle}>Sin proyectos de aprendizaje</h3>
+            <p className={styles.emptyText}>
+              Crea tu primer proyecto para empezar a estudiar con IA.
+            </p>
+            <Button onClick={openCreate}><RiAddLine /> Crear proyecto</Button>
+          </div>
+        ) : (
+          <div className="cards-grid stagger">
+            {projects.map(p => (
+              <ProjectCard
+                key={p.id}
+                project={p}
+                blockCount={blockCounts[p.id] ?? 0}
+                onEdit={openEdit}
+                onDelete={handleDelete}
+                onClick={() => navigate(`/aprender/${p.id}`)}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
-      {loading ? (
-        <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--space-8)' }}>
-          <LoadingSpinner size="lg" />
-        </div>
-      ) : (
-        <div className="cards-grid stagger">
-          {models.map(m => (
-            <ModelCard
-              key={m.id}
-              model={m}
-              subCount={subCounts[m.id] ?? 0}
-              onClick={() => onSelectModel(m)}
-              onEdit={openEdit}
-              onDelete={handleDelete}
-            />
-          ))}
-        </div>
-      )}
-
-      <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Editar método' : 'Nuevo método'}>
+      <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Editar proyecto' : 'Nuevo proyecto'}>
         <div className="form-group" style={{ marginBottom: 'var(--space-6)' }}>
           <div>
-            <label>Nombre</label>
+            <label>Nombre del proyecto</label>
             <input
               value={form.name}
               onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-              placeholder="Feynman Technique…"
+              placeholder="Mi método de estudio…"
               autoFocus
             />
           </div>
           <div>
-            <label>Descripción</label>
+            <label>Descripción <span style={{ color: 'var(--text-muted)', fontWeight: 400 }}>(opcional)</span></label>
             <textarea
               value={form.description}
               onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="Breve descripción del método…"
+              placeholder="Para qué uso este proyecto…"
               style={{ minHeight: '72px' }}
             />
           </div>
@@ -310,7 +194,8 @@ function ModelsLevel({ onSelectModel }) {
                     width: 28, height: 28,
                     borderRadius: '50%',
                     background: c.hex,
-                    border: form.color === c.hex ? '2px solid #fff' : '2px solid transparent',
+                    border: form.color === c.hex ? '3px solid #fff' : '2px solid transparent',
+                    outline: form.color === c.hex ? `2px solid ${c.hex}` : 'none',
                     cursor: 'pointer',
                     transition: 'transform 150ms',
                     transform: form.color === c.hex ? 'scale(1.2)' : 'scale(1)',
@@ -328,63 +213,6 @@ function ModelsLevel({ onSelectModel }) {
           </Button>
         </div>
       </Modal>
-    </div>
-  );
-}
-
-function isNotebook(model) {
-  return model.name.toLowerCase().includes('notebook');
-}
-
-// ── Root ──────────────────────────────────────────────────────────────────────
-export default function Aprender() {
-  const [selectedModel, setSelectedModel] = useState(null);
-  const [selectedSub,   setSelectedSub]   = useState(null);
-
-  const backToModels    = () => { setSelectedModel(null); setSelectedSub(null); };
-  const backToSubmodules = () => setSelectedSub(null);
-
-  return (
-    <div className="page">
-      <div className="page-content">
-        {!selectedModel && (
-          <ModelsLevel onSelectModel={setSelectedModel} />
-        )}
-
-        {selectedModel && isNotebook(selectedModel) && (
-          <>
-            <button className={styles.back} onClick={backToModels}>
-              <RiArrowLeftLine /> Métodos
-            </button>
-            <div className={styles.levelHeader}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
-                <span className={styles.modelDot} style={{ background: selectedModel.color }} />
-                <h1 className="section-title">{selectedModel.name}</h1>
-              </div>
-            </div>
-            <NotebookView
-              model={selectedModel}
-              storageKey={`notebook_${selectedModel.id}`}
-            />
-          </>
-        )}
-
-        {selectedModel && !isNotebook(selectedModel) && !selectedSub && (
-          <SubmodulesLevel
-            model={selectedModel}
-            onBack={backToModels}
-            onSelectSub={setSelectedSub}
-          />
-        )}
-        {selectedModel && !isNotebook(selectedModel) && selectedSub && (
-          <PromptLevel
-            model={selectedModel}
-            sub={selectedSub}
-            onBack={backToSubmodules}
-            onSaved={() => {}}
-          />
-        )}
-      </div>
     </div>
   );
 }

@@ -182,3 +182,128 @@ export async function deleteSubmodule(id, modelId) {
   const { error } = await supabase.from('learning_submodules').delete().eq('id', id);
   if (error) throw error;
 }
+
+// ── Aprender Blocks ───────────────────────────────────────────────────────────
+
+export async function getBlocks(projectId) {
+  const { data, error } = await supabase
+    .from('aprender_blocks')
+    .select('*')
+    .eq('project_id', projectId)
+    .order('order');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function createBlock({ projectId, title, order }) {
+  const uid = await getUid();
+  const { data, error } = await supabase
+    .from('aprender_blocks')
+    .insert({ user_id: uid, project_id: projectId, title, order })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateBlock(id, changes) {
+  const { data, error } = await supabase
+    .from('aprender_blocks')
+    .update(changes)
+    .eq('id', id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteBlock(id) {
+  const { error } = await supabase.from('aprender_blocks').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Block Sources ─────────────────────────────────────────────────────────────
+
+export async function getSources(blockId) {
+  const { data, error } = await supabase
+    .from('aprender_block_sources')
+    .select('*')
+    .eq('block_id', blockId)
+    .order('created_at');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function addSource({ blockId, type, title, content, fileUrl, fileName }) {
+  const uid = await getUid();
+  const { data, error } = await supabase
+    .from('aprender_block_sources')
+    .insert({
+      user_id:   uid,
+      block_id:  blockId,
+      type,
+      title:     title ?? '',
+      content:   content ?? '',
+      file_url:  fileUrl ?? null,
+      file_name: fileName ?? null,
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function deleteSource(id) {
+  const { error } = await supabase.from('aprender_block_sources').delete().eq('id', id);
+  if (error) throw error;
+}
+
+// ── Block Chats ───────────────────────────────────────────────────────────────
+
+export async function getChatMessages(blockId) {
+  const { data, error } = await supabase
+    .from('aprender_block_chats')
+    .select('*')
+    .eq('block_id', blockId)
+    .order('created_at');
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function saveChatMessage({ blockId, role, content }) {
+  const uid = await getUid();
+  const { data, error } = await supabase
+    .from('aprender_block_chats')
+    .insert({ user_id: uid, block_id: blockId, role, content })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function clearChatHistory(blockId) {
+  const { error } = await supabase
+    .from('aprender_block_chats')
+    .delete()
+    .eq('block_id', blockId);
+  if (error) throw error;
+}
+
+// ── File Upload to Supabase Storage ──────────────────────────────────────────
+
+export async function uploadSourceFile(blockId, file) {
+  const uid = await getUid();
+  const ext  = file.name.split('.').pop();
+  const path = `${uid}/${blockId}/${Date.now()}.${ext}`;
+
+  const { error: uploadErr } = await supabase.storage
+    .from('aprender-files')
+    .upload(path, file, { upsert: false });
+  if (uploadErr) throw uploadErr;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('aprender-files')
+    .getPublicUrl(path);
+
+  return { path, publicUrl };
+}
