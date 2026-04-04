@@ -1,11 +1,11 @@
 // POST /api/aprender-chat
 // Body: { sources, methodPrompt, messages }
 // Returns: { reply }
-// Uses Anthropic claude-sonnet-4-20250514 via ANTHROPIC_API_KEY_APRENDER
+// Uses Anthropic claude-sonnet-4-6 via ANTHROPIC_API_KEY_APRENDER
 
-const Anthropic = require('@anthropic-ai/sdk');
+import Anthropic from '@anthropic-ai/sdk';
 
-module.exports = async function handler(req, res) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -50,7 +50,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const response = await client.messages.create({
-      model:      'claude-sonnet-4-20250514',
+      model:      'claude-sonnet-4-6',
       max_tokens: 2048,
       system:     systemPrompt,
       messages:   anthropicMessages,
@@ -62,4 +62,4 @@ module.exports = async function handler(req, res) {
     console.error('Anthropic API error:', err);
     return res.status(500).json({ error: err.message || 'Error al generar respuesta' });
   }
-};
+}
