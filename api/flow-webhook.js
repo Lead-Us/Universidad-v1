@@ -37,46 +37,19 @@ module.exports = async function handler(req, res) {
     const payment = await flowGet('/payment/getStatus', { token });
 
     if (payment.status === 2) {
-      // Paid — activate subscription
-      const customerId     = payment.customerId ?? null;
-      const subscriptionId = payment.subscriptionId ?? null;
-
-      const updateData = {
-        subscription_status:  'active',
-        flow_customer_id:     customerId,
-        flow_subscription_id: subscriptionId,
-        updated_at:           new Date().toISOString(),
-      };
-
-      if (customerId) {
-        // Try to update by Flow customer ID first
-        const { count } = await supabaseAdmin
-          .from('profiles')
-          .update(updateData)
-          .eq('flow_customer_id', customerId)
-          .select('id', { count: 'exact', head: true });
-
-        // If no rows matched, try by commerceOrder (userId)
-        if (!count) {
-          await supabaseAdmin
-            .from('profiles')
-            .update(updateData)
-            .eq('id', payment.commerceOrder);
-        }
-      } else {
-        await supabaseAdmin
-          .from('profiles')
-          .update(updateData)
-          .eq('id', payment.commerceOrder);
-      }
-    } else if (payment.status === 5 || payment.status === 12) {
-      // Reversed or cancelled subscription
+      // Paid — activate via app_metadata (works without schema migration)
+      const userId     = payment.commerceOrder;
       const customerId = payment.customerId ?? null;
-      if (customerId) {
-        await supabaseAdmin
-          .from('profiles')
-          .update({ subscription_status: 'cancelled', updated_at: new Date().toISOString() })
-          .eq('flow_customer_id', customerId);
+      await supabaseAdmin.auth.admin.updateUserById(userId, {
+        app_metadata: { subscription_status: 'active', flow_customer_id: customerId },
+      });
+    } else if (payment.status === 5 || payment.status === 12) {
+      // Reversed or cancelled — deactivate
+      const userId = payment.commerceOrder;
+      if (userId) {
+        await supabaseAdmin.auth.admin.updateUserById(userId, {
+          app_metadata: { subscription_status: 'cancelled' },
+        });
       }
     }
   } catch (err) {

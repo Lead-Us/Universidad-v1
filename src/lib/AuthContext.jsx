@@ -94,8 +94,10 @@ export function AuthProvider({ children }) {
   };
 
   const displayName = profile?.name || user?.email?.split('@')[0] || 'Usuario';
-  // 'active' = paying subscriber, 'free' = admin/invited user (no payment required)
-  const isSubscribed = ['active', 'free'].includes(profile?.subscription_status);
+  // Read subscription_status from app_metadata (set server-side, not editable by user)
+  // Falls back to profile column if available (after schema migration)
+  const subStatus = user?.app_metadata?.subscription_status ?? profile?.subscription_status;
+  const isSubscribed = ['active', 'free'].includes(subStatus);
 
   return (
     <AuthContext.Provider value={{

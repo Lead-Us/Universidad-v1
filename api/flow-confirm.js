@@ -43,35 +43,19 @@ module.exports = async function handler(req, res) {
       return res.status(402).json({ error: 'Pago no completado', flowStatus: payment.status });
     }
 
-    // The commerceOrder contains our userId (set during subscription creation)
-    // Flow also sends subscription info; we match by email via customerId
-    // We look up the profile by flow_customer_id if available, else fall back to commerceOrder
+    const userId     = payment.commerceOrder;
     const customerId = payment.customerId ?? null;
 
-    let updateQuery = supabaseAdmin.from('profiles').update({
-      subscription_status:   'active',
-      flow_customer_id:      customerId || null,
-      flow_subscription_id:  payment.subscriptionId || null,
-      updated_at:            new Date().toISOString(),
+    // Update app_metadata via Auth Admin API (works without schema migration)
+    await supabaseAdmin.auth.admin.updateUserById(userId, {
+      app_metadata: { subscription_status: 'active', flow_customer_id: customerId },
     });
 
-    if (customerId) {
-      // Match by Flow customer ID
-      const { data: profiles } = await supabaseAdmin
-        .from('profiles')
-        .select('id')
-        .eq('flow_customer_id', customerId)
-        .limit(1);
-
-      if (profiles?.length) {
-        await updateQuery.eq('flow_customer_id', customerId);
-      } else {
-        // Fallback: externalId = userId was set during customer creation
-        await updateQuery.eq('id', payment.commerceOrder);
-      }
-    } else {
-      await updateQuery.eq('id', payment.commerceOrder);
-    }
+    // Also try to update profiles table (works after schema migration)
+    await supabaseAdmin.from('profiles').update({
+      subscription_status:  'active',
+      updated_at:           new Date().toISOString(),
+    }).eq('id', userId).then(() => {}).catch(() => {});
 
     return res.status(200).json({ status: 'active' });
   } catch (err) {
