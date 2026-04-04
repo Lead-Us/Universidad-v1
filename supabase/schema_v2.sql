@@ -12,8 +12,8 @@ alter table profiles
   add column if not exists study_year          text default '',
   add column if not exists subscription_status text default 'pending'
     check (subscription_status in ('pending','active','cancelled')),
-  add column if not exists stripe_customer_id  text,
-  add column if not exists stripe_subscription_id text;
+  add column if not exists flow_customer_id     text,
+  add column if not exists flow_subscription_id text;
 
 -- Update trigger to store extra fields from raw_user_meta_data
 create or replace function handle_new_user()

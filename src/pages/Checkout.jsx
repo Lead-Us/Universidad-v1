@@ -22,10 +22,10 @@ function CheckoutSuccess() {
   const [status, setStatus] = useState('loading'); // loading | ok | error
 
   useEffect(() => {
-    const sessionId = params.get('session_id');
-    if (!sessionId) { setStatus('error'); return; }
+    const token = params.get('token');
+    if (!token) { setStatus('error'); return; }
 
-    fetch(`/api/stripe-verify-session?session_id=${sessionId}`)
+    fetch(`/api/flow-confirm?token=${encodeURIComponent(token)}`)
       .then(r => r.json())
       .then(async data => {
         if (data.status === 'active') {
@@ -119,13 +119,13 @@ export default function Checkout({ variant }) {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch('/api/stripe-create-checkout', {
+      const res = await fetch('/api/flow-create-subscription', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId:    user?.id,
-          email:     user?.email,
-          returnUrl: window.location.origin,
+          userId: user?.id,
+          email:  user?.email,
+          name:   profile?.name,
         }),
       });
       const data = await res.json();
@@ -189,11 +189,11 @@ export default function Checkout({ variant }) {
           disabled={loading}
         >
           <RiShieldCheckLine />
-          {loading ? 'Redirigiendo a Stripe…' : 'Pagar con Stripe'}
+          {loading ? 'Redirigiendo a Flow…' : 'Pagar con Flow'}
         </button>
 
         <p className={styles.secureNote}>
-          <RiShieldCheckLine /> Pago seguro con Stripe. Cancela cuando quieras.
+          <RiShieldCheckLine /> Pago seguro con Flow. Cancela cuando quieras.
         </p>
       </div>
     </div>
