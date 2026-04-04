@@ -94,7 +94,8 @@ export function AuthProvider({ children }) {
   };
 
   const displayName = profile?.name || user?.email?.split('@')[0] || 'Usuario';
-  const isSubscribed = profile?.subscription_status === 'active';
+  // 'active' = paying subscriber, 'free' = admin/invited user (no payment required)
+  const isSubscribed = ['active', 'free'].includes(profile?.subscription_status);
 
   return (
     <AuthContext.Provider value={{

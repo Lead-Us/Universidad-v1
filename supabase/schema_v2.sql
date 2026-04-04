@@ -11,7 +11,7 @@ alter table profiles
   add column if not exists university          text default '',
   add column if not exists study_year          text default '',
   add column if not exists subscription_status text default 'pending'
-    check (subscription_status in ('pending','active','cancelled')),
+    check (subscription_status in ('pending','active','cancelled','free')),
   add column if not exists flow_customer_id     text,
   add column if not exists flow_subscription_id text;
 
