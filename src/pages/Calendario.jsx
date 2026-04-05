@@ -32,7 +32,25 @@ export default function Calendario() {
   const { schedule } = useSchedule();
 
   const ramoMap  = Object.fromEntries(ramos.map(r => [r.id, r]));
-  const dayTasks = tasks.filter(t => t.due_date === selDay);
+
+  // Flatten evaluation items with dates from all ramos
+  const evalEvents = ramos.flatMap(r =>
+    (r.evaluationModules ?? []).flatMap(mod =>
+      (mod.items ?? [])
+        .filter(item => item.date)
+        .map(item => ({
+          id: item.id,
+          date: item.date,
+          ramo_id: r.id,
+          name: item.name ?? 'Evaluación',
+          mod_name: mod.name,
+          type: 'evaluación',
+        }))
+    )
+  );
+
+  const dayTasks  = tasks.filter(t => t.due_date === selDay);
+  const dayEvents = evalEvents.filter(ev => ev.date === selDay);
 
   // Clases del día seleccionado
   const dayOfWeek = selDay
@@ -67,6 +85,7 @@ export default function Calendario() {
           <div className={styles.calWrap}>
             <CalendarView
               tasks={tasks}
+              events={evalEvents}
               onSelectDay={setSelDay}
               selectedDay={selDay}
               onMonthChange={(y, m) => { setYear(y); setMonth(m); }}
@@ -110,11 +129,35 @@ export default function Calendario() {
                 </div>
               )}
 
+              {/* Evaluaciones del día */}
+              {dayEvents.length > 0 && (
+                <div className={styles.classesSection}>
+                  <span className={styles.sectionLabel}>
+                    <RiCalendar2Line /> Evaluaciones
+                  </span>
+                  <div className={styles.classesList}>
+                    {dayEvents.map(ev => {
+                      const ramo = ramoMap[ev.ramo_id];
+                      return (
+                        <div
+                          key={ev.id}
+                          className={styles.classChip}
+                          style={ramo ? { borderLeftColor: ramo.color, background: `${ramo.color}22` } : undefined}
+                        >
+                          <span className={styles.className}>{ev.name}</span>
+                          <span className={styles.classSala}>{ev.mod_name} · {ramo?.name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Bloque de tareas */}
               <div className={styles.taskBlock}>
                 <div className={styles.taskBlockHeader}>
                   <span className={styles.sectionLabel}>
-                    <RiCalendar2Line /> Bloque de tareas
+                    <RiCalendar2Line /> Tareas
                   </span>
                   <span className={styles.taskCount}>{dayTasks.length}</span>
                 </div>

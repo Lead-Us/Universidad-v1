@@ -20,7 +20,7 @@ function buildGrid(year, month) {
   return cells;
 }
 
-export default function CalendarView({ onSelectDay, selectedDay, onMonthChange, tasks: tasksProp }) {
+export default function CalendarView({ onSelectDay, selectedDay, onMonthChange, tasks: tasksProp, events: eventsProp = [] }) {
   const today = new Date();
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
@@ -50,11 +50,16 @@ export default function CalendarView({ onSelectDay, selectedDay, onMonthChange, 
     }
   };
 
-  // Group tasks by date string
+  // Group tasks + events by date string
   const tasksByDay = {};
   tasks.forEach(t => {
     tasksByDay[t.due_date] = tasksByDay[t.due_date] ?? [];
-    tasksByDay[t.due_date].push(t);
+    tasksByDay[t.due_date].push({ ...t, _source: 'task' });
+  });
+  eventsProp.forEach(ev => {
+    if (!ev.date) return;
+    tasksByDay[ev.date] = tasksByDay[ev.date] ?? [];
+    tasksByDay[ev.date].push({ ...ev, due_date: ev.date, _source: 'eval' });
   });
 
   const grid  = buildGrid(year, month);

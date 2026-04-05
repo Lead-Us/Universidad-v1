@@ -208,10 +208,12 @@ export default function AprenderCuaderno() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [nbs, blks] = await Promise.all([getCuadernos(), getBloques(notebookId)]);
+      const nbs = await getCuadernos();
       setNotebook(nbs.find(n => n.id === notebookId) ?? null);
-      setBlocks(blks);
     } catch { /* silencioso */ }
+    try {
+      setBlocks(await getBloques(notebookId));
+    } catch { setBlocks([]); }
     finally { setLoading(false); }
   }, [notebookId]);
 
