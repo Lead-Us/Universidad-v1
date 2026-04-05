@@ -18,6 +18,7 @@ import AprenderBloque    from './pages/AprenderBloque.jsx';
 import Notebook         from './pages/Notebook.jsx';
 import Settings         from './pages/Settings.jsx';
 import ImportarArchivos from './pages/ImportarArchivos.jsx';
+import Admin            from './pages/Admin.jsx';
 
 function AppRoutes() {
   const { isAuthenticated, isSubscribed, loading, user } = useAuth();
@@ -91,6 +92,7 @@ function AppRoutes() {
         <Route path="/tareas"     element={<Calendario />} />
         <Route path="/settings"   element={<Settings />}   />
         <Route path="/importar"   element={<ImportarArchivos />} />
+        <Route path="/admin"      element={<Admin />}      />
         <Route path="*"           element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

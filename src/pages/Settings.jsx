@@ -1,12 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   RiUserLine, RiCheckLine, RiFolderUploadLine, RiArrowRightSLine,
-  RiLogoutBoxLine, RiUserAddLine, RiBuilding2Line, RiGraduationCapLine,
-  RiDeleteBinLine, RiRefreshLine,
+  RiLogoutBoxLine, RiShieldUserLine, RiBuilding2Line, RiGraduationCapLine,
 } from 'react-icons/ri';
 import { useAuth } from '../lib/AuthContext.jsx';
-import { supabase } from '../lib/supabase.js';
 import styles from './Settings.module.css';
 
 const UNIVERSIDADES = [
@@ -130,156 +128,6 @@ function ProfileSection() {
   );
 }
 
-async function apiCall(path, options = {}) {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
-  if (!token) throw new Error('No hay sesión activa.');
-  const res  = await fetch(path, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options.headers ?? {}) },
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Error del servidor.');
-  return data;
-}
-
-function FreeAccessSection() {
-  const [email,    setEmail]    = useState('');
-  const [loading,  setLoading]  = useState(false);
-  const [msg,      setMsg]      = useState('');
-  const [isErr,    setIsErr]    = useState(false);
-  const [users,    setUsers]    = useState([]);
-  const [loadingList, setLoadingList] = useState(true);
-  const [revoking, setRevoking] = useState(null);
-  const [isAdmin,  setIsAdmin]  = useState(null); // null=checking, true=admin, false=not
-
-  const loadList = useCallback(async () => {
-    setLoadingList(true);
-    try {
-      const data = await apiCall('/api/grant-free');
-      setUsers(data.users ?? []);
-      setIsAdmin(true);
-    } catch (e) {
-      // 401/403 → not admin, hide section
-      if (e.message?.includes('administrador') || e.message?.includes('autenticado') || e.message?.includes('Token')) {
-        setIsAdmin(false);
-      } else {
-        setIsAdmin(true); // admin but other error (e.g. 500), still show panel
-      }
-    } finally {
-      setLoadingList(false);
-    }
-  }, []);
-
-  useEffect(() => { loadList(); }, [loadList]);
-
-  if (isAdmin === false) return null;
-  if (isAdmin === null)  return null; // still checking
-
-  const handleGrant = async (e) => {
-    e.preventDefault();
-    setMsg(''); setLoading(true);
-    try {
-      const data = await apiCall('/api/grant-free', {
-        method: 'POST',
-        body: JSON.stringify({ email: email.trim() }),
-      });
-      setMsg(data.message);
-      setIsErr(false);
-      setEmail('');
-      await loadList();
-    } catch (err) {
-      setMsg(err.message);
-      setIsErr(true);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRevoke = async (targetEmail) => {
-    setRevoking(targetEmail);
-    try {
-      const data = await apiCall('/api/grant-free', {
-        method: 'POST',
-        body: JSON.stringify({ email: targetEmail, action: 'revoke' }),
-      });
-      setMsg(data.message);
-      setIsErr(false);
-      await loadList();
-    } catch (err) {
-      setMsg(err.message);
-      setIsErr(true);
-    } finally {
-      setRevoking(null);
-    }
-  };
-
-  return (
-    <Section icon={RiUserAddLine} title="Acceso gratuito">
-      <div className={styles.freeForm}>
-        <form onSubmit={handleGrant} className={styles.freeInputRow}>
-          <input
-            className={styles.input}
-            type="email"
-            placeholder="correo@ejemplo.com"
-            value={email}
-            onChange={e => { setEmail(e.target.value); setMsg(''); }}
-            required
-            disabled={loading}
-          />
-          <button className={styles.saveBtn} type="submit" disabled={loading || !email.trim()}>
-            {loading ? 'Verificando…' : 'Dar acceso'}
-          </button>
-        </form>
-
-        {msg && (
-          <p className={isErr ? styles.freeError : styles.freeSuccess}>{msg}</p>
-        )}
-      </div>
-
-      {/* Lista de usuarios con acceso gratuito */}
-      <div className={styles.freeListHeader}>
-        <span className={styles.freeListTitle}>Con acceso gratuito</span>
-        <button
-          className={styles.freeRefreshBtn}
-          onClick={loadList}
-          disabled={loadingList}
-          title="Actualizar lista"
-          type="button"
-        >
-          <RiRefreshLine className={loadingList ? styles.freeSpinner : ''} />
-        </button>
-      </div>
-
-      {loadingList ? (
-        <p className={styles.freeListEmpty}>Cargando…</p>
-      ) : users.length === 0 ? (
-        <p className={styles.freeListEmpty}>Ningún usuario con acceso gratuito aún.</p>
-      ) : (
-        <ul className={styles.freeList}>
-          {users.map(u => (
-            <li key={u.id} className={styles.freeListItem}>
-              <div className={styles.freeUserInfo}>
-                <span className={styles.freeUserEmail}>{u.email}</span>
-                {u.name && <span className={styles.freeUserName}>{u.name}</span>}
-              </div>
-              <button
-                className={styles.freeRevokeBtn}
-                onClick={() => handleRevoke(u.email)}
-                disabled={revoking === u.email}
-                title="Revocar acceso"
-                type="button"
-              >
-                {revoking === u.email ? '…' : <RiDeleteBinLine />}
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
-    </Section>
-  );
-}
-
 export default function Settings() {
   const { signOut } = useAuth();
   const navigate = useNavigate();
@@ -301,7 +149,16 @@ export default function Settings() {
         <div className={styles.grid}>
           <ProfileSection />
 
-          <FreeAccessSection />
+          <Section icon={RiShieldUserLine} title="Administración">
+            <p className={styles.sectionDesc}>
+              Panel de administración para gestionar accesos y usuarios de la plataforma.
+            </p>
+            <button className={styles.aprenderBtn} onClick={() => navigate('/admin')}>
+              <RiShieldUserLine />
+              <span>Ir al panel admin</span>
+              <RiArrowRightSLine className={styles.aprenderArrow} />
+            </button>
+          </Section>
 
           <Section icon={RiFolderUploadLine} title="Importar">
             <p className={styles.sectionDesc}>
