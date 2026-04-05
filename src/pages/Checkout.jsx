@@ -16,71 +16,58 @@ const PLAN_ITEMS = [
 ];
 
 function CheckoutSuccess() {
-  const navigate        = useNavigate();
-  const [params]        = useSearchParams();
+  const navigate           = useNavigate();
+  const [params]           = useSearchParams();
   const { refreshProfile } = useAuth();
-  const [status, setStatus] = useState('loading'); // loading | ok | error
+  const [status, setStatus] = useState('loading');
 
   useEffect(() => {
     const token = params.get('token');
     if (!token) { setStatus('error'); return; }
-
     fetch(`/api/flow-confirm?token=${encodeURIComponent(token)}`)
       .then(r => r.json())
       .then(async data => {
-        if (data.status === 'active') {
-          await refreshProfile();
-          setStatus('ok');
-        } else {
-          setStatus('error');
-        }
+        if (data.status === 'active') { await refreshProfile(); setStatus('ok'); }
+        else setStatus('error');
       })
       .catch(() => setStatus('error'));
   }, [params, refreshProfile]);
 
-  if (status === 'loading') {
-    return (
-      <div className={styles.wrap}>
-        <div className={styles.blob1} /><div className={styles.blob2} />
-        <div className={styles.card}>
-          <RiRefreshLine className={styles.spinning} />
-          <p className={styles.loadingText}>Verificando pago…</p>
-        </div>
+  if (status === 'loading') return (
+    <div className={styles.wrap}>
+      <div className={styles.blob1} /><div className={styles.blob2} />
+      <div className={styles.card}>
+        <RiRefreshLine className={styles.spinning} />
+        <p className={styles.loadingText}>Verificando pago…</p>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (status === 'error') {
-    return (
-      <div className={styles.wrap}>
-        <div className={styles.blob1} /><div className={styles.blob2} />
-        <div className={styles.card}>
-          <div className={styles.errorIcon}>⚠️</div>
-          <h2 className={styles.successTitle}>Hubo un problema</h2>
-          <p className={styles.successText}>
-            No pudimos verificar tu pago. Si ya pagaste, espera un momento y recarga la página.
-          </p>
-          <button className={styles.continueBtn} onClick={() => window.location.reload()}>
-            Reintentar
-          </button>
-        </div>
+  if (status === 'error') return (
+    <div className={styles.wrap}>
+      <div className={styles.blob1} /><div className={styles.blob2} />
+      <div className={styles.card}>
+        <div className={styles.errorIcon}>⚠️</div>
+        <h2 className={styles.successTitle}>Hubo un problema</h2>
+        <p className={styles.successText}>
+          No pudimos verificar tu pago. Si ya pagaste, espera un momento y recarga la página.
+        </p>
+        <button className={styles.continueBtn} onClick={() => window.location.reload()}>
+          Reintentar
+        </button>
       </div>
-    );
-  }
+    </div>
+  );
 
   return (
     <div className={styles.wrap}>
       <div className={styles.blob1} /><div className={styles.blob2} />
       <div className={styles.card}>
-        <div className={styles.successBadge}>
-          <RiShieldCheckLine />
-        </div>
+        <div className={styles.successBadge}><RiShieldCheckLine /></div>
         <h2 className={styles.successTitle}>¡Pago exitoso!</h2>
-        <p className={styles.successText}>
-          Tu suscripción está activa. Ahora configuremos tu plataforma.
-        </p>
+        <p className={styles.successText}>Tu suscripción está activa. Ahora configuremos tu plataforma.</p>
         <button className={styles.continueBtn} onClick={() => navigate('/')}>
-          Continuar al onboarding →
+          Continuar →
         </button>
       </div>
     </div>
@@ -95,9 +82,7 @@ function CheckoutCancelled() {
       <div className={styles.card}>
         <div className={styles.errorIcon}>✕</div>
         <h2 className={styles.successTitle}>Pago cancelado</h2>
-        <p className={styles.successText}>
-          No se realizó ningún cargo. Puedes intentarlo de nuevo cuando quieras.
-        </p>
+        <p className={styles.successText}>No se realizó ningún cargo. Puedes intentarlo de nuevo cuando quieras.</p>
         <button className={styles.continueBtn} onClick={() => navigate('/checkout')}>
           Volver al pago
         </button>
@@ -106,11 +91,7 @@ function CheckoutCancelled() {
   );
 }
 
-export default function Checkout({ variant }) {
-  // variant: 'success' | 'cancelled' | undefined (main page)
-  if (variant === 'success')   return <CheckoutSuccess />;
-  if (variant === 'cancelled') return <CheckoutCancelled />;
-
+function CheckoutMain() {
   const { user, profile, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
@@ -122,18 +103,11 @@ export default function Checkout({ variant }) {
       const res = await fetch('/api/flow-create-subscription', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: user?.id,
-          email:  user?.email,
-          name:   profile?.name,
-        }),
+        body: JSON.stringify({ userId: user?.id, email: user?.email, name: profile?.name }),
       });
       const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        setError(data.error || 'Error al crear la sesión de pago.');
-      }
+      if (data.url) window.location.href = data.url;
+      else setError(data.error || 'Error al crear la sesión de pago.');
     } catch {
       setError('Error de conexión. Intenta de nuevo.');
     } finally {
@@ -147,17 +121,16 @@ export default function Checkout({ variant }) {
       <div className={styles.blob2} />
 
       <div className={styles.card}>
-        {/* Header */}
         <div className={styles.header}>
           <div className={styles.logoIcon}><RiBookOpenLine /></div>
-          <div className={styles.badge}><RiSparkling2Line /> Un paso más</div>
+          <div className={styles.badge}><RiSparklingLine /> Un paso más</div>
           <h1 className={styles.title}>Activa tu cuenta</h1>
           <p className={styles.subtitle}>
-            Hola {profile?.name ?? user?.email?.split('@')[0]}. Para acceder a la plataforma, activa tu suscripción mensual.
+            Hola {profile?.name ?? user?.email?.split('@')[0]}. Para acceder a la plataforma,
+            activa tu suscripción mensual.
           </p>
         </div>
 
-        {/* Plan card */}
         <div className={styles.planCard}>
           <div className={styles.planTop}>
             <div>
@@ -170,7 +143,6 @@ export default function Checkout({ variant }) {
             </div>
             <div className={styles.planBadge}>Mensual</div>
           </div>
-
           <ul className={styles.planItems}>
             {PLAN_ITEMS.map(item => (
               <li key={item} className={styles.planItem}>
@@ -183,11 +155,7 @@ export default function Checkout({ variant }) {
 
         {error && <p className={styles.error} role="alert">{error}</p>}
 
-        <button
-          className={styles.payBtn}
-          onClick={handlePay}
-          disabled={loading}
-        >
+        <button className={styles.payBtn} onClick={handlePay} disabled={loading}>
           <RiShieldCheckLine />
           {loading ? 'Redirigiendo a Flow…' : 'Pagar con Flow'}
         </button>
@@ -202,4 +170,10 @@ export default function Checkout({ variant }) {
       </div>
     </div>
   );
+}
+
+export default function Checkout({ variant }) {
+  if (variant === 'success')   return <CheckoutSuccess />;
+  if (variant === 'cancelled') return <CheckoutCancelled />;
+  return <CheckoutMain />;
 }
