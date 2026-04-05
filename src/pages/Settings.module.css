@@ -340,3 +340,23 @@
   color: var(--color-info);
   flex-shrink: 0;
 }
+
+.signOutBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1.25rem;
+  background: rgba(220, 38, 38, 0.08);
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  border-radius: var(--lg-radius-pill);
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 150ms ease;
+  min-height: 44px;
+  font-family: inherit;
+}
+
+.signOutBtn:hover    { background: rgba(220, 38, 38, 0.14); }
+.signOutBtn:disabled { opacity: 0.5; cursor: not-allowed; }

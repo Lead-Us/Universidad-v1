@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RiUserLine, RiPaletteLine, RiRefreshLine, RiCheckLine, RiFolderUploadLine, RiArrowRightSLine } from 'react-icons/ri';
+import { RiUserLine, RiPaletteLine, RiRefreshLine, RiCheckLine, RiFolderUploadLine, RiArrowRightSLine, RiLogoutBoxLine } from 'react-icons/ri';
 import { useAuth } from '../lib/AuthContext.jsx';
 import { useSettings, THEME_PRESETS } from '../lib/SettingsContext.jsx';
 import styles from './Settings.module.css';
@@ -49,7 +49,14 @@ function ProfileSection() {
 
 export default function Settings() {
   const { settings, update, reset } = useSettings();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
+  const [signingOut, setSigningOut] = useState(false);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try { await signOut(); } finally { setSigningOut(false); }
+  };
 
   return (
     <div className="page">
@@ -89,6 +96,21 @@ export default function Settings() {
               <RiFolderUploadLine />
               <span>Ir a Importar</span>
               <RiArrowRightSLine className={styles.aprenderArrow} />
+            </button>
+          </Section>
+
+          {/* Cerrar sesión */}
+          <Section icon={RiLogoutBoxLine} title="Sesión">
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
+              Cierra sesión en este dispositivo.
+            </p>
+            <button
+              className={styles.signOutBtn}
+              onClick={handleSignOut}
+              disabled={signingOut}
+            >
+              <RiLogoutBoxLine />
+              {signingOut ? 'Cerrando sesión…' : 'Cerrar sesión'}
             </button>
           </Section>
         </div>

@@ -12,9 +12,9 @@ import Dashboard        from './pages/Dashboard.jsx';
 import Ramos            from './pages/Ramos.jsx';
 import RamoDetail       from './pages/RamoDetail.jsx';
 import Calendario       from './pages/Calendario.jsx';
-import Aprender         from './pages/Aprender.jsx';
-import AprenderProject  from './pages/AprenderProject.jsx';
-import AprenderBlock    from './pages/AprenderBlock.jsx';
+import Aprender          from './pages/Aprender.jsx';
+import AprenderCuaderno  from './pages/AprenderCuaderno.jsx';
+import AprenderBloque    from './pages/AprenderBloque.jsx';
 import Notebook         from './pages/Notebook.jsx';
 import Settings         from './pages/Settings.jsx';
 import ImportarArchivos from './pages/ImportarArchivos.jsx';
@@ -84,9 +84,9 @@ function AppRoutes() {
         <Route path="/ramos"      element={<Ramos />}      />
         <Route path="/ramos/:id"  element={<RamoDetail />} />
         <Route path="/calendario" element={<Calendario />} />
-        <Route path="/aprender"                        element={<Aprender />}        />
-        <Route path="/aprender/:projectId"             element={<AprenderProject />} />
-        <Route path="/aprender/:projectId/:blockId"    element={<AprenderBlock />}   />
+        <Route path="/aprender"                             element={<Aprender />}         />
+        <Route path="/aprender/:notebookId"             element={<AprenderCuaderno />} />
+        <Route path="/aprender/:notebookId/:blockId"    element={<AprenderBloque />}   />
         <Route path="/notebook"   element={<Notebook />}   />
         <Route path="/tareas"     element={<Dashboard />}  />
         <Route path="/settings"   element={<Settings />}   />

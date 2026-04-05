@@ -365,6 +365,12 @@
   gap: var(--space-4);
 }
 
+.pricingRight {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
 .priceBadge {
   display: inline-flex;
   align-items: center;

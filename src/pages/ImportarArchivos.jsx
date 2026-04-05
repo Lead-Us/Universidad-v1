@@ -8,7 +8,7 @@ import {
   RiEyeLine, RiArrowRightLine, RiDeleteBinLine, RiBookLine,
   RiCalendarLine, RiFileTextLine, RiAddLine, RiEditLine,
   RiCloseLine, RiFileLine, RiArrowDownSLine, RiArrowRightSLine,
-  RiFileSearchLine, RiAlertLine,
+  RiFileSearchLine, RiAlertLine, RiArrowLeftLine,
 } from 'react-icons/ri';
 import styles from './ImportarArchivos.module.css';
 
@@ -303,6 +303,9 @@ export default function ImportarArchivos() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
+        <button className={styles.backBtn} onClick={() => navigate(-1)}>
+          <RiArrowLeftLine /> Volver
+        </button>
         <h1 className={styles.title}>Importar archivos</h1>
         <p className={styles.subtitle}>Sube tu carpeta de ramos y la IA creará toda la estructura automáticamente</p>
       </div>

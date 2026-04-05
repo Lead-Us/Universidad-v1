@@ -8,6 +8,14 @@
 
 /* Header */
 .header { display: flex; flex-direction: column; gap: var(--space-1); }
+.backBtn {
+  display: inline-flex; align-items: center; gap: var(--space-1);
+  background: none; border: none; cursor: pointer;
+  color: var(--text-secondary); font-size: var(--text-sm);
+  padding: 0; margin-bottom: var(--space-2);
+  transition: color var(--dur-fast);
+}
+.backBtn:hover { color: var(--text-primary); }
 .title {
   font-family: var(--font-display);
   font-size: var(--text-3xl);

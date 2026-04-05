@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import { useAuth } from '../lib/AuthContext.jsx';
-import { RiBookOpenLine, RiMailLine, RiLockPasswordLine, RiUserLine, RiEyeLine, RiEyeOffLine } from 'react-icons/ri';
+import { supabase } from '../lib/supabase.js';
+import { RiBookOpenLine, RiMailLine, RiLockPasswordLine, RiUserLine, RiEyeLine, RiEyeOffLine, RiArrowLeftLine } from 'react-icons/ri';
 import styles from './Login.module.css';
 
 export default function Login() {
   const { signIn, signUp } = useAuth();
-  const [mode,     setMode]     = useState('login'); // 'login' | 'register'
+  const [mode,     setMode]     = useState('login'); // 'login' | 'register' | 'forgot'
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [name,     setName]     = useState('');
@@ -20,7 +21,13 @@ export default function Login() {
     setSuccess('');
     setLoading(true);
     try {
-      if (mode === 'login') {
+      if (mode === 'forgot') {
+        const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/login`,
+        });
+        if (resetErr) throw resetErr;
+        setSuccess('Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo.');
+      } else if (mode === 'login') {
         await signIn(email, password);
       } else {
         if (!name.trim()) { setError('Por favor ingresa tu nombre.'); setLoading(false); return; }
@@ -58,22 +65,35 @@ export default function Login() {
         </div>
 
         {/* Mode toggle */}
-        <div className={styles.toggle}>
-          <button
-            className={[styles.toggleBtn, mode === 'login' ? styles.toggleActive : ''].join(' ')}
-            onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
-            type="button"
-          >
-            Iniciar sesión
-          </button>
-          <button
-            className={[styles.toggleBtn, mode === 'register' ? styles.toggleActive : ''].join(' ')}
-            onClick={() => { setMode('register'); setError(''); setSuccess(''); }}
-            type="button"
-          >
-            Crear cuenta
-          </button>
-        </div>
+        {mode === 'forgot' ? (
+          <div className={styles.forgotHeader}>
+            <button
+              type="button"
+              className={styles.backLink}
+              onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+            >
+              <RiArrowLeftLine /> Volver
+            </button>
+            <p className={styles.forgotTitle}>Recuperar contraseña</p>
+          </div>
+        ) : (
+          <div className={styles.toggle}>
+            <button
+              className={[styles.toggleBtn, mode === 'login' ? styles.toggleActive : ''].join(' ')}
+              onClick={() => { setMode('login'); setError(''); setSuccess(''); }}
+              type="button"
+            >
+              Iniciar sesión
+            </button>
+            <button
+              className={[styles.toggleBtn, mode === 'register' ? styles.toggleActive : ''].join(' ')}
+              onClick={() => { setMode('register'); setError(''); setSuccess(''); }}
+              type="button"
+            >
+              Crear cuenta
+            </button>
+          </div>
+        )}
 
         <form className={styles.form} onSubmit={handleSubmit}>
           {mode === 'register' && (
@@ -133,9 +153,21 @@ export default function Login() {
           >
             {loading
               ? 'Cargando…'
-              : mode === 'login' ? 'Ingresar' : 'Crear cuenta'
+              : mode === 'forgot' ? 'Enviar enlace'
+              : mode === 'login'  ? 'Ingresar'
+              : 'Crear cuenta'
             }
           </button>
+
+          {mode === 'login' && (
+            <button
+              type="button"
+              className={styles.forgotLink}
+              onClick={() => { setMode('forgot'); setError(''); setSuccess(''); }}
+            >
+              ¿Olvidaste tu contraseña?
+            </button>
+          )}
         </form>
       </div>
     </div>
