@@ -1,146 +1,150 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   RiArrowDownSLine, RiArrowUpSLine, RiUploadLine, RiDownloadLine,
   RiFileTextLine, RiDeleteBinLine, RiArrowRightLine, RiAddLine,
-  RiEditLine, RiCheckLine, RiCloseLine,
+  RiEditLine, RiCheckLine, RiCloseLine, RiLoader4Line,
 } from 'react-icons/ri';
+import {
+  getFiles, getFolders, addFolder, renameFolder, deleteFolderRecord,
+  addFileRecord, moveFile, deleteFileRecord, uploadRamoFile, getSignedUrl,
+  MAX_SIZE_B, getDefaultFolders,
+} from '../../services/ramoFilesService.js';
 import styles from './FilesBrowser.module.css';
 
-const DEFAULT_FOLDERS = [
-  { key: 'todos',                label: '📁 Todos los archivos',   locked: true  },
-  { key: 'evaluaciones_pasadas', label: '📄 Evaluaciones Pasadas', locked: false },
-  { key: 'ejercicios',           label: '✏️ Ejercicios',           locked: false },
-  { key: 'ppt',                  label: '📊 PPT',                  locked: false },
-];
+const MAX_SIZE_MB = MAX_SIZE_B / (1024 * 1024);
 
-const MAX_SIZE = 3 * 1024 * 1024;
-
-function initState(storageKey) {
-  try {
-    const saved = JSON.parse(localStorage.getItem(storageKey) ?? '{}');
-    const folders = saved._folders ?? DEFAULT_FOLDERS;
-    const files   = Object.fromEntries(
-      Object.entries(saved).filter(([k]) => k !== '_folders'),
-    );
-    return { folders, files };
-  } catch {
-    return { folders: DEFAULT_FOLDERS, files: {} };
-  }
+function fmt(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export default function FilesBrowser({ unitId }) {
-  const storageKey = `uni_files_${unitId}`;
+export default function FilesBrowser({ unitId: ramoId }) {
+  const [folders,   setFolders]   = useState(getDefaultFolders());
+  const [files,     setFiles]     = useState([]);
+  const [open,      setOpen]      = useState({ todos: true });
+  const [moving,    setMoving]    = useState(null);
+  const [loading,   setLoading]   = useState(true);
+  const [uploading, setUploading] = useState(null);
 
-  const [open,    setOpen]    = useState({ todos: true });
-  const [moving,  setMoving]  = useState(null);
-
-  const [{ folders, files }, setState] = useState(() => initState(storageKey));
-
-  // Folder editing
-  const [editingFolder, setEditingFolder] = useState(null); // key being edited
+  const [editingFolder, setEditingFolder] = useState(null);
   const [editLabel,     setEditLabel]     = useState('');
   const [addingFolder,  setAddingFolder]  = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
-  const [confirmDelete, setConfirmDelete] = useState(null); // folder key
+  const [confirmDelete, setConfirmDelete] = useState(null);
 
-  const persist = (nextFiles, nextFolders) => {
-    const newState = { folders: nextFolders ?? folders, files: nextFiles ?? files };
-    setState(newState);
+  const reload = useCallback(async () => {
+    setLoading(true);
     try {
-      localStorage.setItem(storageKey, JSON.stringify({
-        ...newState.files,
-        _folders: newState.folders,
-      }));
-    } catch {
-      alert('No se pudo guardar: el archivo es demasiado grande para el almacenamiento local.');
+      const [fds, fls] = await Promise.all([getFolders(ramoId), getFiles(ramoId)]);
+      setFolders(fds);
+      setFiles(fls);
+    } catch (e) {
+      console.error('FilesBrowser load error:', e);
+    } finally {
+      setLoading(false);
     }
-  };
+  }, [ramoId]);
+
+  useEffect(() => { reload(); }, [reload]);
 
   const toggleFolder = (key) => setOpen(o => ({ ...o, [key]: !o[key] }));
 
-  // ── File operations ──────────────────────────────────────────────────
-  const handleUpload = (folderKey, e) => {
+  const handleUpload = async (folderKey, e) => {
     const file = e.target.files?.[0];
     e.target.value = '';
     if (!file) return;
-    if (file.size > MAX_SIZE) {
-      alert(`El archivo supera el límite de 3 MB. Tamaño: ${(file.size / 1024 / 1024).toFixed(1)} MB`);
+    if (file.size > MAX_SIZE_B) {
+      alert(`El archivo supera el límite de ${MAX_SIZE_MB} MB.`);
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const entry = { name: file.name, size: file.size, uploadedAt: new Date().toISOString(), data: reader.result };
-      persist({ ...files, [folderKey]: [...(files[folderKey] ?? []), entry] });
-    };
-    reader.readAsDataURL(file);
+    setUploading(folderKey);
+    try {
+      const { path, publicUrl } = await uploadRamoFile(ramoId, file);
+      await addFileRecord({
+        ramoId, folder: folderKey, name: file.name,
+        size: file.size, storagePath: path, publicUrl,
+      });
+      await reload();
+    } catch (err) {
+      alert(`Error al subir: ${err.message}`);
+    } finally {
+      setUploading(null);
+    }
   };
 
-  const handleDownload = (file) => {
-    if (!file.data) { alert('Este archivo fue importado como referencia. Súbelo manualmente para poder descargarlo.'); return; }
-    const a = document.createElement('a');
-    a.href = file.data;
-    a.download = file.name;
-    a.click();
+  const handleDownload = async (file) => {
+    try {
+      const url = file.storage_path
+        ? await getSignedUrl(file.storage_path)
+        : file.public_url;
+      if (!url) { alert('No se puede descargar este archivo.'); return; }
+      const a = document.createElement('a');
+      a.href = url; a.download = file.name; a.target = '_blank'; a.click();
+    } catch (err) { alert(`Error al descargar: ${err.message}`); }
   };
 
-  const handleDelete = (folderKey, index) => {
-    persist({ ...files, [folderKey]: (files[folderKey] ?? []).filter((_, i) => i !== index) });
+  const handleDelete = async (file) => {
+    try {
+      await deleteFileRecord(file.id, file.storage_path);
+      setFiles(prev => prev.filter(f => f.id !== file.id));
+    } catch (err) { alert(`Error al eliminar: ${err.message}`); }
   };
 
-  const handleMove = (fromKey, index, toKey) => {
-    const file = (files[fromKey] ?? [])[index];
-    if (!file) return;
-    persist({
-      ...files,
-      [fromKey]: (files[fromKey] ?? []).filter((_, i) => i !== index),
-      [toKey]:   [...(files[toKey] ?? []), file],
-    });
+  const handleMove = async (fileId, toKey) => {
+    try {
+      await moveFile(fileId, toKey);
+      setFiles(prev => prev.map(f => f.id === fileId ? { ...f, folder: toKey } : f));
+    } catch (err) { alert(`Error al mover: ${err.message}`); }
     setMoving(null);
   };
 
-  // ── Folder operations ─────────────────────────────────────────────────
-  const addFolder = () => {
+  const handleAddFolder = async () => {
     const label = newFolderName.trim();
     if (!label) return;
-    const key = `folder_${Date.now()}`;
-    persist(files, [...folders, { key, label: `📁 ${label}`, locked: false }]);
-    setNewFolderName('');
-    setAddingFolder(false);
+    const newF = await addFolder(ramoId, label);
+    setFolders(prev => [...prev, newF]);
+    setNewFolderName(''); setAddingFolder(false);
   };
 
-  const renameFolder = (key) => {
+  const handleRenameFolder = async (key) => {
     const label = editLabel.trim();
     if (!label) { setEditingFolder(null); return; }
-    persist(files, folders.map(f => f.key === key ? { ...f, label } : f));
-    setEditingFolder(null);
-    setEditLabel('');
+    try {
+      await renameFolder(ramoId, key, label);
+      setFolders(prev => prev.map(f => f.key === key ? { ...f, label } : f));
+    } catch { /* ignore */ }
+    setEditingFolder(null); setEditLabel('');
   };
 
-  const deleteFolder = (key) => {
-    // Move files to 'todos'
-    const folderFiles = files[key] ?? [];
-    const nextFiles = { ...files };
-    nextFiles['todos'] = [...(nextFiles['todos'] ?? []), ...folderFiles];
-    delete nextFiles[key];
-    persist(nextFiles, folders.filter(f => f.key !== key));
+  const handleDeleteFolder = async (key) => {
+    const affected = files.filter(f => f.folder === key);
+    await Promise.all(affected.map(f => moveFile(f.id, 'todos')));
+    try { await deleteFolderRecord(ramoId, key); } catch { /* ignore */ }
+    setFolders(prev => prev.filter(f => f.key !== key));
+    setFiles(prev => prev.map(f => f.folder === key ? { ...f, folder: 'todos' } : f));
     setConfirmDelete(null);
   };
 
-  const fmt = (bytes) => {
-    if (!bytes) return '';
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-  };
+  if (loading) {
+    return (
+      <div className={styles.loadingState}>
+        <RiLoader4Line className={styles.spinner} />
+        <span>Cargando archivos…</span>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.browser}>
       {folders.map(({ key, label, locked }) => {
-        const folderFiles = files[key] ?? [];
-        const isOpen = open[key];
+        const folderFiles = files.filter(f => f.folder === key);
+        const isOpen = !!open[key];
+        const isUploading = uploading === key;
+
         return (
           <div key={key} className={styles.folder}>
-            {/* Folder header */}
             <div className={styles.folderHeader}>
               <button className={styles.folderToggle} onClick={() => toggleFolder(key)}>
                 {editingFolder === key ? (
@@ -149,10 +153,13 @@ export default function FilesBrowser({ unitId }) {
                       className={styles.folderRenameInput}
                       value={editLabel}
                       onChange={e => setEditLabel(e.target.value)}
-                      onKeyDown={e => { if (e.key === 'Enter') renameFolder(key); if (e.key === 'Escape') setEditingFolder(null); }}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') handleRenameFolder(key);
+                        if (e.key === 'Escape') setEditingFolder(null);
+                      }}
                       autoFocus
                     />
-                    <button className={styles.iconBtn} onClick={() => renameFolder(key)}><RiCheckLine /></button>
+                    <button className={styles.iconBtn} onClick={() => handleRenameFolder(key)}><RiCheckLine /></button>
                     <button className={styles.iconBtn} onClick={() => setEditingFolder(null)}><RiCloseLine /></button>
                   </div>
                 ) : (
@@ -166,10 +173,9 @@ export default function FilesBrowser({ unitId }) {
                 )}
               </button>
 
-              {/* Folder edit/delete buttons (non-locked only) */}
               {!locked && editingFolder !== key && confirmDelete !== key && (
                 <div className={styles.folderActions}>
-                  <button className={styles.iconBtnSmall} onClick={() => { setEditingFolder(key); setEditLabel(label); }} title="Renombrar carpeta">
+                  <button className={styles.iconBtnSmall} onClick={() => { setEditingFolder(key); setEditLabel(label); }} title="Renombrar">
                     <RiEditLine />
                   </button>
                   <button className={styles.iconBtnSmallDanger} onClick={() => setConfirmDelete(key)} title="Eliminar carpeta">
@@ -178,27 +184,25 @@ export default function FilesBrowser({ unitId }) {
                 </div>
               )}
 
-              {/* Delete confirmation */}
               {confirmDelete === key && (
                 <div className={styles.folderDeleteConfirm}>
                   <span className={styles.confirmText}>¿Eliminar? Los archivos irán a "Todos".</span>
-                  <button className={styles.confirmYes} onClick={() => deleteFolder(key)}><RiCheckLine /></button>
+                  <button className={styles.confirmYes} onClick={() => handleDeleteFolder(key)}><RiCheckLine /></button>
                   <button className={styles.iconBtn} onClick={() => setConfirmDelete(null)}><RiCloseLine /></button>
                 </div>
               )}
             </div>
 
-            {/* Folder body */}
             {isOpen && (
               <div className={styles.folderBody}>
                 {folderFiles.length === 0 ? (
                   <p className={styles.empty}>Sin archivos aún</p>
                 ) : (
                   <ul className={styles.fileList}>
-                    {folderFiles.map((f, i) => {
-                      const isMoving = moving?.folderKey === key && moving?.index === i;
+                    {folderFiles.map(f => {
+                      const isMoving = moving?.fileId === f.id;
                       return (
-                        <li key={i} className={styles.fileItem}>
+                        <li key={f.id} className={styles.fileItem}>
                           <RiFileTextLine className={styles.fileIcon} />
                           <span className={styles.fileName} title={f.name}>{f.name}</span>
                           {f.size > 0 && <span className={styles.fileSize}>{fmt(f.size)}</span>}
@@ -207,7 +211,7 @@ export default function FilesBrowser({ unitId }) {
                             <div className={styles.moveRow}>
                               <span className={styles.moveLabel}>Mover a:</span>
                               {folders.filter(t => t.key !== key).map(t => (
-                                <button key={t.key} className={styles.moveTarget} onClick={() => handleMove(key, i, t.key)}>
+                                <button key={t.key} className={styles.moveTarget} onClick={() => handleMove(f.id, t.key)}>
                                   {t.label.split(' ').slice(1).join(' ')}
                                 </button>
                               ))}
@@ -215,13 +219,13 @@ export default function FilesBrowser({ unitId }) {
                             </div>
                           ) : (
                             <>
-                              <button className={styles.dlBtn} onClick={() => setMoving({ folderKey: key, index: i })} title="Mover a carpeta">
+                              <button className={styles.dlBtn} onClick={() => setMoving({ fileId: f.id, fromKey: key })} title="Mover">
                                 <RiArrowRightLine />
                               </button>
-                              <button className={styles.dlBtn} onClick={() => handleDownload(f)} title={f.data ? 'Descargar' : 'Sin datos'} style={{ opacity: f.data ? 1 : 0.4 }}>
+                              <button className={styles.dlBtn} onClick={() => handleDownload(f)} title="Descargar">
                                 <RiDownloadLine />
                               </button>
-                              <button className={`${styles.dlBtn} ${styles.delBtn}`} onClick={() => handleDelete(key, i)} title="Eliminar">
+                              <button className={`${styles.dlBtn} ${styles.delBtn}`} onClick={() => handleDelete(f)} title="Eliminar">
                                 <RiDeleteBinLine />
                               </button>
                             </>
@@ -231,10 +235,11 @@ export default function FilesBrowser({ unitId }) {
                     })}
                   </ul>
                 )}
-                <label className={styles.uploadBtn}>
-                  <RiUploadLine />
-                  <span>Subir archivo</span>
-                  <input type="file" style={{ display: 'none' }} onChange={e => handleUpload(key, e)} />
+
+                <label className={[styles.uploadBtn, isUploading ? styles.uploadBtnLoading : ''].join(' ')}>
+                  {isUploading ? <RiLoader4Line className={styles.spinner} /> : <RiUploadLine />}
+                  <span>{isUploading ? 'Subiendo…' : 'Subir archivo'}</span>
+                  <input type="file" style={{ display: 'none' }} onChange={e => handleUpload(key, e)} disabled={!!uploading} />
                 </label>
               </div>
             )}
@@ -242,7 +247,6 @@ export default function FilesBrowser({ unitId }) {
         );
       })}
 
-      {/* Add folder */}
       {addingFolder ? (
         <div className={styles.addFolderRow}>
           <input
@@ -250,10 +254,13 @@ export default function FilesBrowser({ unitId }) {
             placeholder="Nombre de la nueva carpeta…"
             value={newFolderName}
             onChange={e => setNewFolderName(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') addFolder(); if (e.key === 'Escape') setAddingFolder(false); }}
+            onKeyDown={e => {
+              if (e.key === 'Enter') handleAddFolder();
+              if (e.key === 'Escape') setAddingFolder(false);
+            }}
             autoFocus
           />
-          <button className={styles.iconBtn} onClick={addFolder}><RiCheckLine /></button>
+          <button className={styles.iconBtn} onClick={handleAddFolder}><RiCheckLine /></button>
           <button className={styles.iconBtn} onClick={() => setAddingFolder(false)}><RiCloseLine /></button>
         </div>
       ) : (

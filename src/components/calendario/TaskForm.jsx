@@ -6,7 +6,10 @@ import styles from './TaskForm.module.css';
 
 const TYPES = ['tarea', 'evaluación', 'control', 'quiz'];
 
-const EMPTY = { title: '', type: 'tarea', ramo_id: '', unit_id: '', materia: '', due_date: '', description: '' };
+const EMPTY = {
+  title: '', type: 'tarea', ramo_id: '', unit_ids: [], materia_names: [],
+  due_date: '', description: '',
+};
 
 /**
  * TaskForm — creates or edits a task.
@@ -18,15 +21,21 @@ const EMPTY = { title: '', type: 'tarea', ramo_id: '', unit_id: '', materia: '',
  *   loading      bool
  */
 export default function TaskForm({ initialDate, initialTask, onSave, onCancel, loading }) {
-  const { ramos }                   = useRamos();
-  const [form, setForm]             = useState(EMPTY);
-  const [units, setUnits]           = useState([]);
-  const [materias, setMaterias]     = useState([]);
+  const { ramos }               = useRamos();
+  const [form, setForm]         = useState(EMPTY);
+  const [units, setUnits]       = useState([]);
+  const [allMaterias, setAllMaterias] = useState([]); // flat list from all selected units
 
   // Populate form from initialTask (edit) or initialDate (create)
   useEffect(() => {
     if (initialTask) {
-      setForm({ ...EMPTY, ...initialTask });
+      setForm({
+        ...EMPTY,
+        ...initialTask,
+        // Normalize legacy single-value fields to arrays
+        unit_ids:      initialTask.unit_ids      ?? (initialTask.unit_id ? [initialTask.unit_id] : []),
+        materia_names: initialTask.materia_names ?? (initialTask.materia ? [initialTask.materia] : []),
+      });
     } else {
       setForm({ ...EMPTY, due_date: initialDate ?? '' });
     }
@@ -34,31 +43,53 @@ export default function TaskForm({ initialDate, initialTask, onSave, onCancel, l
 
   // When ramo changes, update units list
   useEffect(() => {
-    if (!form.ramo_id) { setUnits([]); setMaterias([]); return; }
+    if (!form.ramo_id) { setUnits([]); setAllMaterias([]); return; }
     getUnits(form.ramo_id).then(u => {
       setUnits(u);
-      if (!initialTask || form.ramo_id !== initialTask?.ramo_id) {
-        setForm(f => ({ ...f, unit_id: '', materia: '' }));
-        setMaterias([]);
-      }
     });
   }, [form.ramo_id]);
 
-  // When unit changes, update materias list
+  // When selected units change, compute flat materia list
   useEffect(() => {
-    if (!form.unit_id) { setMaterias([]); return; }
-    const unit = units.find(u => u.id === form.unit_id);
-    setMaterias(unit?.materias ?? []);
-    if (!initialTask || form.unit_id !== initialTask?.unit_id) {
-      setForm(f => ({ ...f, materia: '' }));
-    }
-  }, [form.unit_id, units]);
+    const materias = units
+      .filter(u => form.unit_ids.includes(u.id))
+      .flatMap(u => (u.materias ?? []).map(m => m.name));
+    setAllMaterias([...new Set(materias)]);
+    // Drop any selected materias no longer available
+    setForm(f => ({
+      ...f,
+      materia_names: f.materia_names.filter(m => materias.includes(m)),
+    }));
+  }, [form.unit_ids, units]);
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
+  const toggleUnit = (id) => {
+    setForm(f => ({
+      ...f,
+      unit_ids: f.unit_ids.includes(id)
+        ? f.unit_ids.filter(x => x !== id)
+        : [...f.unit_ids, id],
+    }));
+  };
+
+  const toggleMateria = (name) => {
+    setForm(f => ({
+      ...f,
+      materia_names: f.materia_names.includes(name)
+        ? f.materia_names.filter(x => x !== name)
+        : [...f.materia_names, name],
+    }));
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave(form);
+    // Also write legacy single-value fields for backward compat
+    onSave({
+      ...form,
+      unit_id: form.unit_ids[0] ?? null,
+      materia: form.materia_names[0] ?? '',
+    });
   };
 
   const isEdit = !!initialTask;
@@ -101,7 +132,11 @@ export default function TaskForm({ initialDate, initialTask, onSave, onCancel, l
 
         <div>
           <label>Ramo</label>
-          <select value={form.ramo_id} onChange={e => set('ramo_id', e.target.value)} required>
+          <select
+            value={form.ramo_id}
+            onChange={e => { set('ramo_id', e.target.value); set('unit_ids', []); set('materia_names', []); }}
+            required
+          >
             <option value="">— Selecciona ramo —</option>
             {ramos.map(r => (
               <option key={r.id} value={r.id}>{r.name}</option>
@@ -111,25 +146,37 @@ export default function TaskForm({ initialDate, initialTask, onSave, onCancel, l
 
         {units.length > 0 && (
           <div>
-            <label>Unidad</label>
-            <select value={form.unit_id} onChange={e => set('unit_id', e.target.value)}>
-              <option value="">— Sin unidad —</option>
+            <label>Unidades <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>(selecciona una o más)</span></label>
+            <div className={styles.checkGrid}>
               {units.map(u => (
-                <option key={u.id} value={u.id}>{u.name}</option>
+                <label key={u.id} className={[styles.checkOption, form.unit_ids.includes(u.id) ? styles.checkSelected : ''].join(' ')}>
+                  <input
+                    type="checkbox"
+                    checked={form.unit_ids.includes(u.id)}
+                    onChange={() => toggleUnit(u.id)}
+                  />
+                  <span>{u.name}</span>
+                </label>
               ))}
-            </select>
+            </div>
           </div>
         )}
 
-        {materias.length > 0 && (
+        {allMaterias.length > 0 && (
           <div>
-            <label>Materia</label>
-            <select value={form.materia} onChange={e => set('materia', e.target.value)}>
-              <option value="">— Sin materia —</option>
-              {materias.map((m, i) => (
-                <option key={i} value={m.name}>{m.name}</option>
+            <label>Temas <span style={{ fontWeight: 400, color: 'var(--text-muted)', fontSize: 'var(--text-xs)' }}>(selecciona uno o más)</span></label>
+            <div className={styles.checkGrid}>
+              {allMaterias.map(m => (
+                <label key={m} className={[styles.checkOption, form.materia_names.includes(m) ? styles.checkSelected : ''].join(' ')}>
+                  <input
+                    type="checkbox"
+                    checked={form.materia_names.includes(m)}
+                    onChange={() => toggleMateria(m)}
+                  />
+                  <span>{m}</span>
+                </label>
               ))}
-            </select>
+            </div>
           </div>
         )}
 

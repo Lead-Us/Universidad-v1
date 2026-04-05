@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { RiArrowLeftLine, RiPencilLine } from 'react-icons/ri';
 import { useRamo }  from '../hooks/useRamos.js';
@@ -25,15 +25,8 @@ export default function RamoDetail() {
   const [modal,  setModal]  = useState(false);
   const [saving, setSaving] = useState(false);
 
-  // Must be before any conditional returns (Rules of Hooks)
-  const allFiles = useMemo(() => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(`uni_files_${id}`) ?? '{}');
-      return (saved.todos ?? []).map(f => f.name);
-    } catch {
-      return ramo?.allFiles ?? [];
-    }
-  }, [id, ramo]);
+  // allFiles used by UnitTimeline for materia file references (names only)
+  const allFiles = ramo?.allFiles ?? [];
 
   if (loading) {
     return <div className="page" />;

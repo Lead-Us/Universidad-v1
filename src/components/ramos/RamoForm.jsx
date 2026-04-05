@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { RAMO_COLORS } from '../../lib/ramoColors.js';
-import { RiAddLine, RiDeleteBinLine, RiTimeLine } from 'react-icons/ri';
+import { RiAddLine, RiDeleteBinLine, RiTimeLine, RiPencilLine, RiCheckLine, RiCloseLine } from 'react-icons/ri';
 import Button from '../shared/Button.jsx';
 import styles from './RamoForm.module.css';
 
@@ -21,6 +21,8 @@ export default function RamoForm({ initial, onSave, onCancel, loading }) {
   const [form,        setForm]        = useState(EMPTY_RAMO);
   const [newBlock,    setNewBlock]    = useState({ ...EMPTY_BLOCK });
   const [addingBlock, setAddingBlock] = useState(false);
+  const [editingBlockId, setEditingBlockId] = useState(null);
+  const [editBlock,      setEditBlock]      = useState(null);
 
   useEffect(() => {
     if (initial) {
@@ -50,6 +52,23 @@ export default function RamoForm({ initial, onSave, onCancel, loading }) {
   };
 
   const removeBlock = (id) => set('blocks', form.blocks.filter(b => b.id !== id));
+
+  const startEditBlock = (b) => {
+    setEditingBlockId(b.id);
+    setEditBlock({ ...b, day: DAYS_LIST[b.day_of_week] ?? b.day ?? 'Lunes' });
+  };
+
+  const saveEditBlock = () => {
+    set('blocks', form.blocks.map(b =>
+      b.id === editingBlockId
+        ? { ...editBlock, day_of_week: DAY_INDEX[editBlock.day] ?? 0 }
+        : b
+    ));
+    setEditingBlockId(null);
+    setEditBlock(null);
+  };
+
+  const setEB = (k, v) => setEditBlock(eb => ({ ...eb, [k]: v }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -134,27 +153,76 @@ export default function RamoForm({ initial, onSave, onCancel, loading }) {
           <div className={styles.blocksList}>
             {form.blocks.map(b => (
               <div key={b.id} className={styles.blockCard}>
-                <RiTimeLine className={styles.blockIcon} />
-                <div className={styles.blockInfo}>
-                  <span className={styles.blockDay}>
-                    {DAYS_LIST[b.day_of_week] ?? b.day ?? '—'}
-                  </span>
-                  <span className={styles.blockTime}>
-                    {b.start_time} – {b.end_time}
-                  </span>
-                  {b.sala && <span className={styles.blockSala}>{b.sala}</span>}
-                  {b.has_attendance && (
-                    <span className={styles.blockAtt}>Asistencia</span>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  className={styles.blockDelete}
-                  onClick={() => removeBlock(b.id)}
-                  title="Eliminar bloque"
-                >
-                  <RiDeleteBinLine />
-                </button>
+                {editingBlockId === b.id && editBlock ? (
+                  <div className={styles.blockEditForm}>
+                    <div className="form-row">
+                      <div>
+                        <label>Día</label>
+                        <select value={editBlock.day} onChange={e => setEB('day', e.target.value)}>
+                          {DAYS_LIST.map(d => <option key={d} value={d}>{d}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label>Sala</label>
+                        <input value={editBlock.sala ?? ''} onChange={e => setEB('sala', e.target.value)} placeholder="B-201" />
+                      </div>
+                    </div>
+                    <div className="form-row">
+                      <div>
+                        <label>Inicio</label>
+                        <input type="time" value={editBlock.start_time} onChange={e => setEB('start_time', e.target.value)} />
+                      </div>
+                      <div>
+                        <label>Fin</label>
+                        <input type="time" value={editBlock.end_time} onChange={e => setEB('end_time', e.target.value)} />
+                      </div>
+                    </div>
+                    <label className={styles.toggleRow}>
+                      <input type="checkbox" checked={editBlock.has_attendance ?? true} onChange={e => setEB('has_attendance', e.target.checked)} />
+                      <span>Control de asistencia</span>
+                    </label>
+                    <div className={styles.blockFormActions}>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => setEditingBlockId(null)}>
+                        <RiCloseLine /> Cancelar
+                      </Button>
+                      <Button type="button" size="sm" onClick={saveEditBlock}>
+                        <RiCheckLine /> Guardar
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <RiTimeLine className={styles.blockIcon} />
+                    <div className={styles.blockInfo}>
+                      <span className={styles.blockDay}>
+                        {DAYS_LIST[b.day_of_week] ?? b.day ?? '—'}
+                      </span>
+                      <span className={styles.blockTime}>
+                        {b.start_time} – {b.end_time}
+                      </span>
+                      {b.sala && <span className={styles.blockSala}>{b.sala}</span>}
+                      {b.has_attendance && (
+                        <span className={styles.blockAtt}>Asistencia</span>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.blockEdit}
+                      onClick={() => startEditBlock(b)}
+                      title="Editar bloque"
+                    >
+                      <RiPencilLine />
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.blockDelete}
+                      onClick={() => removeBlock(b.id)}
+                      title="Eliminar bloque"
+                    >
+                      <RiDeleteBinLine />
+                    </button>
+                  </>
+                )}
               </div>
             ))}
 

@@ -126,7 +126,7 @@ export default function Register() {
         <div className={styles.header}>
           <div className={styles.logoIcon}><RiBookOpenLine /></div>
           <h1 className={styles.title}>Crear cuenta</h1>
-          <p className={styles.subtitle}>Empieza gratis, cancela cuando quieras</p>
+          <p className={styles.subtitle}>Accede a la plataforma académica con IA</p>
         </div>
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>

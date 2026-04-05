@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext.jsx';
 import {
   RiShieldCheckLine, RiCheckLine, RiSparkling2Line as RiSparklingLine,
-  RiBookOpenLine, RiRefreshLine,
+  RiBookOpenLine, RiRefreshLine, RiLogoutBoxLine,
 } from 'react-icons/ri';
 import styles from './Checkout.module.css';
 
@@ -111,7 +111,7 @@ export default function Checkout({ variant }) {
   if (variant === 'success')   return <CheckoutSuccess />;
   if (variant === 'cancelled') return <CheckoutCancelled />;
 
-  const { user, profile }     = useAuth();
+  const { user, profile, signOut } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState('');
 
@@ -195,6 +195,10 @@ export default function Checkout({ variant }) {
         <p className={styles.secureNote}>
           <RiShieldCheckLine /> Pago seguro con Flow. Cancela cuando quieras.
         </p>
+
+        <button className={styles.signOutLink} onClick={signOut} type="button">
+          <RiLogoutBoxLine /> Cerrar sesión
+        </button>
       </div>
     </div>
   );

@@ -2,11 +2,22 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   RiUserLine, RiCheckLine, RiFolderUploadLine, RiArrowRightSLine,
-  RiLogoutBoxLine, RiUserAddLine,
+  RiLogoutBoxLine, RiUserAddLine, RiBuilding2Line, RiGraduationCapLine,
 } from 'react-icons/ri';
 import { useAuth } from '../lib/AuthContext.jsx';
 import { supabase } from '../lib/supabase.js';
 import styles from './Settings.module.css';
+
+const UNIVERSIDADES = [
+  'Universidad de los Andes',
+  'Universidad Adolfo Ibáñez',
+  'Universidad Católica',
+  'FEN - Universidad de Chile',
+  'Universidad del Desarrollo',
+  'Otra',
+];
+
+const ANOS = ['1°', '2°', '3°', '4°', '5°', '6° o más', 'Magíster'];
 
 function Section({ icon: Icon, title, children }) {
   return (
@@ -21,29 +32,97 @@ function Section({ icon: Icon, title, children }) {
 }
 
 function ProfileSection() {
-  const { user } = useAuth();
-  const [name,  setName]  = useState(user?.name  ?? '');
-  const [email, setEmail] = useState(user?.email ?? '');
-  const [saved, setSaved] = useState(false);
+  const { user, profile, updateProfile } = useAuth();
 
-  const handleSave = () => {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const [form, setForm] = useState({
+    name:       profile?.name       ?? '',
+    apellido1:  profile?.apellido1  ?? '',
+    apellido2:  profile?.apellido2  ?? '',
+    university: profile?.university ?? '',
+    study_year: profile?.study_year ?? '',
+    email:      user?.email         ?? '',
+  });
+  const [saved,  setSaved]  = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error,  setError]  = useState('');
+
+  const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleSave = async () => {
+    setSaving(true);
+    setError('');
+    try {
+      await updateProfile({
+        name:       form.name.trim(),
+        apellido1:  form.apellido1.trim(),
+        apellido2:  form.apellido2.trim(),
+        university: form.university,
+        study_year: form.study_year,
+      });
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (e) {
+      setError(e.message || 'Error al guardar.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
     <Section icon={RiUserLine} title="Perfil">
       <div className={styles.profileForm}>
-        <div>
-          <label className={styles.inputLabel}>Nombre</label>
-          <input className={styles.input} value={name} onChange={e => setName(e.target.value)} placeholder="Tu nombre" />
+        <div className={styles.profileRow}>
+          <div>
+            <label className={styles.inputLabel}>Nombre</label>
+            <input className={styles.input} value={form.name} onChange={set('name')} placeholder="Tu nombre" />
+          </div>
+          <div>
+            <label className={styles.inputLabel}>Primer apellido</label>
+            <input className={styles.input} value={form.apellido1} onChange={set('apellido1')} placeholder="Apellido" />
+          </div>
         </div>
+
         <div>
-          <label className={styles.inputLabel}>Email</label>
-          <input className={styles.input} type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@email.com" />
+          <label className={styles.inputLabel}>Segundo apellido <span className={styles.optionalTag}>(opcional)</span></label>
+          <input className={styles.input} value={form.apellido2} onChange={set('apellido2')} placeholder="Segundo apellido" />
         </div>
-        <button className={[styles.saveBtn, saved ? styles.saveBtnDone : ''].join(' ')} onClick={handleSave}>
-          {saved ? <><RiCheckLine /> Guardado</> : 'Guardar cambios'}
+
+        <div className={styles.profileRow}>
+          <div>
+            <label className={styles.inputLabel}>Universidad</label>
+            <div className={styles.selectWrap}>
+              <RiBuilding2Line className={styles.selectIcon} />
+              <select className={styles.inputSelect} value={form.university} onChange={set('university')}>
+                <option value="">Seleccionar…</option>
+                {UNIVERSIDADES.map(u => <option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className={styles.inputLabel}>Año de estudio</label>
+            <div className={styles.selectWrap}>
+              <RiGraduationCapLine className={styles.selectIcon} />
+              <select className={styles.inputSelect} value={form.study_year} onChange={set('study_year')}>
+                <option value="">Seleccionar…</option>
+                {ANOS.map(a => <option key={a} value={a}>{a}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label className={styles.inputLabel}>Correo electrónico</label>
+          <input className={styles.input} type="email" value={form.email} disabled style={{ opacity: 0.6 }} />
+        </div>
+
+        {error && <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-danger)', margin: 0 }}>{error}</p>}
+
+        <button
+          className={[styles.saveBtn, saved ? styles.saveBtnDone : ''].join(' ')}
+          onClick={handleSave}
+          disabled={saving}
+        >
+          {saved ? <><RiCheckLine /> Guardado</> : saving ? 'Guardando…' : 'Guardar cambios'}
         </button>
       </div>
     </Section>
@@ -112,9 +191,12 @@ function FreeAccessSection() {
 }
 
 export default function Settings() {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
+
+  const ADMIN_EMAIL = 'ernesto.aguirre.h@gmail.com';
+  const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL;
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -132,7 +214,7 @@ export default function Settings() {
         <div className={styles.grid}>
           <ProfileSection />
 
-          <FreeAccessSection />
+          {isAdmin && <FreeAccessSection />}
 
           <Section icon={RiFolderUploadLine} title="Importar">
             <p className={styles.sectionDesc}>

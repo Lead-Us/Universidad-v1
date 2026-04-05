@@ -323,3 +323,27 @@
   cursor: pointer;
 }
 .moveCancelBtn:hover { color: var(--text-primary); }
+
+/* Loading state */
+.loadingState {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.spinner {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.uploadBtnLoading {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

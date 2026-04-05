@@ -261,3 +261,31 @@
 }
 
 .forgotLink:hover { text-decoration: underline; }
+
+.modeTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--text-primary);
+  margin: 0;
+  text-align: center;
+}
+
+.registerLink {
+  text-align: center;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.registerBtn {
+  background: none;
+  border: none;
+  color: var(--accent, #4f8ef7);
+  font-weight: var(--weight-semibold);
+  font-size: var(--text-sm);
+  font-family: var(--font-ui);
+  cursor: pointer;
+  padding: 0;
+  transition: opacity var(--dur-fast) var(--ease-out);
+}
+.registerBtn:hover { opacity: 0.75; }

@@ -90,10 +90,10 @@ export default function Landing() {
           </p>
           <div className={styles.heroCtas}>
             <button className={styles.ctaPrimary} onClick={() => navigate('/register')}>
-              Comenzar gratis <RiArrowRightLine />
+              Crear cuenta <RiArrowRightLine />
             </button>
             <button className={styles.ctaGhost} onClick={() => navigate('/login')}>
-              Ya tengo cuenta
+              Iniciar sesión
             </button>
           </div>
           <div className={styles.heroStats}>
@@ -150,7 +150,7 @@ export default function Landing() {
                   Sin contratos. Cancela cuando quieras.
                 </p>
                 <button className={styles.ctaPrimary} onClick={() => navigate('/register')}>
-                  Empezar ahora <RiArrowRightLine />
+                  Crear cuenta <RiArrowRightLine />
                 </button>
               </div>
               <div className={styles.pricingRight}>
