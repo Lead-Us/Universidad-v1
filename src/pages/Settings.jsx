@@ -150,21 +150,31 @@ function FreeAccessSection() {
   const [isErr,    setIsErr]    = useState(false);
   const [users,    setUsers]    = useState([]);
   const [loadingList, setLoadingList] = useState(true);
-  const [revoking, setRevoking] = useState(null); // email being revoked
+  const [revoking, setRevoking] = useState(null);
+  const [isAdmin,  setIsAdmin]  = useState(null); // null=checking, true=admin, false=not
 
   const loadList = useCallback(async () => {
     setLoadingList(true);
     try {
       const data = await apiCall('/api/grant-free');
       setUsers(data.users ?? []);
-    } catch {
-      // silencioso — la lista no es crítica
+      setIsAdmin(true);
+    } catch (e) {
+      // 401/403 → not admin, hide section
+      if (e.message?.includes('administrador') || e.message?.includes('autenticado') || e.message?.includes('Token')) {
+        setIsAdmin(false);
+      } else {
+        setIsAdmin(true); // admin but other error (e.g. 500), still show panel
+      }
     } finally {
       setLoadingList(false);
     }
   }, []);
 
   useEffect(() => { loadList(); }, [loadList]);
+
+  if (isAdmin === false) return null;
+  if (isAdmin === null)  return null; // still checking
 
   const handleGrant = async (e) => {
     e.preventDefault();
@@ -271,12 +281,9 @@ function FreeAccessSection() {
 }
 
 export default function Settings() {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
-
-  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL ?? '';
-  const isAdmin = adminEmail && user?.email?.toLowerCase() === adminEmail.toLowerCase();
 
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -294,7 +301,7 @@ export default function Settings() {
         <div className={styles.grid}>
           <ProfileSection />
 
-          {isAdmin && <FreeAccessSection />}
+          <FreeAccessSection />
 
           <Section icon={RiFolderUploadLine} title="Importar">
             <p className={styles.sectionDesc}>
