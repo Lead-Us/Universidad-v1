@@ -67,11 +67,10 @@ export async function uploadRamoFile(ramoId, file) {
 
   const { error: uploadErr } = await supabase.storage
     .from(BUCKET)
-    .upload(path, file, { upsert: false });
+    .upload(path, file, { upsert: true });
   if (uploadErr) throw uploadErr;
 
-  const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return { path, publicUrl };
+  return { path, publicUrl: null };
 }
 
 export async function getSignedUrl(storagePath) {

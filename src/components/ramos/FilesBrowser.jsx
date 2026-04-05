@@ -222,9 +222,11 @@ export default function FilesBrowser({ unitId: ramoId }) {
                               <button className={styles.dlBtn} onClick={() => setMoving({ fileId: f.id, fromKey: key })} title="Mover">
                                 <RiArrowRightLine />
                               </button>
-                              <button className={styles.dlBtn} onClick={() => handleDownload(f)} title="Descargar">
-                                <RiDownloadLine />
-                              </button>
+                              {(f.storage_path || f.public_url) && (
+                                <button className={styles.dlBtn} onClick={() => handleDownload(f)} title="Descargar">
+                                  <RiDownloadLine />
+                                </button>
+                              )}
                               <button className={`${styles.dlBtn} ${styles.delBtn}`} onClick={() => handleDelete(f)} title="Eliminar">
                                 <RiDeleteBinLine />
                               </button>

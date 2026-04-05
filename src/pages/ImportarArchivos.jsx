@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as pdfjsLib from 'pdfjs-dist';
 import { supabase, getUid } from '../lib/supabase.js';
+import { uploadRamoFile, addFileRecord } from '../services/ramoFilesService.js';
 import { v4 as uuidv4 } from 'uuid';
 import {
   RiFolderOpenLine, RiCheckLine, RiLoader4Line, RiErrorWarningLine,
@@ -269,22 +270,25 @@ export default function ImportarArchivos() {
           ]),
         ];
         if (allFiles.length) {
-          const existing = {};
-          try {
-            const saved = localStorage.getItem(`uni_files_${ramoId}`);
-            if (saved) Object.assign(existing, JSON.parse(saved));
-          } catch {}
-          if (!existing['todos']) existing['todos'] = [];
-          allFiles.forEach(fileName => {
-            if (!existing['todos'].some(f => f.name === fileName)) {
-              existing['todos'].push({
-                name: fileName, size: 0,
-                uploadedAt: new Date().toISOString(),
-                data: null, fromImport: true,
+          const ramoKey = structureEntry?.[0];
+          const fileObjects = ramoKey ? (rawFileMap[ramoKey] ?? {}) : {};
+          for (const fileName of allFiles) {
+            const fileObj = fileObjects[fileName];
+            if (!fileObj) continue; // omitir nombres inferidos por IA sin File real
+            try {
+              const { path } = await uploadRamoFile(ramoId, fileObj);
+              await addFileRecord({
+                ramoId,
+                folder:      'todos',
+                name:        fileObj.name,
+                size:        fileObj.size,
+                storagePath: path,
+                publicUrl:   null,
               });
+            } catch (fileErr) {
+              console.warn(`[Importar] No se pudo guardar "${fileName}":`, fileErr);
             }
-          });
-          try { localStorage.setItem(`uni_files_${ramoId}`, JSON.stringify(existing)); } catch {}
+          }
         }
       }
       setStep(4);
