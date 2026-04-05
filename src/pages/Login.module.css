@@ -289,3 +289,24 @@
   transition: opacity var(--dur-fast) var(--ease-out);
 }
 .registerBtn:hover { opacity: 0.75; }
+
+/* ── Mobile ── */
+@media (max-width: 480px) {
+  .blob1 { width: 220px; height: 220px; }
+  .blob2 { width: 180px; height: 180px; }
+  .blob3 { width: 150px; height: 150px; }
+
+  .card {
+    padding: 28px 20px 24px;
+    border-radius: 20px;
+  }
+
+  .submitBtn {
+    min-height: 44px;
+    padding: 13px 20px;
+  }
+
+  .field input {
+    min-height: 44px;
+  }
+}

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   RiUserLine, RiCheckLine, RiFolderUploadLine, RiArrowRightSLine,
   RiLogoutBoxLine, RiUserAddLine, RiBuilding2Line, RiGraduationCapLine,
+  RiDeleteBinLine, RiRefreshLine,
 } from 'react-icons/ri';
 import { useAuth } from '../lib/AuthContext.jsx';
 import { supabase } from '../lib/supabase.js';
@@ -129,30 +130,54 @@ function ProfileSection() {
   );
 }
 
+async function apiCall(path, options = {}) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const token = session?.access_token;
+  if (!token) throw new Error('No hay sesión activa.');
+  const res  = await fetch(path, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...(options.headers ?? {}) },
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Error del servidor.');
+  return data;
+}
+
 function FreeAccessSection() {
-  const [email,   setEmail]   = useState('');
-  const [loading, setLoading] = useState(false);
-  const [msg,     setMsg]     = useState('');
-  const [isErr,   setIsErr]   = useState(false);
+  const [email,    setEmail]    = useState('');
+  const [loading,  setLoading]  = useState(false);
+  const [msg,      setMsg]      = useState('');
+  const [isErr,    setIsErr]    = useState(false);
+  const [users,    setUsers]    = useState([]);
+  const [loadingList, setLoadingList] = useState(true);
+  const [revoking, setRevoking] = useState(null); // email being revoked
+
+  const loadList = useCallback(async () => {
+    setLoadingList(true);
+    try {
+      const data = await apiCall('/api/grant-free');
+      setUsers(data.users ?? []);
+    } catch {
+      // silencioso — la lista no es crítica
+    } finally {
+      setLoadingList(false);
+    }
+  }, []);
+
+  useEffect(() => { loadList(); }, [loadList]);
 
   const handleGrant = async (e) => {
     e.preventDefault();
     setMsg(''); setLoading(true);
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
-      if (!token) throw new Error('No hay sesión activa.');
-
-      const res = await fetch('/api/grant-free', {
+      const data = await apiCall('/api/grant-free', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ email: email.trim() }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error del servidor.');
       setMsg(data.message);
       setIsErr(false);
       setEmail('');
+      await loadList();
     } catch (err) {
       setMsg(err.message);
       setIsErr(true);
@@ -161,31 +186,86 @@ function FreeAccessSection() {
     }
   };
 
+  const handleRevoke = async (targetEmail) => {
+    setRevoking(targetEmail);
+    try {
+      const data = await apiCall('/api/grant-free', {
+        method: 'POST',
+        body: JSON.stringify({ email: targetEmail, action: 'revoke' }),
+      });
+      setMsg(data.message);
+      setIsErr(false);
+      await loadList();
+    } catch (err) {
+      setMsg(err.message);
+      setIsErr(true);
+    } finally {
+      setRevoking(null);
+    }
+  };
+
   return (
     <Section icon={RiUserAddLine} title="Acceso gratuito">
-      <p className={styles.sectionDesc}>
-        Ingresa el email de un amigo que ya creó su cuenta para darle acceso gratuito.
-      </p>
-      <form onSubmit={handleGrant} className={styles.freeForm}>
-        <input
-          className={styles.input}
-          type="email"
-          placeholder="amigo@email.com"
-          value={email}
-          onChange={e => { setEmail(e.target.value); setMsg(''); }}
-          required
-          disabled={loading}
-        />
-        <button className={styles.saveBtn} type="submit" disabled={loading || !email.trim()}>
-          {loading ? 'Verificando…' : 'Dar acceso gratuito'}
+      <div className={styles.freeForm}>
+        <form onSubmit={handleGrant} className={styles.freeInputRow}>
+          <input
+            className={styles.input}
+            type="email"
+            placeholder="correo@ejemplo.com"
+            value={email}
+            onChange={e => { setEmail(e.target.value); setMsg(''); }}
+            required
+            disabled={loading}
+          />
+          <button className={styles.saveBtn} type="submit" disabled={loading || !email.trim()}>
+            {loading ? 'Verificando…' : 'Dar acceso'}
+          </button>
+        </form>
+
+        {msg && (
+          <p className={isErr ? styles.freeError : styles.freeSuccess}>{msg}</p>
+        )}
+      </div>
+
+      {/* Lista de usuarios con acceso gratuito */}
+      <div className={styles.freeListHeader}>
+        <span className={styles.freeListTitle}>Con acceso gratuito</span>
+        <button
+          className={styles.freeRefreshBtn}
+          onClick={loadList}
+          disabled={loadingList}
+          title="Actualizar lista"
+          type="button"
+        >
+          <RiRefreshLine className={loadingList ? styles.freeSpinner : ''} />
         </button>
-      </form>
-      {msg && (
-        <p className={isErr ? styles.freeError : styles.freeSuccess}>{msg}</p>
+      </div>
+
+      {loadingList ? (
+        <p className={styles.freeListEmpty}>Cargando…</p>
+      ) : users.length === 0 ? (
+        <p className={styles.freeListEmpty}>Ningún usuario con acceso gratuito aún.</p>
+      ) : (
+        <ul className={styles.freeList}>
+          {users.map(u => (
+            <li key={u.id} className={styles.freeListItem}>
+              <div className={styles.freeUserInfo}>
+                <span className={styles.freeUserEmail}>{u.email}</span>
+                {u.name && <span className={styles.freeUserName}>{u.name}</span>}
+              </div>
+              <button
+                className={styles.freeRevokeBtn}
+                onClick={() => handleRevoke(u.email)}
+                disabled={revoking === u.email}
+                title="Revocar acceso"
+                type="button"
+              >
+                {revoking === u.email ? '…' : <RiDeleteBinLine />}
+              </button>
+            </li>
+          ))}
+        </ul>
       )}
-      <p className={styles.freeNote}>
-        El amigo debe crear su cuenta en la landing primero. Luego tú introduces su email aquí.
-      </p>
     </Section>
   );
 }
@@ -195,8 +275,8 @@ export default function Settings() {
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
 
-  const ADMIN_EMAIL = 'ernesto.aguirre.h@gmail.com';
-  const isAdmin = user?.email?.toLowerCase() === ADMIN_EMAIL;
+  const adminEmail = import.meta.env.VITE_ADMIN_EMAIL ?? '';
+  const isAdmin = adminEmail && user?.email?.toLowerCase() === adminEmail.toLowerCase();
 
   const handleSignOut = async () => {
     setSigningOut(true);

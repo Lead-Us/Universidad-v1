@@ -1,11 +1,18 @@
+// POST /api/process-folder
+// Body: { structure, textContents }
+// Returns: { ramos: [...] }
+// Uses Anthropic claude-sonnet-4-6 for accurate structured extraction
+
+import Anthropic from '@anthropic-ai/sdk';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'GROQ_API_KEY no configurada en Vercel' });
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY no configurada en Vercel' });
   }
 
   const { structure, textContents } = req.body;
@@ -44,7 +51,8 @@ export default async function handler(req, res) {
         .join('\n')
     : '';
 
-  const systemPrompt = `Eres un asistente que analiza la estructura de archivos de un estudiante universitario y genera datos estructurados para una app de gestión académica. Responde ÚNICAMENTE con un JSON válido, sin texto adicional ni bloques de código markdown.`;
+  const systemPrompt = `Eres un asistente experto que analiza la estructura de archivos de un estudiante universitario chileno y genera datos estructurados para una app de gestión académica.
+Responde ÚNICAMENTE con un JSON válido, sin texto adicional ni bloques de código markdown.`;
 
   const userPrompt = `Analiza cuidadosamente la estructura de carpetas de un estudiante universitario chileno. Cada carpeta de primer nivel es un ramo (asignatura universitaria).
 
@@ -94,87 +102,30 @@ Responde con exactamente este JSON (sin texto adicional, sin bloques de código)
   ]
 }`;
 
-  // Try models in order — llama-3.3-70b is best for structured JSON, fallback to smaller ones
-  const models = [
-    'llama-3.3-70b-versatile',
-    'llama3-70b-8192',
-    'llama3-8b-8192',
-    'mixtral-8x7b-32768',
-  ];
+  const client = new Anthropic({ apiKey });
 
-  const errors = [];
-  for (const model of models) {
-    try {
-      const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model,
-          messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user',   content: userPrompt },
-          ],
-          temperature: 0.2,
-          max_tokens: 8192,
-          response_format: { type: 'json_object' },
-        }),
-      });
+  try {
+    const response = await client.messages.create({
+      model:      'claude-sonnet-4-6',
+      max_tokens: 8192,
+      system:     systemPrompt,
+      messages:   [{ role: 'user', content: userPrompt }],
+      temperature: 0.1,
+    });
 
-      if (response.status === 429 || response.status === 503) {
-        errors.push(`${model}: límite de tasa (${response.status})`);
-        continue;
-      }
-      if (response.status === 400) {
-        // Some models don't support response_format — retry without it
-        const retry = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              { role: 'user',   content: userPrompt },
-            ],
-            temperature: 0.2,
-            max_tokens: 8192,
-          }),
-        });
-        if (!retry.ok) {
-          errors.push(`${model}: HTTP ${retry.status}`);
-          continue;
-        }
-        const retryResult = await retry.json();
-        const retryText = retryResult.choices?.[0]?.message?.content?.trim();
-        if (!retryText) { errors.push(`${model}: sin contenido`); continue; }
-        const m = retryText.match(/```(?:json)?\s*([\s\S]*?)```/) || retryText.match(/(\{[\s\S]*\})/);
-        const parsed = JSON.parse(m ? m[1] : retryText);
-        return res.status(200).json(parsed);
-      }
-      if (!response.ok) {
-        const errText = await response.text();
-        errors.push(`${model}: HTTP ${response.status}`);
-        continue;
-      }
+    const rawText = response.content?.[0]?.text?.trim() ?? '';
+    if (!rawText) throw new Error('La IA no devolvió contenido');
 
-      const result = await response.json();
-      const text = result.choices?.[0]?.message?.content?.trim();
-      if (!text) { errors.push(`${model}: sin contenido`); continue; }
+    // Strip markdown code fences if model added them
+    const jsonMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)```/) ?? rawText.match(/(\{[\s\S]*\})/);
+    const jsonStr   = jsonMatch ? jsonMatch[1].trim() : rawText;
 
-      const m = text.match(/```(?:json)?\s*([\s\S]*?)```/) || text.match(/(\{[\s\S]*\})/);
-      const parsed = JSON.parse(m ? m[1] : text);
-      return res.status(200).json(parsed);
-    } catch (err) {
-      errors.push(`${model}: ${err.message}`);
-    }
+    const parsed = JSON.parse(jsonStr);
+    return res.status(200).json(parsed);
+  } catch (err) {
+    console.error('[process-folder] Anthropic error:', err);
+    return res.status(500).json({
+      error: `Error al procesar con IA: ${err.message}`,
+    });
   }
-
-  return res.status(500).json({
-    error: `No se pudo procesar con Groq. Errores: ${errors.join(' | ')}`,
-  });
 }

@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { RAMO_COLORS } from '../../lib/ramoColors.js';
-import { RiAddLine, RiDeleteBinLine, RiTimeLine, RiPencilLine, RiCheckLine, RiCloseLine } from 'react-icons/ri';
+import {
+  RiAddLine, RiDeleteBinLine, RiTimeLine, RiPencilLine,
+  RiCheckLine, RiCloseLine, RiUploadLine, RiLoader4Line, RiSparkling2Line,
+} from 'react-icons/ri';
 import Button from '../shared/Button.jsx';
 import styles from './RamoForm.module.css';
 
@@ -17,12 +20,39 @@ const EMPTY_BLOCK = {
   sala: '', has_attendance: true,
 };
 
+// Read a File as base64 string (strips the data URL prefix)
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload  = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// Extract raw text from a DOCX file (client-side, no server needed)
+async function extractDocxText(file) {
+  const { unzipSync } = await import('fflate');
+  const arr = await file.arrayBuffer();
+  const zip = unzipSync(new Uint8Array(arr));
+  const xmlBytes = zip['word/document.xml'];
+  if (!xmlBytes) throw new Error('No se pudo leer el archivo DOCX');
+  const xml = new TextDecoder().decode(xmlBytes);
+  return xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 12000);
+}
+
 export default function RamoForm({ initial, onSave, onCancel, loading }) {
   const [form,        setForm]        = useState(EMPTY_RAMO);
   const [newBlock,    setNewBlock]    = useState({ ...EMPTY_BLOCK });
   const [addingBlock, setAddingBlock] = useState(false);
   const [editingBlockId, setEditingBlockId] = useState(null);
   const [editBlock,      setEditBlock]      = useState(null);
+
+  // Syllabus extraction state
+  const [extracting,    setExtracting]    = useState(false);
+  const [extractResult, setExtractResult] = useState(null); // 'ok' | 'error'
+  const [extractMsg,    setExtractMsg]    = useState('');
+  const fileRef = useRef(null);
 
   useEffect(() => {
     if (initial) {
@@ -70,6 +100,80 @@ export default function RamoForm({ initial, onSave, onCancel, loading }) {
 
   const setEB = (k, v) => setEditBlock(eb => ({ ...eb, [k]: v }));
 
+  // ── Syllabus extraction ─────────────────────────────────────────────────────
+  const handleSyllabusFile = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+
+    const ext = file.name.split('.').pop().toLowerCase();
+    if (!['pdf', 'docx', 'doc'].includes(ext)) {
+      setExtractResult('error');
+      setExtractMsg('Formato no soportado. Usa PDF o DOCX.');
+      return;
+    }
+
+    setExtracting(true);
+    setExtractResult(null);
+    setExtractMsg('');
+
+    try {
+      let body;
+
+      if (ext === 'pdf') {
+        const base64 = await fileToBase64(file);
+        body = { type: 'pdf', base64, filename: file.name };
+      } else {
+        // DOCX / DOC — extract text client-side
+        const content = await extractDocxText(file);
+        body = { type: 'text', content, filename: file.name };
+      }
+
+      const res  = await fetch('/api/extract-syllabus', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Error del servidor');
+
+      // Apply extracted fields to the form
+      const filled = [];
+      setForm(prev => {
+        const next = { ...prev };
+        if (data.name     && !prev.name)     { next.name      = data.name;              filled.push('Nombre'); }
+        if (data.code     && !prev.code)     { next.code      = data.code;              filled.push('Código'); }
+        if (data.professor)                  { next.professor = data.professor;          filled.push('Profesor'); }
+        if (data.section)                    { next.section   = data.section;            filled.push('Sección'); }
+        if (data.credits)                    { next.credits   = String(data.credits);   filled.push('Créditos'); }
+
+        // Add schedule blocks if found and none exist yet
+        if (Array.isArray(data.blocks) && data.blocks.length > 0 && prev.blocks.length === 0) {
+          next.blocks = data.blocks.map(b => ({
+            ...b,
+            day_of_week:    DAY_INDEX[b.day] ?? 0,
+            has_attendance: data.has_attendance ?? false,
+            id:             crypto.randomUUID(),
+          }));
+          filled.push('Horario');
+        }
+
+        return next;
+      });
+
+      setExtractResult('ok');
+      setExtractMsg(filled.length > 0
+        ? `Extraído: ${filled.join(', ')}`
+        : 'Documento procesado — no se encontraron campos adicionales'
+      );
+    } catch (err) {
+      setExtractResult('error');
+      setExtractMsg(err.message || 'No se pudo extraer la información');
+    } finally {
+      setExtracting(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSave({ ...form, credits: Number(form.credits) || 0 });
@@ -78,6 +182,41 @@ export default function RamoForm({ initial, onSave, onCancel, loading }) {
   return (
     <form onSubmit={handleSubmit} className={styles.form}>
       <div className="form-group">
+
+        {/* ── Syllabus extraction ── */}
+        <div className={styles.syllabusRow}>
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".pdf,.docx,.doc"
+            style={{ display: 'none' }}
+            onChange={handleSyllabusFile}
+            aria-hidden
+          />
+          <button
+            type="button"
+            className={[styles.syllabusBtn, extracting ? styles.syllabusBtnLoading : ''].join(' ')}
+            onClick={() => { setExtractResult(null); fileRef.current?.click(); }}
+            disabled={extracting}
+          >
+            {extracting
+              ? <RiLoader4Line className={styles.syllabusSpinner} />
+              : <RiSparkling2Line />
+            }
+            {extracting ? 'Extrayendo información…' : 'Extraer datos del programa (PDF · DOCX)'}
+          </button>
+
+          {extractResult === 'ok' && (
+            <span className={styles.syllabusOk}>
+              <RiCheckLine /> {extractMsg}
+            </span>
+          )}
+          {extractResult === 'error' && (
+            <span className={styles.syllabusErr}>
+              {extractMsg}
+            </span>
+          )}
+        </div>
 
         <div className="form-row">
           <div>
@@ -147,7 +286,7 @@ export default function RamoForm({ initial, onSave, onCancel, loading }) {
           </div>
         </div>
 
-        {/* ── Bloques de clase ────────────────────────────────── */}
+        {/* ── Bloques de clase ── */}
         <div>
           <label>Bloques de clase</label>
           <div className={styles.blocksList}>

@@ -708,3 +708,41 @@
   position: relative;
   z-index: 1;
 }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .title { font-size: var(--text-2xl); }
+
+  .card {
+    padding: var(--space-4);
+  }
+
+  .cardCenter {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .dropzone {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .actions {
+    justify-content: stretch;
+    flex-direction: column;
+  }
+
+  .btnPrimary,
+  .btnSecondary {
+    width: 100%;
+    justify-content: center;
+    min-height: 44px;
+  }
+
+  .editHeader {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .stepLabel {
+    display: none;
+  }
+}

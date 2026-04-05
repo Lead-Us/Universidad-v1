@@ -362,3 +362,35 @@
   color: var(--text-muted);
   margin: 0;
 }
+
+/* ── Mobile ── */
+@media (max-width: 640px) {
+  .panelBody {
+    max-height: 50vh;
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .panelHeader {
+    padding: var(--space-3) var(--space-4);
+  }
+
+  .checkBtn {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+
+  .clearBtn {
+    padding: 6px 12px;
+    min-height: 32px;
+  }
+
+  .chipTime {
+    min-width: 60px;
+    font-size: 11px;
+  }
+
+  .taskActions {
+    opacity: 1;
+  }
+}

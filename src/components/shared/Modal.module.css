@@ -111,3 +111,26 @@
   overflow-y: auto;
   max-height: calc(90vh - 80px);
 }
+
+@media (max-width: 480px) {
+  .overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .panel {
+    max-height: 92dvh;
+    border-radius: var(--lg-radius-2xl) var(--lg-radius-2xl) 0 0;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .header {
+    padding: var(--space-4) var(--space-5);
+  }
+
+  .body {
+    padding: var(--space-4) var(--space-5);
+    max-height: calc(92dvh - 70px);
+  }
+}
