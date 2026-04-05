@@ -88,7 +88,7 @@ function AppRoutes() {
         <Route path="/aprender/:notebookId"             element={<AprenderCuaderno />} />
         <Route path="/aprender/:notebookId/:blockId"    element={<AprenderBloque />}   />
         <Route path="/notebook"   element={<Notebook />}   />
-        <Route path="/tareas"     element={<Dashboard />}  />
+        <Route path="/tareas"     element={<Calendario />} />
         <Route path="/settings"   element={<Settings />}   />
         <Route path="/importar"   element={<ImportarArchivos />} />
         <Route path="*"           element={<Navigate to="/" replace />} />

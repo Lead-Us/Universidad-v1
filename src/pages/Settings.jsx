@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { RiUserLine, RiPaletteLine, RiRefreshLine, RiCheckLine, RiFolderUploadLine, RiArrowRightSLine, RiLogoutBoxLine } from 'react-icons/ri';
+import { RiUserLine, RiCheckLine, RiFolderUploadLine, RiArrowRightSLine, RiLogoutBoxLine } from 'react-icons/ri';
 import { useAuth } from '../lib/AuthContext.jsx';
-import { useSettings, THEME_PRESETS } from '../lib/SettingsContext.jsx';
 import styles from './Settings.module.css';
 
 function Section({ icon: Icon, title, children }) {
@@ -48,7 +47,6 @@ function ProfileSection() {
 }
 
 export default function Settings() {
-  const { settings, update, reset } = useSettings();
   const { signOut } = useAuth();
   const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
@@ -64,29 +62,10 @@ export default function Settings() {
 
         <div className="section-header">
           <h1 className="section-title">Configuración</h1>
-          <button className={styles.resetBtn} onClick={reset} title="Restablecer valores por defecto">
-            <RiRefreshLine /> Restablecer
-          </button>
         </div>
 
         <div className={styles.grid}>
           <ProfileSection />
-
-          <Section icon={RiPaletteLine} title="Apariencia">
-            <div className={styles.themeGrid}>
-              {THEME_PRESETS.map(theme => (
-                <button
-                  key={theme.id}
-                  className={[styles.themePill, settings.themePreset === theme.id ? styles.themeActive : ''].join(' ')}
-                  onClick={() => update('themePreset', theme.id)}
-                >
-                  <span className={styles.themePreview} style={{ background: theme.gradient }} />
-                  <span className={styles.themeLabel}>{theme.label}</span>
-                  {settings.themePreset === theme.id && <RiCheckLine className={styles.themeCheck} />}
-                </button>
-              ))}
-            </div>
-          </Section>
 
           <Section icon={RiFolderUploadLine} title="Importar">
             <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-4)' }}>
