@@ -96,11 +96,11 @@ export async function getFuentes(blockId) {
   return data ?? [];
 }
 
-export async function addFuente({ blockId, type, title, content = '', fileUrl = null, fileName = null }) {
+export async function addFuente({ blockId, type, name, content = null, url = null, filePath = null }) {
   const uid = await getUid();
   const { data, error } = await supabase
     .from('aprender_block_sources')
-    .insert({ user_id: uid, block_id: blockId, type, title, content, file_url: fileUrl, file_name: fileName })
+    .insert({ user_id: uid, block_id: blockId, type, name, content, url, file_path: filePath })
     .select()
     .single();
   if (error) throw error;

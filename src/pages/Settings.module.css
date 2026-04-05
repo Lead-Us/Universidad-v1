@@ -360,3 +360,45 @@
 
 .signOutBtn:hover    { background: rgba(220, 38, 38, 0.14); }
 .signOutBtn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Free access form */
+.sectionDesc {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-4);
+  line-height: 1.5;
+}
+
+.freeForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.freeSuccess {
+  font-size: var(--text-sm);
+  color: var(--color-success);
+  background: rgba(22,163,74,0.08);
+  border: 1px solid rgba(22,163,74,0.2);
+  border-radius: var(--lg-radius-sm);
+  padding: 8px 12px;
+  margin: 0;
+}
+
+.freeError {
+  font-size: var(--text-sm);
+  color: var(--color-danger);
+  background: rgba(220,38,38,0.08);
+  border: 1px solid rgba(220,38,38,0.2);
+  border-radius: var(--lg-radius-sm);
+  padding: 8px 12px;
+  margin: 0;
+}
+
+.freeNote {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: var(--space-2) 0 0;
+  line-height: 1.5;
+}

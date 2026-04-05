@@ -772,6 +772,36 @@
 .dropHint    { font-size: var(--text-xs); color: var(--text-muted); }
 .dropChange  { font-size: var(--text-xs); color: var(--text-muted); }
 
+/* File list */
+.fileList {
+  list-style: none; margin: 0;
+  display: flex; flex-direction: column; gap: 4px;
+  max-height: 200px; overflow-y: auto;
+}
+.fileItem {
+  display: flex; align-items: center; gap: var(--space-2);
+  padding: 6px 10px;
+  background: rgba(255,255,255,0.40);
+  border-radius: var(--lg-radius-sm);
+  border: 1px solid var(--lg-border);
+}
+.fileItemIcon { color: var(--accent); font-size: 14px; flex-shrink: 0; }
+.fileItemName { flex: 1; font-size: var(--text-xs); font-weight: 500; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fileItemSize { font-size: var(--text-xs); color: var(--text-muted); flex-shrink: 0; }
+.fileItemRemove {
+  background: none; border: none; cursor: pointer;
+  color: var(--text-muted); font-size: 14px;
+  display: flex; align-items: center; padding: 2px;
+  border-radius: 3px; flex-shrink: 0;
+  transition: color var(--dur-fast);
+}
+.fileItemRemove:hover { color: var(--color-danger); }
+
+.progressText {
+  font-size: var(--text-xs); color: var(--accent);
+  font-weight: 500; margin: 0; text-align: center;
+}
+
 .formError {
   font-size: var(--text-xs);
   color: var(--color-danger);

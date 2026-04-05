@@ -17,7 +17,14 @@ import styles from './AprenderBloque.module.css';
 
 marked.setOptions({ breaks: true, gfm: true });
 
-const ACCEPTED = '.pdf,.docx,.doc,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.webp,.img';
+const ACCEPTED = '.pdf,.docx,.doc,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.webp';
+const MAX_SIZE_MB = 50;
+const MAX_SIZE_B  = MAX_SIZE_MB * 1024 * 1024;
+
+function fmtSize(bytes) {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
 
 // ── Source type icon ───────────────────────────────────────────
 function SourceIcon({ type }) {
@@ -28,54 +35,81 @@ function SourceIcon({ type }) {
 
 // ── Add Source modal ───────────────────────────────────────────
 function AddSourceModal({ blockId, onAdded, onClose }) {
-  const [tab,     setTab]     = useState('file');
-  const [title,   setTitle]   = useState('');
-  const [content, setContent] = useState('');
-  const [url,     setUrl]     = useState('');
-  const [file,    setFile]    = useState(null);
-  const [saving,  setSaving]  = useState(false);
-  const [error,   setError]   = useState('');
-  const [drag,    setDrag]    = useState(false);
+  const [tab,      setTab]      = useState('file');
+  const [title,    setTitle]    = useState('');
+  const [content,  setContent]  = useState('');
+  const [url,      setUrl]      = useState('');
+  const [files,    setFiles]    = useState([]); // multi-file list
+  const [progress, setProgress] = useState(''); // e.g. "Subiendo 2 de 5…"
+  const [saving,   setSaving]   = useState(false);
+  const [error,    setError]    = useState('');
+  const [drag,     setDrag]     = useState(false);
   const fileRef = useRef(null);
+
+  const addFiles = (incoming) => {
+    const valid = [];
+    const errs  = [];
+    for (const f of incoming) {
+      if (f.size > MAX_SIZE_B) { errs.push(`${f.name} supera ${MAX_SIZE_MB} MB`); }
+      else { valid.push(f); }
+    }
+    if (errs.length) setError(errs.join(', '));
+    setFiles(prev => {
+      const names = new Set(prev.map(x => x.name));
+      return [...prev, ...valid.filter(f => !names.has(f.name))];
+    });
+  };
 
   const handleDrop = (e) => {
     e.preventDefault(); setDrag(false);
-    const f = e.dataTransfer.files[0];
-    if (f) setFile(f);
+    addFiles(Array.from(e.dataTransfer.files));
   };
+
+  const handleFileChange = (e) => {
+    addFiles(Array.from(e.target.files ?? []));
+    e.target.value = '';
+  };
+
+  const removeFile = (idx) => setFiles(prev => prev.filter((_, i) => i !== idx));
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(''); setSaving(true);
     try {
       if (tab === 'file') {
-        if (!file) { setError('Selecciona un archivo.'); setSaving(false); return; }
-        const { publicUrl } = await uploadFuente(blockId, file);
-        await addFuente({ blockId, type: 'file', title: title || file.name, fileUrl: publicUrl, fileName: file.name });
+        if (files.length === 0) { setError('Selecciona al menos un archivo.'); setSaving(false); return; }
+        for (let i = 0; i < files.length; i++) {
+          const f = files[i];
+          setProgress(`Subiendo ${i + 1} de ${files.length}: ${f.name}`);
+          const { path, publicUrl } = await uploadFuente(blockId, f);
+          await addFuente({ blockId, type: 'file', name: title || f.name, url: publicUrl, filePath: path });
+        }
+        setProgress('');
       } else if (tab === 'url') {
         if (!url.trim()) { setError('Ingresa una URL válida.'); setSaving(false); return; }
-        await addFuente({ blockId, type: 'url', title: title || url, content: url });
+        await addFuente({ blockId, type: 'url', name: title || url, url: url.trim() });
       } else {
         if (!content.trim()) { setError('Escribe el contenido.'); setSaving(false); return; }
-        await addFuente({ blockId, type: 'text', title: title || 'Texto', content });
+        await addFuente({ blockId, type: 'text', name: title || 'Texto', content });
       }
       onAdded();
     } catch (err) {
+      setProgress('');
       setError(err.message || 'Error al agregar fuente.');
     } finally { setSaving(false); }
   };
 
   const tabs = [
-    { id: 'file', label: 'Archivo', icon: RiUploadLine },
-    { id: 'url',  label: 'URL',    icon: RiLinksLine },
-    { id: 'text', label: 'Texto',  icon: RiText },
+    { id: 'file', label: 'Archivos', icon: RiUploadLine },
+    { id: 'url',  label: 'URL',      icon: RiLinksLine },
+    { id: 'text', label: 'Texto',    icon: RiText },
   ];
 
   return (
     <div className={styles.overlay} onClick={e => e.target === e.currentTarget && onClose()}>
       <div className={styles.addModal} role="dialog" aria-modal="true" aria-labelledby="add-source-title">
         <div className={styles.addModalHead}>
-          <h2 id="add-source-title" className={styles.addModalTitle}>Agregar fuente</h2>
+          <h2 id="add-source-title" className={styles.addModalTitle}>Agregar fuentes</h2>
           <button className={styles.iconBtn} onClick={onClose} aria-label="Cerrar"><RiCloseLine /></button>
         </div>
 
@@ -95,56 +129,76 @@ function AddSourceModal({ blockId, onAdded, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit} className={styles.addForm}>
-          {/* Title (optional) */}
-          <div className={styles.formField}>
-            <label className={styles.formLabel} htmlFor="src-title">
-              Título <span className={styles.optional}>(opcional)</span>
-            </label>
-            <input
-              id="src-title"
-              className={styles.formInput}
-              placeholder="Nombre de la fuente"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              maxLength={120}
-            />
-          </div>
+          {/* Title — only for non-file tabs */}
+          {tab !== 'file' && (
+            <div className={styles.formField}>
+              <label className={styles.formLabel} htmlFor="src-title">
+                Título <span className={styles.optional}>(opcional)</span>
+              </label>
+              <input
+                id="src-title"
+                className={styles.formInput}
+                placeholder="Nombre de la fuente"
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                maxLength={120}
+              />
+            </div>
+          )}
 
           {/* File tab */}
           {tab === 'file' && (
-            <div
-              className={[styles.dropZone, drag ? styles.dropZoneActive : '', file ? styles.dropZoneHasFile : ''].join(' ')}
-              onDragOver={e => { e.preventDefault(); setDrag(true); }}
-              onDragLeave={() => setDrag(false)}
-              onDrop={handleDrop}
-              onClick={() => fileRef.current?.click()}
-              role="button"
-              tabIndex={0}
-              aria-label="Zona para soltar archivo"
-              onKeyDown={e => e.key === 'Enter' && fileRef.current?.click()}
-            >
-              <input
-                ref={fileRef}
-                type="file"
-                accept={ACCEPTED}
-                onChange={e => setFile(e.target.files?.[0] ?? null)}
-                style={{ display: 'none' }}
-                aria-hidden
-              />
-              {file ? (
-                <>
-                  <RiCheckLine className={styles.dropCheck} />
-                  <p className={styles.dropFileName}>{file.name}</p>
-                  <span className={styles.dropChange}>Cambiar archivo</span>
-                </>
-              ) : (
-                <>
-                  <RiUploadLine className={styles.dropIcon} />
-                  <p className={styles.dropText}>Arrastra un archivo o haz clic</p>
-                  <span className={styles.dropHint}>PDF, DOCX, PPT, TXT, PNG, JPG</span>
-                </>
+            <>
+              <div
+                className={[styles.dropZone, drag ? styles.dropZoneActive : ''].join(' ')}
+                onDragOver={e => { e.preventDefault(); setDrag(true); }}
+                onDragLeave={() => setDrag(false)}
+                onDrop={handleDrop}
+                onClick={() => fileRef.current?.click()}
+                role="button"
+                tabIndex={0}
+                aria-label="Zona para soltar archivos"
+                onKeyDown={e => e.key === 'Enter' && fileRef.current?.click()}
+              >
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept={ACCEPTED}
+                  multiple
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                  aria-hidden
+                />
+                <RiUploadLine className={styles.dropIcon} />
+                <p className={styles.dropText}>Arrastra archivos o haz clic para seleccionar</p>
+                <span className={styles.dropHint}>PDF, DOCX, PPT, TXT, imágenes · hasta {MAX_SIZE_MB} MB c/u</span>
+              </div>
+
+              {/* File list */}
+              {files.length > 0 && (
+                <ul className={styles.fileList}>
+                  {files.map((f, i) => (
+                    <li key={i} className={styles.fileItem}>
+                      <RiFileLine className={styles.fileItemIcon} />
+                      <span className={styles.fileItemName}>{f.name}</span>
+                      <span className={styles.fileItemSize}>{fmtSize(f.size)}</span>
+                      <button
+                        type="button"
+                        className={styles.fileItemRemove}
+                        onClick={() => removeFile(i)}
+                        aria-label={`Quitar ${f.name}`}
+                      >
+                        <RiCloseLine />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
-            </div>
+
+              {progress && (
+                <p className={styles.progressText} role="status">{progress}</p>
+              )}
+            </>
           )}
 
           {/* URL tab */}
@@ -182,9 +236,13 @@ function AddSourceModal({ blockId, onAdded, onClose }) {
           {error && <p className={styles.formError} role="alert">{error}</p>}
 
           <div className={styles.formActions}>
-            <button type="button" className={styles.btnGhost} onClick={onClose}>Cancelar</button>
+            <button type="button" className={styles.btnGhost} onClick={onClose} disabled={saving}>Cancelar</button>
             <button type="submit" className={styles.btnPrimary} disabled={saving}>
-              {saving ? 'Subiendo…' : 'Agregar fuente'}
+              {saving
+                ? (progress || 'Subiendo…')
+                : tab === 'file' && files.length > 1
+                  ? `Subir ${files.length} archivos`
+                  : 'Agregar'}
             </button>
           </div>
         </form>
@@ -203,12 +261,12 @@ function SourceItem({ source, onDelete }) {
         <SourceIcon type={source.type} />
       </div>
       <div className={styles.sourceInfo}>
-        <p className={styles.sourceName}>{source.title || source.file_name || 'Fuente'}</p>
-        {source.content && source.type === 'text' && (
+        <p className={styles.sourceName}>{source.name || 'Fuente'}</p>
+        {source.type === 'text' && source.content && (
           <p className={styles.sourcePreview}>{source.content.slice(0, 80)}{source.content.length > 80 ? '…' : ''}</p>
         )}
-        {source.type === 'url' && (
-          <p className={styles.sourcePreview}>{source.content}</p>
+        {source.type === 'url' && source.url && (
+          <p className={styles.sourcePreview}>{source.url}</p>
         )}
       </div>
       <div className={styles.sourceActions}>
@@ -356,7 +414,7 @@ export default function AprenderBloque() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sources:  fuentes.map(f => ({ title: f.title || f.file_name || '', content: f.content || f.file_url || '' })),
+          sources:  fuentes.map(f => ({ title: f.name || '', content: f.content || f.url || '' })),
           messages: messages
             .map(m => ({ role: m.role, content: m.content }))
             .concat([{ role: 'user', content: userContent }]),
