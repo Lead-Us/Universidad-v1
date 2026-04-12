@@ -57,6 +57,7 @@ export default function Dashboard() {
   const [saving,   setSaving]   = useState(false);
   const [confirmDel, setConfirmDel] = useState(null);
   const [showAddBlock, setShowAddBlock] = useState(false);
+  const [showCompleted, setShowCompleted] = useState(false);
 
   const ramoMap = Object.fromEntries(ramos.map(r => [r.id, r]));
 
@@ -67,7 +68,8 @@ export default function Dashboard() {
       filter === 'pendientes' ? !t.completed :
       t.type === filter;
     const matchSearch = !search || t.title.toLowerCase().includes(search.toLowerCase());
-    return matchFilter && matchSearch;
+    const matchCompleted = showCompleted || !t.completed;
+    return matchFilter && matchSearch && matchCompleted;
   });
 
   // Group by due_date
@@ -181,6 +183,14 @@ export default function Dashboard() {
           </div>
         ) : (
           <div className={styles.groups}>
+            {completed > 0 && filter !== 'pendientes' && (
+              <button
+                className={styles.showCompletedBtn}
+                onClick={() => setShowCompleted(v => !v)}
+              >
+                {showCompleted ? `Ocultar ${completed} completada${completed !== 1 ? 's' : ''}` : `Ver ${completed} completada${completed !== 1 ? 's' : ''}`}
+              </button>
+            )}
             {sortedKeys.map(key => {
               const dayTasks = grouped[key];
               const label = key === 'sin-fecha' ? 'Sin fecha' : formatDate(key);

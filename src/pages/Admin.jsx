@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   RiShieldUserLine, RiUserAddLine, RiDeleteBinLine,
   RiRefreshLine, RiArrowLeftLine, RiCheckLine,
+  RiUserLine, RiLockPasswordLine, RiMailLine,
 } from 'react-icons/ri';
 import { supabase } from '../lib/supabase.js';
 import styles from './Admin.module.css';
@@ -27,15 +28,25 @@ async function apiCall(path, options = {}) {
 export default function Admin() {
   const navigate = useNavigate();
 
-  // 'loading' | 'authorized' | 'forbidden'
   const [status,      setStatus]      = useState('loading');
   const [users,       setUsers]       = useState([]);
   const [loadingList, setLoadingList] = useState(false);
-  const [email,       setEmail]       = useState('');
+
+  // Grant access state
+  const [grantEmail,  setGrantEmail]  = useState('');
   const [granting,    setGranting]    = useState(false);
+  const [grantMsg,    setGrantMsg]    = useState('');
+  const [grantErr,    setGrantErr]    = useState(false);
+
+  // Create account state
+  const [newEmail,    setNewEmail]    = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [newName,     setNewName]     = useState('');
+  const [creating,    setCreating]    = useState(false);
+  const [createMsg,   setCreateMsg]   = useState('');
+  const [createErr,   setCreateErr]   = useState(false);
+
   const [revoking,    setRevoking]    = useState(null);
-  const [msg,         setMsg]         = useState('');
-  const [isErr,       setIsErr]       = useState(false);
 
   const loadUsers = useCallback(async () => {
     setLoadingList(true);
@@ -59,44 +70,59 @@ export default function Admin() {
 
   const handleGrant = async (e) => {
     e.preventDefault();
-    setMsg(''); setGranting(true);
+    setGrantMsg(''); setGranting(true);
     try {
       const data = await apiCall('/api/grant-free', {
         method: 'POST',
-        body: JSON.stringify({ email: email.trim() }),
+        body: JSON.stringify({ email: grantEmail.trim() }),
       });
-      setMsg(data.message);
-      setIsErr(false);
-      setEmail('');
+      setGrantMsg(data.message);
+      setGrantErr(false);
+      setGrantEmail('');
       await loadUsers();
     } catch (err) {
-      setMsg(err.message);
-      setIsErr(true);
+      setGrantMsg(err.message);
+      setGrantErr(true);
     } finally {
       setGranting(false);
     }
   };
 
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    setCreateMsg(''); setCreating(true);
+    try {
+      const data = await apiCall('/api/create-account', {
+        method: 'POST',
+        body: JSON.stringify({ email: newEmail.trim(), password: newPassword, name: newName.trim() }),
+      });
+      setCreateMsg(data.message);
+      setCreateErr(false);
+      setNewEmail(''); setNewPassword(''); setNewName('');
+      await loadUsers();
+    } catch (err) {
+      setCreateMsg(err.message);
+      setCreateErr(true);
+    } finally {
+      setCreating(false);
+    }
+  };
+
   const handleRevoke = async (targetEmail) => {
     setRevoking(targetEmail);
-    setMsg('');
     try {
-      const data = await apiCall('/api/grant-free', {
+      await apiCall('/api/grant-free', {
         method: 'POST',
         body: JSON.stringify({ email: targetEmail, action: 'revoke' }),
       });
-      setMsg(data.message);
-      setIsErr(false);
       await loadUsers();
     } catch (err) {
-      setMsg(err.message);
-      setIsErr(true);
+      console.error(err.message);
     } finally {
       setRevoking(null);
     }
   };
 
-  /* ── Loading ── */
   if (status === 'loading') {
     return (
       <div className={styles.centeredWrap}>
@@ -105,7 +131,6 @@ export default function Admin() {
     );
   }
 
-  /* ── Forbidden ── */
   if (status === 'forbidden') {
     return (
       <div className={styles.centeredWrap}>
@@ -121,7 +146,6 @@ export default function Admin() {
     );
   }
 
-  /* ── Authorized ── */
   return (
     <div className="page">
       <div className="page-content">
@@ -131,15 +155,12 @@ export default function Admin() {
           <button className={styles.backBtn} onClick={() => navigate('/settings')}>
             <RiArrowLeftLine /> Configuración
           </button>
-
           <div className={styles.headerMeta}>
             <span className={styles.adminBadge}>
               <RiShieldUserLine /> Admin
             </span>
             <h1 className={styles.pageTitle}>Panel de administración</h1>
-            <p className={styles.pageSubtitle}>
-              Gestiona el acceso gratuito a la plataforma
-            </p>
+            <p className={styles.pageSubtitle}>Gestiona usuarios y acceso a la plataforma</p>
           </div>
         </div>
 
@@ -151,56 +172,147 @@ export default function Admin() {
           </div>
         </div>
 
-        {/* ── Grid ── */}
+        {/* ── Two-column grid ── */}
         <div className={styles.grid}>
 
-          {/* Grant card */}
-          <div className={styles.card}>
-            <div className={styles.cardHeader}>
-              <div className={styles.cardHeaderInner}>
-                <RiUserAddLine className={styles.cardIcon} />
-                <h2 className={styles.cardTitle}>Dar acceso gratuito</h2>
+          {/* Left column: Create account + Grant access */}
+          <div className={styles.leftCol}>
+
+            {/* Create full account card */}
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardHeaderInner}>
+                  <div className={styles.cardIconWrap} style={{ background: 'rgba(124,58,237,0.10)' }}>
+                    <RiUserAddLine className={styles.cardIcon} />
+                  </div>
+                  <div>
+                    <h2 className={styles.cardTitle}>Crear cuenta completa</h2>
+                    <p className={styles.cardSub}>Crea un usuario nuevo con acceso gratuito</p>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.cardBody}>
+                <form onSubmit={handleCreate} className={styles.grantForm}>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.inputLabel}>Nombre (opcional)</label>
+                    <div className={styles.inputWrap}>
+                      <RiUserLine className={styles.inputIcon} />
+                      <input
+                        className={styles.input}
+                        type="text"
+                        placeholder="Nombre del usuario"
+                        value={newName}
+                        onChange={e => { setNewName(e.target.value); setCreateMsg(''); }}
+                        disabled={creating}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.inputLabel}>Correo electrónico</label>
+                    <div className={styles.inputWrap}>
+                      <RiMailLine className={styles.inputIcon} />
+                      <input
+                        className={styles.input}
+                        type="email"
+                        placeholder="correo@ejemplo.com"
+                        value={newEmail}
+                        onChange={e => { setNewEmail(e.target.value); setCreateMsg(''); }}
+                        required
+                        disabled={creating}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.inputLabel}>Contraseña</label>
+                    <div className={styles.inputWrap}>
+                      <RiLockPasswordLine className={styles.inputIcon} />
+                      <input
+                        className={styles.input}
+                        type="password"
+                        placeholder="Mínimo 8 caracteres"
+                        value={newPassword}
+                        onChange={e => { setNewPassword(e.target.value); setCreateMsg(''); }}
+                        required
+                        minLength={8}
+                        disabled={creating}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    className={styles.primaryBtn}
+                    type="submit"
+                    disabled={creating || !newEmail.trim() || !newPassword}
+                  >
+                    {creating ? 'Creando cuenta…' : <><RiUserAddLine /> Crear cuenta y dar acceso</>}
+                  </button>
+                </form>
+                {createMsg && (
+                  <p className={createErr ? styles.msgErr : styles.msgOk}>
+                    {!createErr && <RiCheckLine />} {createMsg}
+                  </p>
+                )}
               </div>
             </div>
-            <div className={styles.cardBody}>
-              <p className={styles.desc}>
-                El usuario debe tener cuenta registrada. Al otorgar acceso omite el flujo de pago y queda con estado <strong>free</strong>.
-              </p>
-              <form onSubmit={handleGrant} className={styles.grantForm}>
-                <input
-                  className={styles.input}
-                  type="email"
-                  placeholder="correo@ejemplo.com"
-                  value={email}
-                  onChange={e => { setEmail(e.target.value); setMsg(''); }}
-                  required
-                  disabled={granting}
-                />
-                <button
-                  className={styles.grantBtn}
-                  type="submit"
-                  disabled={granting || !email.trim()}
-                >
-                  {granting
-                    ? 'Verificando…'
-                    : <><RiUserAddLine /> Dar acceso</>
-                  }
-                </button>
-              </form>
-              {msg && (
-                <p className={isErr ? styles.msgErr : styles.msgOk}>
-                  {!isErr && <RiCheckLine />} {msg}
-                </p>
-              )}
+
+            {/* Grant existing user card */}
+            <div className={styles.card}>
+              <div className={styles.cardHeader}>
+                <div className={styles.cardHeaderInner}>
+                  <div className={styles.cardIconWrap} style={{ background: 'rgba(16,185,129,0.10)' }}>
+                    <RiShieldUserLine className={styles.cardIcon} style={{ color: 'var(--color-success)' }} />
+                  </div>
+                  <div>
+                    <h2 className={styles.cardTitle}>Dar acceso gratuito</h2>
+                    <p className={styles.cardSub}>A un usuario que ya tiene cuenta</p>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.cardBody}>
+                <form onSubmit={handleGrant} className={styles.grantForm}>
+                  <div className={styles.inputGroup}>
+                    <label className={styles.inputLabel}>Correo electrónico</label>
+                    <div className={styles.inputWrap}>
+                      <RiMailLine className={styles.inputIcon} />
+                      <input
+                        className={styles.input}
+                        type="email"
+                        placeholder="correo@ejemplo.com"
+                        value={grantEmail}
+                        onChange={e => { setGrantEmail(e.target.value); setGrantMsg(''); }}
+                        required
+                        disabled={granting}
+                      />
+                    </div>
+                  </div>
+                  <button
+                    className={styles.secondaryBtn}
+                    type="submit"
+                    disabled={granting || !grantEmail.trim()}
+                  >
+                    {granting ? 'Verificando…' : <><RiCheckLine /> Dar acceso</>}
+                  </button>
+                </form>
+                {grantMsg && (
+                  <p className={grantErr ? styles.msgErr : styles.msgOk}>
+                    {!grantErr && <RiCheckLine />} {grantMsg}
+                  </p>
+                )}
+              </div>
             </div>
+
           </div>
 
-          {/* Users card */}
+          {/* Right column: User list */}
           <div className={styles.card}>
             <div className={styles.cardHeader}>
               <div className={styles.cardHeaderInner}>
-                <RiShieldUserLine className={styles.cardIcon} />
-                <h2 className={styles.cardTitle}>Acceso gratuito activo</h2>
+                <div className={styles.cardIconWrap} style={{ background: 'rgba(0,0,0,0.06)' }}>
+                  <RiUserLine className={styles.cardIcon} style={{ color: 'var(--text-secondary)' }} />
+                </div>
+                <div>
+                  <h2 className={styles.cardTitle}>Acceso gratuito activo</h2>
+                  <p className={styles.cardSub}>{users.length} usuario{users.length !== 1 ? 's' : ''}</p>
+                </div>
               </div>
               <button
                 className={styles.refreshBtn}
@@ -217,7 +329,7 @@ export default function Admin() {
                 <p className={styles.emptyText}>Cargando…</p>
               ) : users.length === 0 ? (
                 <div className={styles.emptyState}>
-                  <RiShieldUserLine className={styles.emptyIcon} />
+                  <RiUserLine className={styles.emptyIcon} />
                   <p className={styles.emptyText}>Ningún usuario con acceso gratuito.</p>
                 </div>
               ) : (
