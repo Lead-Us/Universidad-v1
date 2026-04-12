@@ -34,7 +34,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 30%;
-  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.04) 0%, transparent 60%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.40) 0%, transparent 100%);
   pointer-events: none;
 }
 
@@ -95,7 +95,7 @@
 }
 
 .sourceCard {
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.30);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-md);
   padding: var(--space-3);
@@ -153,7 +153,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  background: rgba(255,255,255,0.04);
+  background: rgba(255,255,255,0.35);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-md);
   padding: var(--space-3);
@@ -182,7 +182,7 @@
 .cancelBtn {
   flex: 1;
   padding: 5px 0;
-  background: rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.45);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-sm);
   font-size: var(--text-xs);
@@ -192,7 +192,7 @@
   transition: all var(--dur-fast) var(--ease-out);
 }
 
-.cancelBtn:hover { background: rgba(255,255,255,0.10); color: var(--text-primary); }
+.cancelBtn:hover { background: rgba(255,255,255,0.70); color: var(--text-primary); }
 
 .saveBtn {
   flex: 1;
@@ -230,7 +230,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 25%;
-  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.04) 0%, transparent 60%);
+  background: linear-gradient(180deg, rgba(255,255,255,0.40) 0%, transparent 100%);
   pointer-events: none;
 }
 
@@ -292,7 +292,7 @@
 }
 
 .userMsg .msgAvatar {
-  background: rgba(255,255,255,0.07);
+  background: rgba(0,0,0,0.07);
   color: var(--text-secondary);
 }
 
@@ -303,7 +303,7 @@
 }
 
 .aiMsg .msgBubble {
-  background: var(--bg-elevated);
+  background: rgba(255,255,255,0.55);
   border: 1px solid var(--lg-border);
   border-bottom-color: var(--lg-border-bottom);
 }
@@ -368,8 +368,8 @@
 
 .chatInput {
   flex: 1;
-  background: var(--input-bg);
-  border: 1px solid var(--input-border);
+  background: rgba(255,255,255,0.55);
+  border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-md);
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-sm);

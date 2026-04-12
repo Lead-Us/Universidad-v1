@@ -11,9 +11,9 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: var(--bg-elevated);
+  background: #FFFFFF;
   border-bottom: 1px solid var(--lg-border);
-  box-shadow: 0 1px 0 rgba(255,255,255,0.05);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
 }
 
 .navInner {
@@ -204,7 +204,7 @@
   font-weight: var(--weight-medium);
   font-family: var(--font-ui);
   color: var(--text-secondary);
-  background: var(--bg-elevated);
+  background: #FFFFFF;
   border: 1.5px solid rgba(0, 0, 0, 0.14);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
@@ -250,7 +250,7 @@
 }
 
 .featureCard {
-  background: var(--bg-elevated);
+  background: #FFFFFF;
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-xl);
   padding: var(--space-6);
@@ -296,7 +296,7 @@
 }
 
 .pricingCard {
-  background: var(--bg-elevated);
+  background: #FFFFFF;
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-2xl);
   padding: var(--space-8);
@@ -402,7 +402,7 @@
 /* ── Footer ── */
 .footer {
   border-top: 1px solid var(--lg-border);
-  background: var(--bg-elevated);
+  background: #FFFFFF;
   margin-top: auto;
 }
 

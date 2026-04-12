@@ -1,17 +1,20 @@
-/* ══════════════════════════════════════════════════════
-   MOBILE BOTTOM BAR
-   ══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   MOBILE BOTTOM BAR — Canva style
+   ══════════════════════════════════════════════════════════════ */
 .bottomBar {
   position: fixed;
   bottom: 0; left: 0; right: 0;
   height: var(--nav-height);
-  background: #13151F;
-  border-top: 1px solid rgba(255,255,255,0.07);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border-top: 1px solid var(--lg-border);
   display: flex;
   align-items: stretch;
   justify-content: space-around;
   z-index: 200;
   padding-bottom: env(safe-area-inset-bottom, 0);
+  box-shadow: 0 -1px 0 rgba(0,0,0,0.06);
 }
 
 .sidebar { display: none; }
@@ -31,14 +34,14 @@
 }
 
 .tabItem:active { opacity: 0.55; }
-.tabItem.active  { color: var(--accent); }
+.tabItem.active { color: var(--accent); }
 
 .tabIcon  { font-size: 21px; line-height: 1; }
 .tabLabel { font-size: 10px; font-weight: var(--weight-semibold); letter-spacing: 0.01em; }
 
-/* ══════════════════════════════════════════════════════
-   DESKTOP SIDEBAR
-   ══════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   DESKTOP SIDEBAR — Canva white solid panel
+   ══════════════════════════════════════════════════════════════ */
 @media (min-width: 768px) {
   .bottomBar { display: none; }
 
@@ -48,43 +51,44 @@
     position: fixed;
     top: 0; left: 0; bottom: 0;
     width: var(--sidebar-width);
-    background: #0E1018;
-    border-right: 1px solid rgba(255,255,255,0.06);
+    background: #FFFFFF;
+    border-right: 1px solid var(--lg-border);
     z-index: 200;
     padding: var(--space-5) var(--space-3) var(--space-4);
     transition: width var(--dur-base) var(--ease-out);
     overflow: hidden;
+    /* Subtle shadow instead of glass */
     box-shadow: var(--lg-shadow-nav);
   }
 
   .sidebarCollapsed { width: var(--sidebar-collapsed); }
 
-  /* ── Logo ── */
+  /* ── Logo area ── */
   .logoArea {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    padding: var(--space-2) var(--space-2) var(--space-6);
+    padding: var(--space-2) var(--space-3) var(--space-5);
     white-space: nowrap;
     overflow: hidden;
-    min-height: 52px;
+    min-height: 48px;
   }
 
   .logoIcon {
-    width: 34px;
-    height: 34px;
-    border-radius: 10px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     background: var(--accent-gradient);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 16px;
+    font-size: 17px;
     color: #FFFFFF;
     font-weight: var(--weight-bold);
     font-family: var(--font-display);
     letter-spacing: -0.02em;
-    box-shadow: 0 4px 14px rgba(var(--accent-rgb), 0.40);
+    box-shadow: 0 2px 8px rgba(58, 58, 60, 0.30);
   }
 
   .logoText {
@@ -114,7 +118,7 @@
     overflow: hidden;
   }
 
-  /* ── Nav item ── */
+  /* ── Nav item — Canva hover + active ── */
   .sidebarItem {
     display: flex;
     align-items: center;
@@ -135,19 +139,25 @@
   }
 
   .sidebarItem:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.04);
     color: var(--text-primary);
   }
 
-  .sidebarItem:active { transform: scale(0.97); }
+  .sidebarItem:active {
+    transform: scale(0.97);
+    background: rgba(0, 0, 0, 0.06);
+  }
 
+  /* Active: Canva uses a lightly filled pill */
   .sidebarItem.active {
-    background: rgba(var(--accent-rgb), 0.14);
+    background: rgba(58, 58, 60, 0.08);
     color: var(--accent);
     font-weight: var(--weight-semibold);
   }
 
-  .sidebarItem.active .icon { color: var(--accent); }
+  .sidebarItem.active .icon {
+    color: var(--accent);
+  }
 
   .icon  { font-size: 18px; flex-shrink: 0; }
   .label { overflow: hidden; flex: 1; }
@@ -158,26 +168,26 @@
     flex-direction: column;
     gap: 2px;
     padding-top: var(--space-3);
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid var(--lg-border);
     overflow: hidden;
   }
 
-  /* ── Collapse toggle ── */
+  /* ── Collapse toggle — Canva icon button ── */
   .toggleBtn {
     display: flex;
     align-items: center;
     justify-content: center;
     background: transparent;
-    border: 1px solid rgba(255,255,255,0.07);
+    border: 1px solid var(--lg-border);
     color: var(--text-muted);
     font-size: 15px;
     cursor: pointer;
     padding: 0;
     border-radius: var(--lg-radius-sm);
     transition:
-      background   var(--dur-fast) var(--ease-out),
-      color        var(--dur-fast) var(--ease-out),
-      transform    var(--dur-instant) var(--ease-out),
+      background  var(--dur-fast) var(--ease-out),
+      color       var(--dur-fast) var(--ease-out),
+      transform   var(--dur-instant) var(--ease-out),
       border-color var(--dur-fast) var(--ease-out);
     width: 34px;
     height: 34px;
@@ -186,8 +196,8 @@
   }
 
   .toggleBtn:hover {
-    background: rgba(255,255,255,0.06);
-    border-color: rgba(255,255,255,0.14);
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.14);
     color: var(--text-primary);
   }
 
