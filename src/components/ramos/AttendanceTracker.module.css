@@ -33,7 +33,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, transparent 100%);
+  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.05) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -107,7 +107,7 @@
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 30%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 100%);
+  background: linear-gradient(135deg, rgba(var(--accent-rgb),0.04) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -139,7 +139,7 @@
 }
 
 .sessionRow:last-child { border-bottom: none; }
-.sessionRow:hover { background: rgba(255,255,255,0.15); }
+.sessionRow:hover { background: rgba(255,255,255,0.05); }
 
 .sessionDate { display: flex; align-items: center; }
 

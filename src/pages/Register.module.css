@@ -16,7 +16,7 @@
 .card {
   width: 100%;
   max-width: 540px;
-  background: #FFFFFF;
+  background: var(--bg-elevated);
   border: 1px solid var(--lg-border);
   border-radius: 24px;
   box-shadow: var(--lg-shadow);
@@ -56,26 +56,26 @@
   width: 52px;
   height: 52px;
   border-radius: 16px;
-  background: var(--accent);
+  background: var(--accent-gradient);
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 24px;
-  box-shadow: 0 4px 16px rgba(var(--accent-rgb),0.30);
+  box-shadow: 0 4px 20px rgba(var(--accent-rgb),0.35);
 }
 
 .title {
   font-size: var(--text-xl);
-  font-weight: var(--weight-bold);
-  color: #111827;
+  font-weight: 800;
+  color: var(--text-title);
   margin: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
 }
 
 .subtitle {
   font-size: var(--text-sm);
-  color: rgba(17,24,39,0.50);
+  color: var(--text-muted);
   margin: 0;
 }
 
@@ -127,8 +127,8 @@
   position: relative;
   display: flex;
   align-items: center;
-  background: rgba(255,255,255,0.60);
-  border: 1.5px solid rgba(0,0,0,0.10);
+  background: var(--input-bg);
+  border: 1.5px solid var(--input-border);
   border-radius: var(--lg-radius-md);
   overflow: hidden;
   transition: border-color var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
@@ -136,7 +136,7 @@
 
 .field:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.14);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.18);
 }
 
 .fieldIcon {
@@ -183,9 +183,9 @@
 /* ── Error ── */
 .error {
   font-size: var(--text-sm);
-  color: var(--color-danger);
-  background: rgba(220,38,38,0.07);
-  border: 1px solid rgba(220,38,38,0.18);
+  color: #EF4444;
+  background: rgba(239,68,68,0.10);
+  border: 1px solid rgba(239,68,68,0.22);
   border-radius: var(--lg-radius-sm);
   padding: var(--space-3) var(--space-4);
   margin: 0;
@@ -200,16 +200,16 @@
   font-weight: var(--weight-semibold);
   font-family: var(--font-ui);
   color: #fff;
-  background: var(--accent);
+  background: var(--accent-gradient);
   border: none;
   cursor: pointer;
   transition: all var(--dur-fast) var(--ease-out);
-  box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.35);
+  box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.35);
   margin-top: var(--space-1);
 }
 .submitBtn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
 .submitBtn:active { transform: scale(0.98); }
-.submitBtn:disabled { opacity: 0.60; cursor: not-allowed; }
+.submitBtn:disabled { opacity: 0.55; cursor: not-allowed; }
 
 /* ── Login link ── */
 .loginLink {
@@ -240,8 +240,8 @@
 
 .successTitle {
   font-size: var(--text-xl);
-  font-weight: var(--weight-bold);
-  color: #111827;
+  font-weight: 800;
+  color: var(--text-title);
   margin: 0;
   text-align: center;
   letter-spacing: -0.02em;
@@ -263,12 +263,12 @@
   font-weight: var(--weight-semibold);
   font-family: var(--font-ui);
   color: var(--accent);
-  background: rgba(var(--accent-rgb), 0.08);
-  border: 1px solid rgba(var(--accent-rgb), 0.20);
+  background: rgba(var(--accent-rgb), 0.10);
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
   cursor: pointer;
   transition: all var(--dur-fast) var(--ease-out);
 }
-.backBtn:hover { background: rgba(var(--accent-rgb), 0.14); }
+.backBtn:hover { background: rgba(var(--accent-rgb), 0.16); }
 
 /* ── Responsive ── */
 @media (max-width: 480px) {
