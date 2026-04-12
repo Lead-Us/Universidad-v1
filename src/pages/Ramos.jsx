@@ -6,6 +6,7 @@ import RamoForm from '../components/ramos/RamoForm.jsx';
 import Modal    from '../components/shared/Modal.jsx';
 import Button   from '../components/shared/Button.jsx';
 import LoadingSpinner from '../components/shared/LoadingSpinner.jsx';
+import styles from './Ramos.module.css';
 
 export default function Ramos() {
   const { ramos, loading, error, add, update, remove } = useRamos();
@@ -38,8 +39,13 @@ export default function Ramos() {
     <div className="page">
       <div className="page-content">
 
-        <div className="section-header">
-          <h1 className="section-title">Ramos</h1>
+        <h1 className={styles.sectionHeading}>Mis Ramos</h1>
+        {ramos.length > 0 && (
+          <p className={styles.sectionSub}>{ramos.length} {ramos.length === 1 ? 'ramo' : 'ramos'} este semestre</p>
+        )}
+
+        <div className="section-header" style={{ marginBottom: 'var(--space-5)' }}>
+          <span />
           <Button onClick={openCreate}>
             <RiAddLine /> Agregar ramo
           </Button>
@@ -53,11 +59,20 @@ export default function Ramos() {
 
         {error && <p style={{ color: 'var(--color-danger)', fontSize: 'var(--text-sm)' }}>{error}</p>}
 
-        {!loading && (
-          <div className="cards-grid stagger">
-            {ramos.map(r => (
-              <RamoCard key={r.id} ramo={r} onEdit={openEdit} onDelete={handleDelete} />
-            ))}
+        {!loading && ramos.length > 0 && (
+          <div className={styles.scrollSection}>
+            <div className={styles.scrollRow}>
+              {ramos.map(r => (
+                <RamoCard key={r.id} ramo={r} onEdit={openEdit} onDelete={handleDelete} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!loading && ramos.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
+            <p style={{ marginBottom: 'var(--space-4)' }}>Aún no tienes ramos agregados.</p>
+            <Button onClick={openCreate}><RiAddLine /> Agregar primer ramo</Button>
           </div>
         )}
 

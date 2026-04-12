@@ -208,10 +208,10 @@
   left: 0;
   z-index: 200;
   width: 220px;
-  background: #FFFFFF;
+  background: var(--lg-surface-hover);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-lg);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.14), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--lg-shadow-modal);
   animation: scaleIn 200ms var(--ease-out) both;
   transform-origin: top left;
 }

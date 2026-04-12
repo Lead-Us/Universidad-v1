@@ -277,7 +277,7 @@
   cursor: pointer;
   transition: all var(--dur-fast) var(--ease-out);
 }
-.addTabActive { background: #fff; color: var(--text-primary); box-shadow: 0 1px 3px rgba(0,0,0,0.10); }
+.addTabActive { background: var(--lg-surface-hover); color: var(--text-primary); box-shadow: 0 1px 3px rgba(0,0,0,0.30); }
 
 .addInput, .addTextarea {
   width: 100%;

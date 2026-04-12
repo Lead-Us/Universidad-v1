@@ -48,17 +48,17 @@
 }
 
 .ghost {
-  background: #FFFFFF;
+  background: var(--lg-surface);
   color: var(--text-secondary);
-  border: 1.5px solid rgba(0, 0, 0, 0.14);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1.5px solid var(--lg-border);
+  box-shadow: var(--lg-shadow-xs);
 }
 .ghost:hover:not(:disabled) {
   background: var(--lg-surface-hover);
   color: var(--text-primary);
-  border-color: rgba(0, 0, 0, 0.20);
+  border-color: var(--lg-border-dark);
   transform: translateY(-1px);
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.09);
+  box-shadow: var(--lg-shadow);
 }
 .ghost:active:not(:disabled) {
   transform: scale(0.96);

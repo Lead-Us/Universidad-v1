@@ -1,49 +1,49 @@
 /* ============================================================
-   Universidad v1 — Canva-Inspired Design System
-   Gray gradient accent · White surfaces · Smooth ease-out
+   Universidad v1 — Canva Dark Design System
+   Purple accent · Dark navy surfaces · Smooth ease-out
    Font: Plus Jakarta Sans
    ============================================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 /* ============================================================
-   VARIABLES — Canva Design Tokens
+   VARIABLES — Canva Dark Design Tokens
    ============================================================ */
 :root {
   /* ── App background ── */
-  --bg-app:      #F7F8FA;
-  --bg-app-pure: #FFFFFF;
+  --bg-app:      #100E1A;
+  --bg-app-pure: #0C0A15;
 
-  /* ── Surfaces — solid white, no glass ── */
-  --lg-surface:        #FFFFFF;
-  --lg-surface-hover:  #FAFAFA;
-  --lg-surface-active: #F5F5F7;
-  --lg-surface-deep:   #F7F8FA;
-  --lg-surface-subtle: #F5F5F7;
+  /* ── Surfaces ── */
+  --lg-surface:        #1C1A2C;
+  --lg-surface-hover:  #242236;
+  --lg-surface-active: #2A2840;
+  --lg-surface-deep:   #16142200;
+  --lg-surface-subtle: #17152280;
 
   /* Legacy aliases */
-  --glass:        #FFFFFF;
-  --glass-strong: #FFFFFF;
-  --glass-soft:   #FAFAFA;
-  --glass-subtle: #F5F5F7;
+  --glass:        #1C1A2C;
+  --glass-strong: #242236;
+  --glass-soft:   #1A1828;
+  --glass-subtle: #17152280;
 
-  /* ── No specular (Canva is flat+shadow, not glass) ── */
-  --lg-specular:      transparent;
-  --lg-specular-soft: transparent;
-  --lg-specular-edge: transparent;
+  /* ── Specular ── */
+  --lg-specular:      rgba(255, 255, 255, 0.04);
+  --lg-specular-soft: rgba(255, 255, 255, 0.02);
+  --lg-specular-edge: rgba(255, 255, 255, 0.06);
 
   /* ── Borders ── */
-  --lg-border:        rgba(0, 0, 0, 0.09);
-  --lg-border-outer:  rgba(0, 0, 0, 0.07);
-  --lg-border-inner:  rgba(0, 0, 0, 0.11);
-  --lg-border-bottom: rgba(0, 0, 0, 0.07);
-  --lg-border-dark:   rgba(0, 0, 0, 0.12);
+  --lg-border:        rgba(255, 255, 255, 0.08);
+  --lg-border-outer:  rgba(255, 255, 255, 0.06);
+  --lg-border-inner:  rgba(255, 255, 255, 0.10);
+  --lg-border-bottom: rgba(255, 255, 255, 0.05);
+  --lg-border-dark:   rgba(255, 255, 255, 0.12);
 
-  --glass-border:       rgba(0, 0, 0, 0.09);
-  --glass-border-hover: rgba(0, 0, 0, 0.16);
-  --glass-border-input: rgba(0, 0, 0, 0.14);
+  --glass-border:       rgba(255, 255, 255, 0.08);
+  --glass-border-hover: rgba(255, 255, 255, 0.14);
+  --glass-border-input: rgba(255, 255, 255, 0.12);
 
-  /* ── No blur (Canva uses no backdrop-filter) ── */
+  /* ── Blur ── */
   --lg-blur-xs:    none;
   --lg-blur-base:  none;
   --lg-blur-md:    none;
@@ -55,31 +55,31 @@
   --blur-base:     none;
   --blur-lg:       none;
 
-  /* ── Shadows — Canva elevation scale ── */
+  /* ── Shadows ── */
   --lg-shadow-xs:
-    0 1px 3px rgba(0, 0, 0, 0.07),
-    0 0 0 1px rgba(0, 0, 0, 0.04);
+    0 1px 3px rgba(0, 0, 0, 0.30),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
   --lg-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(0, 0, 0, 0.05);
+    0 4px 16px rgba(0, 0, 0, 0.40),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
   --lg-shadow-hover:
-    0 12px 32px rgba(0, 0, 0, 0.13),
-    0 4px 10px rgba(0, 0, 0, 0.06),
-    0 0 0 1px rgba(0, 0, 0, 0.06);
+    0 12px 40px rgba(0, 0, 0, 0.50),
+    0 4px 12px rgba(0, 0, 0, 0.30),
+    0 0 0 1px rgba(255, 255, 255, 0.10);
   --lg-shadow-modal:
-    0 24px 64px rgba(0, 0, 0, 0.18),
-    0 8px 20px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(0, 0, 0, 0.07);
+    0 24px 80px rgba(0, 0, 0, 0.60),
+    0 8px 24px rgba(0, 0, 0, 0.30),
+    0 0 0 1px rgba(255, 255, 255, 0.08);
   --lg-shadow-nav:
-    1px 0 0 rgba(0, 0, 0, 0.07),
-    4px 0 16px rgba(0, 0, 0, 0.04);
+    1px 0 0 rgba(255, 255, 255, 0.05),
+    4px 0 16px rgba(0, 0, 0, 0.20);
 
   --shadow-glass:       var(--lg-shadow);
   --shadow-glass-hover: var(--lg-shadow-hover);
   --shadow-glass-xl:    var(--lg-shadow-modal);
   --shadow-base:        var(--lg-shadow);
 
-  /* ── Border radius — Canva moderate rounding ── */
+  /* ── Border radius ── */
   --lg-radius-pill: 9999px;
   --lg-radius-2xl:  20px;
   --lg-radius-xl:   16px;
@@ -95,40 +95,40 @@
   --radius-full: 9999px;
 
   /* ── Text ── */
-  --text-primary:         #1C1C1E;
-  --text-secondary:       #48484A;
-  --text-muted:           #8E8E93;
-  --text-page:            #1C1C1E;
-  --text-page-secondary:  #48484A;
-  --text-on-glass:        #1C1C1E;
-  --text-on-glass-muted:  rgba(28, 28, 30, 0.50);
+  --text-primary:         #F0EEFF;
+  --text-secondary:       rgba(240, 238, 255, 0.72);
+  --text-muted:           rgba(240, 238, 255, 0.42);
+  --text-page:            #F0EEFF;
+  --text-page-secondary:  rgba(240, 238, 255, 0.72);
+  --text-on-glass:        #F0EEFF;
+  --text-on-glass-muted:  rgba(240, 238, 255, 0.42);
 
   /* ── Semantic ── */
-  --color-success:  #30D158;
-  --color-danger:   #FF453A;
-  --color-warning:  #FF9F0A;
-  --color-info:     #0A84FF;
+  --color-success:  #34D399;
+  --color-danger:   #F87171;
+  --color-warning:  #FBBF24;
+  --color-info:     #60A5FA;
 
-  /* ── Accent — gray gradient (replaces Canva purple) ── */
-  --accent:         #3A3A3C;
-  --accent-rgb:     58, 58, 60;
-  --accent-bg:      rgba(58, 58, 60, 0.08);
-  --accent-gradient: linear-gradient(135deg, #525252 0%, #1C1C1E 100%);
+  /* ── Accent — Canva purple ── */
+  --accent:          #7C3AED;
+  --accent-rgb:      124, 58, 237;
+  --accent-bg:       rgba(124, 58, 237, 0.15);
+  --accent-gradient: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
 
   /* ── Neutral helpers ── */
-  --neutral-bubble:       rgba(0, 0, 0, 0.06);
-  --neutral-bubble-faint: rgba(0, 0, 0, 0.03);
-  --neutral-hover:        rgba(0, 0, 0, 0.05);
+  --neutral-bubble:       rgba(255, 255, 255, 0.08);
+  --neutral-bubble-faint: rgba(255, 255, 255, 0.04);
+  --neutral-hover:        rgba(255, 255, 255, 0.06);
 
   /* ── Buttons ── */
-  --btn-bg:       #FFFFFF;
-  --btn-bg-hover: #F5F5F7;
-  --btn-text:     #1C1C1E;
+  --btn-bg:       rgba(255, 255, 255, 0.08);
+  --btn-bg-hover: rgba(255, 255, 255, 0.12);
+  --btn-text:     #F0EEFF;
 
   /* ── Input fields ── */
-  --input-bg:       #FFFFFF;
-  --input-bg-focus: #FFFFFF;
-  --input-border:   rgba(0, 0, 0, 0.18);
+  --input-bg:       rgba(255, 255, 255, 0.06);
+  --input-bg-focus: rgba(255, 255, 255, 0.08);
+  --input-border:   rgba(255, 255, 255, 0.12);
 
   /* ── Typography — Plus Jakarta Sans ── */
   --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -161,8 +161,8 @@
   --content-max:       980px;
   --modal-width:       520px;
 
-  /* ── Animations — Canva: smooth ease-out, NOT spring ── */
-  --ease-spring:  cubic-bezier(0.4, 0, 0.2, 1);   /* renamed to match Canva smooth */
+  /* ── Animations ── */
+  --ease-spring:  cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out:     cubic-bezier(0.0, 0.0, 0.2, 1);
   --ease-smooth:  cubic-bezier(0.4, 0.0, 0.2, 1);
   --ease-bounce:  cubic-bezier(0.4, 0.0, 0.2, 1);
@@ -174,11 +174,11 @@
   --dur-xslow:   500ms;
 
   /* ── Compatibility ── */
-  --bg-secondary:  #FFFFFF;
-  --bg-elevated:   #FFFFFF;
-  --border-subtle: rgba(0, 0, 0, 0.07);
-  --border-color:  rgba(0, 0, 0, 0.09);
-  --border-strong: rgba(0, 0, 0, 0.14);
+  --bg-secondary:  #1C1A2C;
+  --bg-elevated:   #242236;
+  --border-subtle: rgba(255, 255, 255, 0.06);
+  --border-color:  rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
   --shadow-xl:     var(--lg-shadow-modal);
 }
 
@@ -304,7 +304,7 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(58, 58, 60, 0.10);
 }
 
-input[type="date"] { color-scheme: light; }
+input[type="date"] { color-scheme: dark; }
 input[type="checkbox"] {
   width: auto;
   accent-color: var(--accent);
@@ -322,8 +322,8 @@ select {
 }
 
 select option {
-  background: #ffffff;
-  color: #1C1C1E;
+  background: #1C1A2C;
+  color: #F0EEFF;
 }
 
 textarea { resize: vertical; min-height: 100px; }
@@ -345,10 +345,10 @@ label {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.14);
+  background: rgba(255, 255, 255, 0.14);
   border-radius: var(--radius-full);
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.24); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
 
 /* ============================================================
    FOCUS
@@ -381,9 +381,9 @@ label {
 
 .section-title {
   font-family: var(--font-display);
-  font-size: var(--text-2xl);
-  font-weight: var(--weight-bold);
-  letter-spacing: -0.025em;
+  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: -0.03em;
   color: var(--text-primary);
 }
 
@@ -407,7 +407,7 @@ label {
 }
 .inline-edit-field:hover { border-bottom-color: rgba(0, 0, 0, 0.22); }
 .inline-edit-input {
-  background: #FFFFFF !important;
+  background: var(--lg-surface-hover) !important;
   border: 1.5px solid var(--accent) !important;
   border-radius: var(--lg-radius-sm) !important;
   padding: 2px 6px !important;
@@ -437,7 +437,7 @@ label {
    SKELETON LOADER
    ============================================================ */
 .skeleton {
-  background: linear-gradient(90deg, #EBEBEB 25%, #F5F5F5 50%, #EBEBEB 75%);
+  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.06) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
   border-radius: var(--lg-radius-sm);

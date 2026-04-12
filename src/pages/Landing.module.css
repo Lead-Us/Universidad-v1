@@ -11,9 +11,11 @@
   position: sticky;
   top: 0;
   z-index: 100;
-  background: #FFFFFF;
+  background: rgba(16, 14, 26, 0.90);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--lg-border);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .navInner {
@@ -72,8 +74,8 @@
   transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
 }
 .navGhost:hover {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.10);
 }
 
 .navPrimary {
@@ -204,11 +206,11 @@
   font-weight: var(--weight-medium);
   font-family: var(--font-ui);
   color: var(--text-secondary);
-  background: #FFFFFF;
-  border: 1.5px solid rgba(0, 0, 0, 0.14);
+  background: var(--lg-surface);
+  border: 1.5px solid var(--lg-border);
   cursor: pointer;
   transition: background var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--lg-shadow-xs);
 }
 .ctaGhost:hover { background: var(--lg-surface-hover); transform: translateY(-1px); }
 
@@ -250,7 +252,7 @@
 }
 
 .featureCard {
-  background: #FFFFFF;
+  background: var(--lg-surface);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-xl);
   padding: var(--space-6);
@@ -296,7 +298,7 @@
 }
 
 .pricingCard {
-  background: #FFFFFF;
+  background: var(--lg-surface);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-2xl);
   padding: var(--space-8);
@@ -402,7 +404,7 @@
 /* ── Footer ── */
 .footer {
   border-top: 1px solid var(--lg-border);
-  background: #FFFFFF;
+  background: var(--lg-surface);
   margin-top: auto;
 }
 

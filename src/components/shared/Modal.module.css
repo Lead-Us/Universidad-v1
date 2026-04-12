@@ -16,14 +16,14 @@
 }
 
 .panel {
-  background: #FFFFFF;
+  background: var(--lg-surface);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-2xl);
   width: 100%;
   max-width: var(--modal-width);
   max-height: 90vh;
   overflow: hidden;
-  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--lg-shadow-modal);
   animation: panelIn var(--dur-base) var(--ease-out) both;
 }
 
@@ -74,7 +74,7 @@
     transform   var(--dur-instant) var(--ease-out);
 }
 
-.close:hover  { background: rgba(0, 0, 0, 0.08); color: var(--text-primary); }
+.close:hover  { background: rgba(255, 255, 255, 0.10); color: var(--text-primary); }
 .close:active { transform: scale(0.90); }
 
 .body {

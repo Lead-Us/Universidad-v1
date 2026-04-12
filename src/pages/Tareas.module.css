@@ -195,7 +195,7 @@
 }
 
 .taskRow:last-child { border-bottom: none; }
-.taskRow:hover { background: rgba(255,255,255,0.18); }
+.taskRow:hover { background: rgba(255,255,255,0.05); }
 .taskRow:hover .taskActions { opacity: 1; }
 
 .done { opacity: 0.50; }
