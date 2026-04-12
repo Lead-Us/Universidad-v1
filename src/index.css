@@ -11,37 +11,37 @@
    ============================================================ */
 :root {
   /* ── App background ── */
-  --bg-app:      #100E1A;
-  --bg-app-pure: #0C0A15;
+  --bg-app:      #F2F2F7;
+  --bg-app-pure: #FFFFFF;
 
   /* ── Surfaces ── */
-  --lg-surface:        #1C1A2C;
-  --lg-surface-hover:  #242236;
-  --lg-surface-active: #2A2840;
-  --lg-surface-deep:   #16142200;
-  --lg-surface-subtle: #17152280;
+  --lg-surface:        #FFFFFF;
+  --lg-surface-hover:  #F7F7FA;
+  --lg-surface-active: #EBEBF0;
+  --lg-surface-deep:   #F2F2F700;
+  --lg-surface-subtle: #F7F7FA80;
 
   /* Legacy aliases */
-  --glass:        #1C1A2C;
-  --glass-strong: #242236;
-  --glass-soft:   #1A1828;
-  --glass-subtle: #17152280;
+  --glass:        #FFFFFF;
+  --glass-strong: #F7F7FA;
+  --glass-soft:   #FAFAFA;
+  --glass-subtle: #F7F7FA80;
 
   /* ── Specular ── */
-  --lg-specular:      rgba(255, 255, 255, 0.04);
-  --lg-specular-soft: rgba(255, 255, 255, 0.02);
-  --lg-specular-edge: rgba(255, 255, 255, 0.06);
+  --lg-specular:      rgba(255, 255, 255, 0.80);
+  --lg-specular-soft: rgba(255, 255, 255, 0.60);
+  --lg-specular-edge: rgba(255, 255, 255, 0.90);
 
   /* ── Borders ── */
-  --lg-border:        rgba(255, 255, 255, 0.08);
-  --lg-border-outer:  rgba(255, 255, 255, 0.06);
-  --lg-border-inner:  rgba(255, 255, 255, 0.10);
-  --lg-border-bottom: rgba(255, 255, 255, 0.05);
-  --lg-border-dark:   rgba(255, 255, 255, 0.12);
+  --lg-border:        rgba(0, 0, 0, 0.09);
+  --lg-border-outer:  rgba(0, 0, 0, 0.06);
+  --lg-border-inner:  rgba(0, 0, 0, 0.10);
+  --lg-border-bottom: rgba(0, 0, 0, 0.06);
+  --lg-border-dark:   rgba(0, 0, 0, 0.14);
 
-  --glass-border:       rgba(255, 255, 255, 0.08);
-  --glass-border-hover: rgba(255, 255, 255, 0.14);
-  --glass-border-input: rgba(255, 255, 255, 0.12);
+  --glass-border:       rgba(0, 0, 0, 0.09);
+  --glass-border-hover: rgba(0, 0, 0, 0.16);
+  --glass-border-input: rgba(0, 0, 0, 0.12);
 
   /* ── Blur ── */
   --lg-blur-xs:    none;
@@ -57,22 +57,22 @@
 
   /* ── Shadows ── */
   --lg-shadow-xs:
-    0 1px 3px rgba(0, 0, 0, 0.30),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
+    0 1px 3px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
   --lg-shadow:
-    0 4px 16px rgba(0, 0, 0, 0.40),
-    0 0 0 1px rgba(255, 255, 255, 0.06);
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
   --lg-shadow-hover:
-    0 12px 40px rgba(0, 0, 0, 0.50),
-    0 4px 12px rgba(0, 0, 0, 0.30),
-    0 0 0 1px rgba(255, 255, 255, 0.10);
+    0 8px 24px rgba(0, 0, 0, 0.12),
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
   --lg-shadow-modal:
-    0 24px 80px rgba(0, 0, 0, 0.60),
-    0 8px 24px rgba(0, 0, 0, 0.30),
-    0 0 0 1px rgba(255, 255, 255, 0.08);
+    0 20px 60px rgba(0, 0, 0, 0.18),
+    0 8px 24px rgba(0, 0, 0, 0.10),
+    0 0 0 1px rgba(0, 0, 0, 0.08);
   --lg-shadow-nav:
-    1px 0 0 rgba(255, 255, 255, 0.05),
-    4px 0 16px rgba(0, 0, 0, 0.20);
+    1px 0 0 rgba(0, 0, 0, 0.09),
+    4px 0 16px rgba(0, 0, 0, 0.06);
 
   --shadow-glass:       var(--lg-shadow);
   --shadow-glass-hover: var(--lg-shadow-hover);
@@ -95,13 +95,13 @@
   --radius-full: 9999px;
 
   /* ── Text ── */
-  --text-primary:         #F0EEFF;
-  --text-secondary:       rgba(240, 238, 255, 0.72);
-  --text-muted:           rgba(240, 238, 255, 0.42);
-  --text-page:            #F0EEFF;
-  --text-page-secondary:  rgba(240, 238, 255, 0.72);
-  --text-on-glass:        #F0EEFF;
-  --text-on-glass-muted:  rgba(240, 238, 255, 0.42);
+  --text-primary:         #1C1C1E;
+  --text-secondary:       rgba(60, 60, 67, 0.75);
+  --text-muted:           rgba(60, 60, 67, 0.45);
+  --text-page:            #1C1C1E;
+  --text-page-secondary:  rgba(60, 60, 67, 0.75);
+  --text-on-glass:        #1C1C1E;
+  --text-on-glass-muted:  rgba(60, 60, 67, 0.45);
 
   /* ── Semantic ── */
   --color-success:  #34D399;
@@ -116,19 +116,19 @@
   --accent-gradient: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
 
   /* ── Neutral helpers ── */
-  --neutral-bubble:       rgba(255, 255, 255, 0.08);
-  --neutral-bubble-faint: rgba(255, 255, 255, 0.04);
-  --neutral-hover:        rgba(255, 255, 255, 0.06);
+  --neutral-bubble:       rgba(0, 0, 0, 0.06);
+  --neutral-bubble-faint: rgba(0, 0, 0, 0.03);
+  --neutral-hover:        rgba(0, 0, 0, 0.04);
 
   /* ── Buttons ── */
-  --btn-bg:       rgba(255, 255, 255, 0.08);
-  --btn-bg-hover: rgba(255, 255, 255, 0.12);
-  --btn-text:     #F0EEFF;
+  --btn-bg:       rgba(0, 0, 0, 0.06);
+  --btn-bg-hover: rgba(0, 0, 0, 0.09);
+  --btn-text:     #1C1C1E;
 
   /* ── Input fields ── */
-  --input-bg:       rgba(255, 255, 255, 0.06);
-  --input-bg-focus: rgba(255, 255, 255, 0.08);
-  --input-border:   rgba(255, 255, 255, 0.12);
+  --input-bg:       rgba(0, 0, 0, 0.04);
+  --input-bg-focus: rgba(0, 0, 0, 0.06);
+  --input-border:   rgba(0, 0, 0, 0.12);
 
   /* ── Typography — Plus Jakarta Sans ── */
   --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -174,11 +174,11 @@
   --dur-xslow:   500ms;
 
   /* ── Compatibility ── */
-  --bg-secondary:  #1C1A2C;
-  --bg-elevated:   #242236;
-  --border-subtle: rgba(255, 255, 255, 0.06);
-  --border-color:  rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.14);
+  --bg-secondary:  #F7F7FA;
+  --bg-elevated:   #EBEBF0;
+  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-color:  rgba(0, 0, 0, 0.09);
+  --border-strong: rgba(0, 0, 0, 0.16);
   --shadow-xl:     var(--lg-shadow-modal);
 }
 
@@ -304,7 +304,7 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 3px rgba(58, 58, 60, 0.10);
 }
 
-input[type="date"] { color-scheme: dark; }
+input[type="date"] { color-scheme: light; }
 input[type="checkbox"] {
   width: auto;
   accent-color: var(--accent);
@@ -322,8 +322,8 @@ select {
 }
 
 select option {
-  background: #1C1A2C;
-  color: #F0EEFF;
+  background: #FFFFFF;
+  color: #1C1C1E;
 }
 
 textarea { resize: vertical; min-height: 100px; }
@@ -345,10 +345,10 @@ label {
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.18);
   border-radius: var(--radius-full);
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.24); }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.28); }
 
 /* ============================================================
    FOCUS
@@ -437,7 +437,7 @@ label {
    SKELETON LOADER
    ============================================================ */
 .skeleton {
-  background: linear-gradient(90deg, rgba(255,255,255,0.06) 25%, rgba(255,255,255,0.10) 50%, rgba(255,255,255,0.06) 75%);
+  background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.06) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
   border-radius: var(--lg-radius-sm);

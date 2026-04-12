@@ -5,16 +5,14 @@
   position: fixed;
   bottom: 0; left: 0; right: 0;
   height: var(--nav-height);
-  background: #0C0A15;
-  backdrop-filter: blur(12px) saturate(180%);
-  -webkit-backdrop-filter: blur(12px) saturate(180%);
-  border-top: 1px solid var(--lg-border);
+  background: #FFFFFF;
+  border-top: 1px solid rgba(0,0,0,0.09);
   display: flex;
   align-items: stretch;
   justify-content: space-around;
   z-index: 200;
   padding-bottom: env(safe-area-inset-bottom, 0);
-  box-shadow: 0 -1px 0 rgba(255,255,255,0.05);
+  box-shadow: 0 -1px 0 rgba(0,0,0,0.06);
 }
 
 .sidebar { display: none; }
@@ -26,7 +24,7 @@
   justify-content: center;
   gap: 3px;
   flex: 1;
-  color: var(--text-muted);
+  color: rgba(60,60,67,0.50);
   text-decoration: none;
   transition: color var(--dur-fast) var(--ease-out);
   padding: var(--space-1) 0;
@@ -34,7 +32,7 @@
 }
 
 .tabItem:active { opacity: 0.55; }
-.tabItem.active { color: var(--accent); }
+.tabItem.active { color: #1C1C1E; }
 
 .tabIcon  { font-size: 21px; line-height: 1; }
 .tabLabel { font-size: 10px; font-weight: var(--weight-semibold); letter-spacing: 0.01em; }
@@ -51,8 +49,8 @@
     position: fixed;
     top: 0; left: 0; bottom: 0;
     width: var(--sidebar-width);
-    background: #0C0A15;
-    border-right: 1px solid var(--lg-border);
+    background: #FFFFFF;
+    border-right: 1px solid rgba(0,0,0,0.09);
     z-index: 200;
     padding: var(--space-5) var(--space-3) var(--space-4);
     transition: width var(--dur-base) var(--ease-out);
@@ -94,7 +92,7 @@
     font-family: var(--font-display);
     font-size: var(--text-base);
     font-weight: var(--weight-bold);
-    color: var(--text-primary);
+    color: #1C1C1E;
     letter-spacing: -0.02em;
     overflow: hidden;
   }
@@ -103,7 +101,7 @@
     font-family: var(--font-display);
     font-size: var(--text-base);
     font-weight: var(--weight-bold);
-    color: var(--text-primary);
+    color: #1C1C1E;
     letter-spacing: -0.02em;
   }
 
@@ -126,7 +124,7 @@
     border-radius: var(--lg-radius-md);
     font-size: var(--text-sm);
     font-weight: var(--weight-medium);
-    color: var(--text-secondary);
+    color: rgba(60,60,67,0.70);
     text-decoration: none;
     white-space: nowrap;
     overflow: hidden;
@@ -138,24 +136,24 @@
   }
 
   .sidebarItem:hover {
-    background: rgba(255, 255, 255, 0.07);
-    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.05);
+    color: #1C1C1E;
   }
 
   .sidebarItem:active {
     transform: scale(0.97);
-    background: rgba(255, 255, 255, 0.10);
+    background: rgba(0, 0, 0, 0.08);
   }
 
-  /* Active: purple filled pill */
+  /* Active: dark filled pill */
   .sidebarItem.active {
-    background: rgba(124, 58, 237, 0.18);
-    color: var(--accent);
+    background: rgba(0, 0, 0, 0.08);
+    color: #1C1C1E;
     font-weight: var(--weight-semibold);
   }
 
   .sidebarItem.active .icon {
-    color: var(--accent);
+    color: #1C1C1E;
   }
 
   .icon  { font-size: 18px; flex-shrink: 0; }
@@ -195,9 +193,9 @@
   }
 
   .toggleBtn:hover {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: rgba(255, 255, 255, 0.14);
-    color: var(--text-primary);
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.14);
+    color: #1C1C1E;
   }
 
   .toggleBtn:active { transform: scale(0.92); }

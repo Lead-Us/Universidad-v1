@@ -26,13 +26,7 @@
   overflow: hidden;
 }
 
-.calCard::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 40%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, transparent 100%);
-  pointer-events: none;
-}
+.calCard::before { display: none; }
 
 /* ── Task panel card ──────────────────────────────────────────────────── */
 .panelCard {
@@ -49,14 +43,7 @@
   position: relative;
 }
 
-.panelCard::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 50px;
-  background: linear-gradient(180deg, rgba(255,255,255,0.45) 0%, transparent 100%);
-  pointer-events: none;
-  z-index: 0;
-}
+.panelCard::before { display: none; }
 
 /* ── Panel header ───────────────────────────���─────────────────────────── */
 .panelHeader {
@@ -160,12 +147,12 @@
   align-items: center;
   gap: var(--space-2);
   padding: 8px var(--space-3);
-  background: rgba(255,255,255,0.30);
+  background: rgba(0,0,0,0.03);
   border-left: 3px solid var(--lg-border);
   border-radius: var(--lg-radius-sm);
-  border-top: 1px solid rgba(255,255,255,0.55);
-  border-right: 1px solid rgba(0,0,0,0.04);
-  border-bottom: 1px solid rgba(0,0,0,0.04);
+  border-top: 1px solid rgba(0,0,0,0.06);
+  border-right: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 
 .chipTime {
@@ -257,16 +244,16 @@
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  background: rgba(255,255,255,0.28);
+  background: var(--lg-surface);
   border-radius: var(--lg-radius-sm);
   border-left: 3px solid var(--lg-border);
-  border-top: 1px solid rgba(255,255,255,0.50);
-  border-right: 1px solid rgba(0,0,0,0.04);
-  border-bottom: 1px solid rgba(0,0,0,0.04);
+  border-top: 1px solid var(--lg-border);
+  border-right: 1px solid var(--lg-border);
+  border-bottom: 1px solid var(--lg-border);
   transition: background var(--dur-fast) var(--ease-out);
 }
 
-.taskRow:hover { background: rgba(255,255,255,0.42); }
+.taskRow:hover { background: var(--lg-surface-hover); }
 .taskRow:hover .taskActions { opacity: 1; }
 .done { opacity: 0.38; }
 .done .taskTitle { text-decoration: line-through; }
@@ -274,8 +261,8 @@
 .checkBtn {
   width: 20px; height: 20px;
   border-radius: 50%;
-  border: 2px solid var(--lg-border);
-  background: rgba(255,255,255,0.35);
+  border: 2px solid rgba(0,0,0,0.18);
+  background: #FFFFFF;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;

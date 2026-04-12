@@ -23,14 +23,7 @@
   overflow: hidden;
 }
 
-.statCard::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 50%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.40) 0%, transparent 100%);
-  pointer-events: none;
-}
+.statCard::before { display: none; }
 
 .statValue {
   font-family: var(--font-display);
@@ -172,14 +165,7 @@
   position: relative;
 }
 
-.taskList::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 30%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.35) 0%, transparent 100%);
-  pointer-events: none;
-}
+.taskList::before { display: none; }
 
 /* ── Task row ── */
 .taskRow {
@@ -195,7 +181,7 @@
 }
 
 .taskRow:last-child { border-bottom: none; }
-.taskRow:hover { background: rgba(255,255,255,0.05); }
+.taskRow:hover { background: rgba(0,0,0,0.03); }
 .taskRow:hover .taskActions { opacity: 1; }
 
 .done { opacity: 0.50; }
@@ -208,7 +194,7 @@
   height: 20px;
   border-radius: var(--lg-radius-sm);
   border: 2px solid var(--lg-border);
-  background: rgba(255,255,255,0.30);
+  background: #FFFFFF;
   cursor: pointer;
   display: flex;
   align-items: center;

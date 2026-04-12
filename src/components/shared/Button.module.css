@@ -6,7 +6,7 @@
   cursor: pointer;
   font-family: var(--font-ui);
   font-weight: var(--weight-semibold);
-  border-radius: var(--lg-radius-md);
+  border-radius: var(--lg-radius-pill);
   transition:
     transform    var(--dur-instant) var(--ease-out),
     background   var(--dur-fast)    var(--ease-out),
@@ -34,17 +34,18 @@
 
 /* ── Variants ── */
 .primary {
-  background: var(--accent-gradient);
+  background: #1C1C1E;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.30);
+  box-shadow: none;
 }
 .primary:hover:not(:disabled) {
-  box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.40);
+  background: #2C2C2E;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.22);
   transform: translateY(-1px);
 }
 .primary:active:not(:disabled) {
   transform: scale(0.96);
-  box-shadow: 0 1px 4px rgba(var(--accent-rgb), 0.20);
+  box-shadow: none;
 }
 
 .ghost {

@@ -62,7 +62,7 @@
 /* Toggle */
 .toggle {
   display: flex;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.05);
   border-radius: var(--lg-radius-pill);
   padding: 3px;
   gap: 2px;
