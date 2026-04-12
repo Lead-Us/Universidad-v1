@@ -21,8 +21,13 @@ function getAdminClient() {
 
 async function verifyAdmin(admin, token) {
   const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-  if (!ADMIN_EMAIL) throw { status: 500, error: 'Variable ADMIN_EMAIL no configurada en Vercel.' };
-  if (!token)       throw { status: 401, error: 'No autenticado.' };
+  if (!ADMIN_EMAIL) {
+    const available = Object.keys(process.env)
+      .filter(k => !k.startsWith('npm_') && !k.startsWith('NODE') && !k.startsWith('PATH'))
+      .join(', ');
+    throw { status: 500, error: `ADMIN_EMAIL no encontrada. Variables disponibles: ${available}` };
+  }
+  if (!token) throw { status: 401, error: 'No autenticado.' };
 
   const { data: { user }, error } = await admin.auth.getUser(token);
   if (error || !user) throw { status: 401, error: 'Token inválido.' };

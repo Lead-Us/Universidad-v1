@@ -1,9 +1,7 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.20);
-  backdrop-filter: blur(8px) saturate(150%);
-  -webkit-backdrop-filter: blur(8px) saturate(150%);
+  background: rgba(0, 0, 0, 0.45);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -13,50 +11,26 @@
 }
 
 @keyframes overlayIn {
-  from { opacity: 0; backdrop-filter: blur(0px); }
-  to   { opacity: 1; backdrop-filter: blur(8px) saturate(150%); }
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
 
 .panel {
-  background: var(--lg-surface-hover);
-  backdrop-filter: var(--lg-blur-modal);
-  -webkit-backdrop-filter: var(--lg-blur-modal);
-  border: 1px solid var(--lg-border-inner);
-  border-bottom-color: var(--lg-border-bottom);
+  background: #FFFFFF;
+  border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-2xl);
   width: 100%;
   max-width: var(--modal-width);
   max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: var(--lg-shadow-modal);
-  position: relative;
   overflow: hidden;
-  animation: panelIn var(--dur-base) var(--ease-spring) both;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.16), 0 0 0 1px rgba(0, 0, 0, 0.05);
+  animation: panelIn var(--dur-base) var(--ease-out) both;
 }
-
-/* Specular highlight superior del modal */
-.panel::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 45%;
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.50) 0%,
-    rgba(255,255,255,0.10) 40%,
-    transparent 100%
-  );
-  border-radius: inherit;
-  pointer-events: none;
-  z-index: 0;
-}
-
-.panel > * { position: relative; z-index: 1; }
 
 @keyframes panelIn {
   from {
     opacity: 0;
-    transform: scale(0.90) translateY(16px);
+    transform: scale(0.96) translateY(12px);
   }
   to {
     opacity: 1;
@@ -95,15 +69,12 @@
   width: 28px;
   height: 28px;
   transition:
-    background var(--dur-fast) var(--ease-out),
-    color var(--dur-fast) var(--ease-out),
-    transform var(--dur-instant) var(--ease-spring);
+    background  var(--dur-fast) var(--ease-out),
+    color       var(--dur-fast) var(--ease-out),
+    transform   var(--dur-instant) var(--ease-out);
 }
 
-.close:hover {
-  background: rgba(0,0,0,0.10);
-  color: var(--text-primary);
-}
+.close:hover  { background: rgba(0, 0, 0, 0.08); color: var(--text-primary); }
 .close:active { transform: scale(0.90); }
 
 .body {

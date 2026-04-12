@@ -1,139 +1,138 @@
 /* ============================================================
-   Universidad v1 — Liquid Glass Design System
-   Apple WWDC 2025 · Translucent · Specular · Spring Physics
+   Universidad v1 — Canva-Inspired Design System
+   Gray gradient accent · White surfaces · Smooth ease-out
+   Font: Plus Jakarta Sans
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 /* ============================================================
-   VARIABLES — Liquid Glass Core
+   VARIABLES — Canva Design Tokens
    ============================================================ */
 :root {
-  /* ── Fondo de app ── */
-  --bg-app:      #eef1f8;
-  --bg-app-pure: #ffffff;
+  /* ── App background ── */
+  --bg-app:      #F7F8FA;
+  --bg-app-pure: #FFFFFF;
 
-  /* ── Superficies Liquid Glass ── */
-  --lg-surface:        rgba(255, 255, 255, 0.55);
-  --lg-surface-hover:  rgba(255, 255, 255, 0.68);
-  --lg-surface-active: rgba(255, 255, 255, 0.75);
-  --lg-surface-deep:   rgba(255, 255, 255, 0.35);
-  --lg-surface-subtle: rgba(255, 255, 255, 0.25);
+  /* ── Surfaces — solid white, no glass ── */
+  --lg-surface:        #FFFFFF;
+  --lg-surface-hover:  #FAFAFA;
+  --lg-surface-active: #F5F5F7;
+  --lg-surface-deep:   #F7F8FA;
+  --lg-surface-subtle: #F5F5F7;
 
-  /* Alias legacy (compatibilidad componentes existentes) */
-  --glass:        rgba(255, 255, 255, 0.55);
-  --glass-strong: rgba(255, 255, 255, 0.72);
-  --glass-soft:   rgba(255, 255, 255, 0.38);
-  --glass-subtle: rgba(255, 255, 255, 0.18);
+  /* Legacy aliases */
+  --glass:        #FFFFFF;
+  --glass-strong: #FFFFFF;
+  --glass-soft:   #FAFAFA;
+  --glass-subtle: #F5F5F7;
 
-  /* ── Specular highlights ── */
-  --lg-specular:      rgba(255, 255, 255, 0.80);
-  --lg-specular-soft: rgba(255, 255, 255, 0.40);
-  --lg-specular-edge: rgba(255, 255, 255, 0.60);
+  /* ── No specular (Canva is flat+shadow, not glass) ── */
+  --lg-specular:      transparent;
+  --lg-specular-soft: transparent;
+  --lg-specular-edge: transparent;
 
-  /* ── Bordes Liquid Glass ── */
-  --lg-border:        rgba(255, 255, 255, 0.70);
-  --lg-border-outer:  rgba(255, 255, 255, 0.50);
-  --lg-border-inner:  rgba(255, 255, 255, 0.90);
-  --lg-border-bottom: rgba(0, 0, 0, 0.06);
-  --lg-border-dark:   rgba(0, 0, 0, 0.08);
+  /* ── Borders ── */
+  --lg-border:        rgba(0, 0, 0, 0.09);
+  --lg-border-outer:  rgba(0, 0, 0, 0.07);
+  --lg-border-inner:  rgba(0, 0, 0, 0.11);
+  --lg-border-bottom: rgba(0, 0, 0, 0.07);
+  --lg-border-dark:   rgba(0, 0, 0, 0.12);
 
-  /* Alias legacy */
-  --glass-border:       rgba(255, 255, 255, 0.65);
-  --glass-border-hover: rgba(255, 255, 255, 0.85);
-  --glass-border-input: rgba(255, 255, 255, 0.55);
+  --glass-border:       rgba(0, 0, 0, 0.09);
+  --glass-border-hover: rgba(0, 0, 0, 0.16);
+  --glass-border-input: rgba(0, 0, 0, 0.14);
 
-  /* ── Blur por capa (Liquid Glass) ── */
-  --lg-blur-xs:      blur(8px)  saturate(150%);
-  --lg-blur-base:    blur(24px) saturate(180%) brightness(1.04);
-  --lg-blur-md:      blur(32px) saturate(190%) brightness(1.05);
-  --lg-blur-lg:      blur(48px) saturate(200%) brightness(1.06);
-  --lg-blur-xl:      blur(64px) saturate(220%) brightness(1.08);
-  --lg-blur-nav:     blur(36px) saturate(200%) brightness(1.05);
-  --lg-blur-modal:   blur(56px) saturate(220%) brightness(1.08);
+  /* ── No blur (Canva uses no backdrop-filter) ── */
+  --lg-blur-xs:    none;
+  --lg-blur-base:  none;
+  --lg-blur-md:    none;
+  --lg-blur-lg:    none;
+  --lg-blur-xl:    none;
+  --lg-blur-nav:   none;
+  --lg-blur-modal: none;
+  --blur-sm:       none;
+  --blur-base:     none;
+  --blur-lg:       none;
 
-  /* Alias legacy */
-  --blur-sm:   blur(8px);
-  --blur-base: blur(24px) saturate(180%) brightness(1.04);
-  --blur-lg:   blur(48px) saturate(200%) brightness(1.06);
-
-  /* ── Sombras Liquid Glass (multi-capa con glow interno) ── */
+  /* ── Shadows — Canva elevation scale ── */
   --lg-shadow-xs:
-    0 1px 3px  rgba(0,0,0,0.05),
-    0 2px 8px  rgba(0,0,0,0.06),
-    inset 0 1px 0 var(--lg-specular-soft);
+    0 1px 3px rgba(0, 0, 0, 0.07),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
   --lg-shadow:
-    0 2px 6px  rgba(0,0,0,0.06),
-    0 8px 24px rgba(0,0,0,0.08),
-    0 1px 1px  rgba(255,255,255,0.8),
-    inset 0 1px 0 var(--lg-specular-soft);
+    0 2px 8px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.05);
   --lg-shadow-hover:
-    0 4px 12px rgba(0,0,0,0.08),
-    0 16px 40px rgba(0,0,0,0.10),
-    0 1px 1px  rgba(255,255,255,0.9),
-    inset 0 1px 0 var(--lg-specular-edge);
+    0 12px 32px rgba(0, 0, 0, 0.13),
+    0 4px 10px rgba(0, 0, 0, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.06);
   --lg-shadow-modal:
-    0 8px 24px rgba(0,0,0,0.10),
-    0 32px 80px rgba(0,0,0,0.14),
-    0 0 0 1px rgba(255,255,255,0.5),
-    inset 0 1px 0 var(--lg-specular-edge);
+    0 24px 64px rgba(0, 0, 0, 0.18),
+    0 8px 20px rgba(0, 0, 0, 0.08),
+    0 0 0 1px rgba(0, 0, 0, 0.07);
   --lg-shadow-nav:
-    1px 0 0 rgba(0,0,0,0.06),
-    4px 0 20px rgba(0,0,0,0.06),
-    inset -1px 0 0 rgba(255,255,255,0.9);
+    1px 0 0 rgba(0, 0, 0, 0.07),
+    4px 0 16px rgba(0, 0, 0, 0.04);
 
-  /* Alias legacy */
   --shadow-glass:       var(--lg-shadow);
   --shadow-glass-hover: var(--lg-shadow-hover);
   --shadow-glass-xl:    var(--lg-shadow-modal);
   --shadow-base:        var(--lg-shadow);
 
-  /* ── Radios orgánicos ── */
+  /* ── Border radius — Canva moderate rounding ── */
   --lg-radius-pill: 9999px;
-  --lg-radius-2xl:  28px;
-  --lg-radius-xl:   22px;
-  --lg-radius-lg:   18px;
-  --lg-radius-md:   14px;
-  --lg-radius-sm:   10px;
+  --lg-radius-2xl:  20px;
+  --lg-radius-xl:   16px;
+  --lg-radius-lg:   12px;
+  --lg-radius-md:   10px;
+  --lg-radius-sm:   8px;
 
-  /* Alias legacy */
   --radius-xs:   4px;
-  --radius-sm:   10px;
-  --radius-base: 14px;
-  --radius-lg:   18px;
-  --radius-xl:   22px;
+  --radius-sm:   8px;
+  --radius-base: 10px;
+  --radius-lg:   12px;
+  --radius-xl:   16px;
   --radius-full: 9999px;
 
-  /* ── Texto — sobre fondo claro ── */
-  --text-primary:         #111827;
-  --text-secondary:       #374151;
-  --text-muted:           #6B7280;
-  --text-page:            #111827;
-  --text-page-secondary:  #374151;
+  /* ── Text ── */
+  --text-primary:         #1C1C1E;
+  --text-secondary:       #48484A;
+  --text-muted:           #8E8E93;
+  --text-page:            #1C1C1E;
+  --text-page-secondary:  #48484A;
+  --text-on-glass:        #1C1C1E;
+  --text-on-glass-muted:  rgba(28, 28, 30, 0.50);
 
-  /* Alias on-glass */
-  --text-on-glass:        #111827;
-  --text-on-glass-muted:  rgba(17,24,39,0.55);
+  /* ── Semantic ── */
+  --color-success:  #30D158;
+  --color-danger:   #FF453A;
+  --color-warning:  #FF9F0A;
+  --color-info:     #0A84FF;
 
-  /* ── Colores semánticos ── */
-  --color-success:  #16a34a;
-  --color-danger:   #dc2626;
-  --color-warning:  #d97706;
-  --color-info:     #2563eb;
+  /* ── Accent — gray gradient (replaces Canva purple) ── */
+  --accent:         #3A3A3C;
+  --accent-rgb:     58, 58, 60;
+  --accent-bg:      rgba(58, 58, 60, 0.08);
+  --accent-gradient: linear-gradient(135deg, #525252 0%, #1C1C1E 100%);
 
-  /* ── Accent (default blue, override via SettingsContext) ── */
-  --accent:     #3B82F6;
-  --accent-rgb: 59,130,246;
-  --accent-bg:  rgba(59,130,246,0.12);
+  /* ── Neutral helpers ── */
+  --neutral-bubble:       rgba(0, 0, 0, 0.06);
+  --neutral-bubble-faint: rgba(0, 0, 0, 0.03);
+  --neutral-hover:        rgba(0, 0, 0, 0.05);
 
-  /* ── Botones ── */
-  --btn-bg:       rgba(255,255,255,0.60);
-  --btn-bg-hover: rgba(255,255,255,0.80);
-  --btn-text:     #111827;
+  /* ── Buttons ── */
+  --btn-bg:       #FFFFFF;
+  --btn-bg-hover: #F5F5F7;
+  --btn-text:     #1C1C1E;
 
-  /* ── Tipografía ── */
-  --font-display: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-ui:      'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* ── Input fields ── */
+  --input-bg:       #FFFFFF;
+  --input-bg-focus: #FFFFFF;
+  --input-border:   rgba(0, 0, 0, 0.18);
+
+  /* ── Typography — Plus Jakarta Sans ── */
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-ui:      'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
   --text-xs:   0.75rem;
   --text-sm:   0.875rem;
@@ -141,19 +140,15 @@
   --text-lg:   1.125rem;
   --text-xl:   1.375rem;
   --text-2xl:  1.75rem;
-  --text-3xl:  2.5rem;
-
-  /* ── Input fields ── */
-  --input-bg:       rgba(255, 255, 255, 0.55);
-  --input-bg-focus: rgba(255, 255, 255, 0.80);
-  --input-border:   rgba(0, 0, 0, 0.12);
+  --text-3xl:  2.25rem;
 
   --weight-normal:   400;
   --weight-medium:   500;
   --weight-semibold: 600;
   --weight-bold:     700;
+  --weight-extrabold: 800;
 
-  /* ── Espaciado ── */
+  /* ── Spacing (8pt grid) ── */
   --space-1:  4px;   --space-2:  8px;   --space-3:  12px;
   --space-4:  16px;  --space-5:  20px;  --space-6:  24px;
   --space-8:  32px;  --space-10: 40px;  --space-12: 48px;
@@ -166,24 +161,24 @@
   --content-max:       980px;
   --modal-width:       520px;
 
-  /* ── Animaciones — Spring Physics ── */
-  --ease-spring:  cubic-bezier(0.34, 1.56, 0.64, 1);
+  /* ── Animations — Canva: smooth ease-out, NOT spring ── */
+  --ease-spring:  cubic-bezier(0.4, 0, 0.2, 1);   /* renamed to match Canva smooth */
   --ease-out:     cubic-bezier(0.0, 0.0, 0.2, 1);
   --ease-smooth:  cubic-bezier(0.4, 0.0, 0.2, 1);
-  --ease-bounce:  cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --ease-bounce:  cubic-bezier(0.4, 0.0, 0.2, 1);
 
-  --dur-instant: 180ms;
-  --dur-fast:    340ms;
-  --dur-base:    500ms;
-  --dur-slow:    700ms;
-  --dur-xslow:   1000ms;
+  --dur-instant: 120ms;
+  --dur-fast:    180ms;
+  --dur-base:    240ms;
+  --dur-slow:    360ms;
+  --dur-xslow:   500ms;
 
-  /* ── Compatibility aliases ── */
-  --bg-secondary:  var(--lg-surface);
-  --bg-elevated:   var(--lg-surface-hover);
-  --border-subtle: var(--lg-border-dark);
-  --border-color:  var(--lg-border);
-  --border-strong: var(--lg-border-inner);
+  /* ── Compatibility ── */
+  --bg-secondary:  #FFFFFF;
+  --bg-elevated:   #FFFFFF;
+  --border-subtle: rgba(0, 0, 0, 0.07);
+  --border-color:  rgba(0, 0, 0, 0.09);
+  --border-strong: rgba(0, 0, 0, 0.14);
   --shadow-xl:     var(--lg-shadow-modal);
 }
 
@@ -202,25 +197,24 @@ body {
   height: 100%;
   font-family: var(--font-ui);
   font-size: var(--text-base);
-  line-height: 1.5;
-  color: var(--text-title, var(--text-primary));
-  background: var(--bg-app, #f0f0f0);
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-app);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
-  transition: background 0.4s ease, color 0.3s ease;
+  transition: background 0.3s ease;
 }
 
-/* Fondo con blobs de color vibrante — el corazón del Liquid Glass */
+/* Fondo plano, sin gradientes de colores (estilo Canva) */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
-  background: var(--lg-bg-gradient, #eef1f8);
+  background: var(--bg-app);
   pointer-events: none;
   z-index: 0;
-  /* Sin animación de opacidad — evita el parpadeo en temas oscuros */
-  transition: background 0.6s ease;
+  transition: background 0.4s ease;
 }
 
 #root {
@@ -232,67 +226,58 @@ body::before {
 }
 
 /* ============================================================
-   LIQUID GLASS MIXIN — superficie base
+   CARD SURFACE — Canva white panel
    ============================================================ */
 .lg-surface,
 .glass-card {
   background: var(--lg-surface);
-  backdrop-filter: var(--lg-blur-base);
-  -webkit-backdrop-filter: var(--lg-blur-base);
   border: 1px solid var(--lg-border);
-  border-bottom-color: var(--lg-border-bottom);
   border-radius: var(--lg-radius-lg);
   box-shadow: var(--lg-shadow);
   position: relative;
   overflow: hidden;
+  transition:
+    transform     var(--dur-fast)  var(--ease-out),
+    box-shadow    var(--dur-fast)  var(--ease-out),
+    border-color  var(--dur-fast)  var(--ease-out);
 }
 
-/* Specular highlight superior */
-.lg-surface::before,
-.glass-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 50%;
-  border-radius: inherit;
-  background: linear-gradient(
-    180deg,
-    rgba(255,255,255,0.45) 0%,
-    rgba(255,255,255,0.08) 40%,
-    transparent 100%
-  );
-  pointer-events: none;
-  z-index: 0;
+/* Canva card hover lift — the signature interaction */
+.lg-surface:hover,
+.glass-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--lg-shadow-hover);
+  border-color: rgba(0, 0, 0, 0.12);
 }
 
-/* Contenido encima del specular */
-.lg-surface > *,
-.glass-card > * {
-  position: relative;
-  z-index: 1;
+.lg-surface:active,
+.glass-card:active {
+  transform: translateY(-1px) scale(0.99);
+  box-shadow: var(--lg-shadow);
+  transition-duration: 80ms;
 }
 
 /* ============================================================
-   TIPOGRAFÍA
+   TYPOGRAPHY
    ============================================================ */
 h1, h2, h3 {
-  font-family: var(--font-ui);
+  font-family: var(--font-display);
   font-weight: var(--weight-bold);
-  letter-spacing: -0.015em;
+  letter-spacing: -0.02em;
   line-height: 1.2;
-  color: var(--text-title, var(--text-primary));
+  color: var(--text-primary);
 }
 h4, h5, h6 {
-  font-family: var(--font-ui);
+  font-family: var(--font-display);
   font-weight: var(--weight-semibold);
   letter-spacing: -0.01em;
-  color: var(--text-title, var(--text-primary));
+  color: var(--text-primary);
 }
-p { color: var(--text-secondary); }
+p { color: var(--text-secondary); line-height: 1.6; }
 a { color: inherit; text-decoration: none; }
 
 /* ============================================================
-   FORMS — sobre fondo claro con glass
+   FORMS
    ============================================================ */
 input, select, textarea, button {
   font-family: var(--font-ui);
@@ -301,17 +286,14 @@ input, select, textarea, button {
 
 input, select, textarea {
   background: var(--input-bg);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid var(--input-border);
-  color: var(--text-title, var(--text-primary));
-  border-radius: var(--lg-radius-sm);
-  padding: var(--space-2) var(--space-3);
+  border: 1.5px solid var(--input-border);
+  color: var(--text-primary);
+  border-radius: var(--lg-radius-md);
+  padding: 10px var(--space-3);
   width: 100%;
   transition:
     border-color var(--dur-fast) var(--ease-out),
-    background var(--dur-fast) var(--ease-out),
-    box-shadow var(--dur-fast) var(--ease-out);
+    box-shadow   var(--dur-fast) var(--ease-out);
 }
 
 input::placeholder, textarea::placeholder { color: var(--text-muted); }
@@ -319,8 +301,7 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--accent);
-  background: var(--input-bg-focus);
-  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15);
+  box-shadow: 0 0 0 3px rgba(58, 58, 60, 0.10);
 }
 
 input[type="date"] { color-scheme: light; }
@@ -334,7 +315,7 @@ select {
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(55,65,81,0.6)' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(72,72,74,0.6)' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 36px;
@@ -342,7 +323,7 @@ select {
 
 select option {
   background: #ffffff;
-  color: #111827;
+  color: #1C1C1E;
 }
 
 textarea { resize: vertical; min-height: 100px; }
@@ -359,15 +340,15 @@ label {
 .form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
 
 /* ============================================================
-   SCROLLBAR
+   SCROLLBAR — Canva thin style
    ============================================================ */
-::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0,0,0,0.15);
+  background: rgba(0, 0, 0, 0.14);
   border-radius: var(--radius-full);
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.25); }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.24); }
 
 /* ============================================================
    FOCUS
@@ -375,7 +356,7 @@ label {
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
-  border-radius: var(--radius-xs);
+  border-radius: var(--radius-sm);
 }
 
 /* ============================================================
@@ -399,15 +380,15 @@ label {
 }
 
 .section-title {
-  font-family: var(--font-ui);
+  font-family: var(--font-display);
   font-size: var(--text-2xl);
   font-weight: var(--weight-bold);
-  letter-spacing: -0.02em;
-  color: var(--text-title, var(--text-primary));
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
 }
 
-.cards-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-3); }
-.divider { border: none; border-top: 1px solid rgba(0,0,0,0.08); margin: var(--space-6) 0; }
+.cards-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }
+.divider    { border: none; border-top: 1px solid var(--lg-border); margin: var(--space-6) 0; }
 .text-muted     { color: var(--text-muted); }
 .text-secondary { color: var(--text-secondary); }
 .text-sm        { font-size: var(--text-sm); }
@@ -415,21 +396,19 @@ label {
 .font-mono      { font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.02em; }
 
 /* ============================================================
-   INLINE EDIT — campos editables al hacer click
+   INLINE EDIT
    ============================================================ */
 .inline-edit-field {
   cursor: text;
-  border-bottom: 1px dashed transparent;
+  border-bottom: 1.5px dashed transparent;
   transition: border-color var(--dur-fast) var(--ease-out);
   border-radius: 2px;
   padding: 1px 2px;
 }
-.inline-edit-field:hover {
-  border-bottom-color: rgba(0,0,0,0.25);
-}
+.inline-edit-field:hover { border-bottom-color: rgba(0, 0, 0, 0.22); }
 .inline-edit-input {
-  background: rgba(255,255,255,0.75) !important;
-  border: 1px solid var(--accent) !important;
+  background: #FFFFFF !important;
+  border: 1.5px solid var(--accent) !important;
   border-radius: var(--lg-radius-sm) !important;
   padding: 2px 6px !important;
   font-size: inherit !important;
@@ -437,6 +416,36 @@ label {
   color: inherit !important;
   width: auto !important;
   min-width: 60px;
+}
+
+/* ============================================================
+   STAGGER ANIMATIONS — page entry
+   ============================================================ */
+.stagger > *:nth-child(1) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 0ms   both; }
+.stagger > *:nth-child(2) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 40ms  both; }
+.stagger > *:nth-child(3) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 80ms  both; }
+.stagger > *:nth-child(4) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 120ms both; }
+.stagger > *:nth-child(5) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 160ms both; }
+.stagger > *:nth-child(6) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 200ms both; }
+
+@keyframes canvaFadeUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   SKELETON LOADER
+   ============================================================ */
+.skeleton {
+  background: linear-gradient(90deg, #EBEBEB 25%, #F5F5F5 50%, #EBEBEB 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: var(--lg-radius-sm);
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to   { background-position: -200% 0; }
 }
 
 /* ============================================================
@@ -454,7 +463,7 @@ label {
    ============================================================ */
 @media (min-width: 768px) {
   .page { padding: var(--space-10) var(--space-8); }
-  .cards-grid { grid-template-columns: repeat(2, 1fr); gap: var(--space-4); }
+  .cards-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (min-width: 1100px) {

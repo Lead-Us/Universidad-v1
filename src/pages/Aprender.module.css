@@ -181,7 +181,7 @@
   font-size: 1rem;
   cursor: pointer;
   transition: background 150ms ease;
-  backdrop-filter: blur(8px);
+  backdrop-filter: none;
 }
 
 .menuBtn:hover       { background: rgba(255, 255, 255, 0.38); }
@@ -247,7 +247,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.38);
-  backdrop-filter: blur(4px);
+  backdrop-filter: none;
   display: flex;
   align-items: center;
   justify-content: center;

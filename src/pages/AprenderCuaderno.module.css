@@ -286,8 +286,8 @@
 .overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.38);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.50);
+  backdrop-filter: none;
   display: flex;
   align-items: center;
   justify-content: center;
