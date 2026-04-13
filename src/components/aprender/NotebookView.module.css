@@ -259,13 +259,13 @@
   width: 100%;
 }
 
-/* User bubble: subtle gray, dark text */
+/* User bubble: Claude.ai style */
 .userMsg .msgBubble {
   max-width: 75%;
-  background: #1f1f1f;
-  color: var(--text-primary);
-  border-radius: 1.25rem 1.25rem 4px 1.25rem;
-  padding: var(--space-3) var(--space-4);
+  background: #2f2f2f;
+  color: #ffffff;
+  border-radius: 18px 18px 4px 18px;
+  padding: 12px 16px;
 }
 
 .msgText {

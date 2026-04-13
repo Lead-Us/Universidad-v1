@@ -12,16 +12,17 @@
 }
 
 .plain {
-  background: var(--neutral-bubble);
-  color: var(--text-secondary);
+  background: #1e1e1e;
+  border: 1px solid #333333;
+  color: #a0a0a0;
 }
 
 .colorBadge {
   /* dynamic via inline style */
 }
 
-/* Task types */
-.type.tarea      { background: rgba(79, 142, 247, 0.12);  color: #4f8ef7; }
-.type.evaluación { background: rgba(220, 38, 38, 0.12);   color: #dc2626; }
-.type.control    { background: rgba(217, 119, 6, 0.12);   color: #d97706; }
-.type.quiz       { background: rgba(22, 163, 74, 0.12);   color: #16a34a; }
+/* Task types — dark uniform chips */
+.type.tarea      { background: #1e1e1e; border: 1px solid #333333; color: #a0a0a0; }
+.type.evaluación { background: #1e1e1e; border: 1px solid #333333; color: #a0a0a0; }
+.type.control    { background: #1e1e1e; border: 1px solid #333333; color: #a0a0a0; }
+.type.quiz       { background: #1e1e1e; border: 1px solid #333333; color: #a0a0a0; }

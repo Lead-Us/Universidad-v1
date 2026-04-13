@@ -50,7 +50,7 @@ function AppRoutes() {
     return (
       <div style={{
         minHeight: '100dvh',
-        background: 'linear-gradient(135deg, #dbeafe 0%, #ede9fe 40%, #fce7f3 70%, #d1fae5 100%)',
+        background: '#0a0a0a',
       }} />
     );
   }

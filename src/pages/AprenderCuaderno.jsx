@@ -286,7 +286,7 @@ export default function AprenderCuaderno() {
         {/* ── Header ── */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <div className={styles.nbIcon} style={{ background: `linear-gradient(135deg, ${color}ee, ${color}88)` }}>
+            <div className={styles.nbIcon} style={{ background: '#1e1e1e', borderLeft: `3px solid ${color}` }}>
               <RiBookOpenLine />
             </div>
             <div>

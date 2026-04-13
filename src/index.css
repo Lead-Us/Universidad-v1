@@ -12,35 +12,35 @@
 :root {
   /* ── App background ── */
   --bg-app:      #0a0a0a;
-  --bg-app-pure: #000000;
+  --bg-app-pure: #0a0a0a;
 
   /* ── Surfaces ── */
-  --lg-surface:        #111111;
-  --lg-surface-hover:  #181818;
-  --lg-surface-active: #1f1f1f;
+  --lg-surface:        #161616;
+  --lg-surface-hover:  #1e1e1e;
+  --lg-surface-active: #242424;
   --lg-surface-deep:   #0d0d0d;
-  --lg-surface-subtle: rgba(255, 255, 255, 0.03);
+  --lg-surface-subtle: rgba(255, 255, 255, 0.02);
 
   /* Legacy aliases */
-  --glass:        #111111;
-  --glass-strong: #141414;
+  --glass:        #161616;
+  --glass-strong: #1e1e1e;
   --glass-soft:   #0f0f0f;
-  --glass-subtle: rgba(255, 255, 255, 0.03);
+  --glass-subtle: rgba(255, 255, 255, 0.02);
 
   /* ── Specular ── */
-  --lg-specular:      rgba(255, 255, 255, 0.06);
-  --lg-specular-soft: rgba(255, 255, 255, 0.04);
-  --lg-specular-edge: rgba(255, 255, 255, 0.08);
+  --lg-specular:      rgba(255, 255, 255, 0.04);
+  --lg-specular-soft: rgba(255, 255, 255, 0.02);
+  --lg-specular-edge: rgba(255, 255, 255, 0.06);
 
   /* ── Borders ── */
-  --lg-border:        #222222;
-  --lg-border-outer:  rgba(255, 255, 255, 0.06);
-  --lg-border-inner:  rgba(255, 255, 255, 0.08);
-  --lg-border-bottom: rgba(255, 255, 255, 0.06);
-  --lg-border-dark:   rgba(255, 255, 255, 0.10);
+  --lg-border:        #2a2a2a;
+  --lg-border-outer:  rgba(255, 255, 255, 0.05);
+  --lg-border-inner:  rgba(255, 255, 255, 0.07);
+  --lg-border-bottom: #2a2a2a;
+  --lg-border-dark:   #333333;
 
-  --glass-border:       #222222;
-  --glass-border-hover: #333333;
+  --glass-border:       #2a2a2a;
+  --glass-border-hover: #3a3a3a;
   --glass-border-input: #2a2a2a;
 
   /* ── Blur ── */
@@ -95,13 +95,13 @@
   --radius-full: 9999px;
 
   /* ── Text ── */
-  --text-primary:         #f0f0f0;
-  --text-secondary:       #888888;
-  --text-muted:           #555555;
-  --text-page:            #f0f0f0;
-  --text-page-secondary:  #888888;
-  --text-on-glass:        #f0f0f0;
-  --text-on-glass-muted:  #555555;
+  --text-primary:         #ffffff;
+  --text-secondary:       #a0a0a0;
+  --text-muted:           #666666;
+  --text-page:            #ffffff;
+  --text-page-secondary:  #a0a0a0;
+  --text-on-glass:        #ffffff;
+  --text-on-glass-muted:  #666666;
 
   /* ── Semantic ── */
   --color-success:  #34D399;
@@ -121,9 +121,9 @@
   --neutral-hover:        rgba(255, 255, 255, 0.04);
 
   /* ── Buttons ── */
-  --btn-bg:       rgba(255, 255, 255, 0.08);
-  --btn-bg-hover: rgba(255, 255, 255, 0.12);
-  --btn-text:     #f0f0f0;
+  --btn-bg:       #ffffff;
+  --btn-bg-hover: #e8e8e8;
+  --btn-text:     #000000;
 
   /* ── Input fields ── */
   --input-bg:       #141414;
@@ -174,11 +174,11 @@
   --dur-xslow:   500ms;
 
   /* ── Compatibility ── */
-  --bg-secondary:  #141414;
-  --bg-elevated:   #1a1a1a;
+  --bg-secondary:  #161616;
+  --bg-elevated:   #1e1e1e;
   --border-subtle: rgba(255, 255, 255, 0.05);
-  --border-color:  #222222;
-  --border-strong: #333333;
+  --border-color:  #2a2a2a;
+  --border-strong: #3a3a3a;
   --shadow-xl:     var(--lg-shadow-modal);
 }
 
