@@ -230,15 +230,11 @@ export default function WeeklySchedule({ showAdd: showAddProp, onAddClose }) {
                 const ramo = ramoMap[entry.ramo_id];
                 if (!ramo) return null;
 
-                const bg = entry.has_attendance
-                  ? ramo.color
-                  : hexToRgba(ramo.color, 0.75);
-
                 return (
                   <div key={entry.id} className={styles.blockWrap}>
                     <div
                       className={styles.block}
-                      style={{ background: bg }}
+                      style={{ background: '#141414', borderLeft: `3px solid ${ramo.color}` }}
                       onClick={() => setEditId(editId === entry.id ? null : entry.id)}
                     >
                       <div className={styles.blockHeader}>

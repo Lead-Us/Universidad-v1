@@ -202,7 +202,7 @@ function NotebookCard({ nb, count, onOpen, onEdit, onDelete }) {
     >
       <div
         className={styles.cover}
-        style={{ background: `linear-gradient(145deg, ${nb.color}ee 0%, ${nb.color}88 100%)` }}
+        style={{ background: '#1a1a1a', borderBottom: `2px solid ${nb.color}` }}
       >
         <RiBookOpenLine className={styles.coverIcon} />
         <CardMenu onEdit={onEdit} onDelete={onDelete} />
