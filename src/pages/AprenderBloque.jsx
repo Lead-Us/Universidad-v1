@@ -339,11 +339,6 @@ function ChatMessage({ msg }) {
   const isUser = msg.role === 'user';
   return (
     <div className={[styles.msg, isUser ? styles.msgUser : styles.msgAI].join(' ')}>
-      {!isUser && (
-        <div className={styles.aiAvatar} aria-hidden>
-          <RiSparkling2Line />
-        </div>
-      )}
       <div className={[styles.bubble, isUser ? styles.bubbleUser : styles.bubbleAI].join(' ')}>
         {isUser ? (
           <p className={styles.bubbleText}>{msg.content}</p>
@@ -362,8 +357,7 @@ function ChatMessage({ msg }) {
 function TypingIndicator() {
   return (
     <div className={[styles.msg, styles.msgAI].join(' ')}>
-      <div className={styles.aiAvatar} aria-hidden><RiSparkling2Line /></div>
-      <div className={[styles.bubble, styles.bubbleAI, styles.bubbleTyping].join(' ')} aria-label="Generando respuesta">
+      <div className={styles.bubbleTyping} aria-label="Generando respuesta">
         <span /><span /><span />
       </div>
     </div>

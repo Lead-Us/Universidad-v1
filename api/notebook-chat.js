@@ -1,54 +1,62 @@
+// POST /api/notebook-chat
+// Body: { sources, messages, learningContext? }
+// Returns: { reply }
+// Uses Anthropic claude-sonnet-4-6 via ANTHROPIC_API_KEY
+
+import Anthropic from '@anthropic-ai/sdk';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
+  const { messages = [], sources = [], learningContext = null } = req.body ?? {};
+
+  const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
-    return res.status(500).json({ error: 'GROQ_API_KEY no configurada' });
+    return res.status(500).json({ error: 'ANTHROPIC_API_KEY no configurada' });
   }
 
-  const { messages, sources } = req.body;
-
-  const sourcesText = (sources ?? [])
+  const sourcesText = sources
     .filter(s => s.content?.trim())
     .map((s, i) => `[Fuente ${i + 1}: ${s.title || 'Sin título'}]\n${s.content.trim()}`)
     .join('\n\n---\n\n');
 
-  const systemPrompt = sourcesText
-    ? `Eres un asistente de estudio. Responde basándote PRINCIPALMENTE en las fuentes proporcionadas por el usuario. Cuando la respuesta esté en las fuentes, cita de dónde viene. Si no está en las fuentes, indícalo claramente pero igualmente ayuda con tu conocimiento.
+  const systemPrompt = [
+    learningContext
+      ? `Instrucción de método de estudio:\n${learningContext}`
+      : 'Eres un tutor académico inteligente. Ayuda al estudiante a aprender y entender el material proporcionado.',
+    sourcesText
+      ? `\n\nMaterial de estudio disponible:\n\n${sourcesText}`
+      : '',
+    '\n\nResponde en español. Sé claro, estructurado y pedagógico. Cuando cites información de las fuentes, indica de cuál proviene.',
+  ].join('').trim();
 
-FUENTES DEL USUARIO:
-${sourcesText}`
-    : 'Eres un asistente de estudio universitario. Ayuda al estudiante con sus preguntas de manera clara y concisa.';
+  const anthropicMessages = messages
+    .filter(m => m.role === 'user' || m.role === 'assistant')
+    .map(m => ({ role: m.role, content: m.content }));
+
+  if (anthropicMessages.length === 0 || anthropicMessages.at(-1).role !== 'user') {
+    anthropicMessages.push({
+      role: 'user',
+      content: 'Genera una explicación o resumen del material de estudio.',
+    });
+  }
+
+  const client = new Anthropic({ apiKey });
 
   try {
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: 'llama-3.3-70b-versatile',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          ...(messages ?? []),
-        ],
-        temperature: 0.4,
-        max_tokens: 1024,
-      }),
+    const response = await client.messages.create({
+      model:      'claude-sonnet-4-6',
+      max_tokens: 2048,
+      system:     systemPrompt,
+      messages:   anthropicMessages,
     });
 
-    const data = await response.json();
-    if (!response.ok) {
-      return res.status(response.status).json({ error: data.error?.message ?? 'Groq API error' });
-    }
-
-    return res.status(200).json({
-      reply: data.choices?.[0]?.message?.content ?? '',
-    });
+    const reply = response.content?.[0]?.text ?? '';
+    return res.status(200).json({ reply });
   } catch (err) {
-    return res.status(500).json({ error: err.message });
+    console.error('[notebook-chat] Anthropic error:', err);
+    return res.status(500).json({ error: err.message || 'Error al generar respuesta' });
   }
 }

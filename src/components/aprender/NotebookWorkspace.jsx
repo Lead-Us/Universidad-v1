@@ -247,9 +247,6 @@ function Message({ msg }) {
   const isUser = msg.role === 'user';
   return (
     <div className={`${styles.message} ${isUser ? styles.userMsg : styles.aiMsg}`}>
-      <div className={styles.msgAvatar}>
-        {isUser ? <RiUserLine /> : <RiRobot2Line />}
-      </div>
       <div className={styles.msgBubble}>
         <p className={styles.msgText}>{msg.content}</p>
       </div>
@@ -362,8 +359,7 @@ export default function NotebookWorkspace({ notebook, onBack }) {
               {messages.map((msg, i) => <Message key={i} msg={msg} />)}
               {loading && (
                 <div className={`${styles.message} ${styles.aiMsg}`}>
-                  <div className={styles.msgAvatar}><RiRobot2Line /></div>
-                  <div className={`${styles.msgBubble} ${styles.thinking}`}>
+                  <div className={styles.thinking}>
                     <span className={styles.dot} />
                     <span className={styles.dot} />
                     <span className={styles.dot} />

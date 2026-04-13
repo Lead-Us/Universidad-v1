@@ -8,6 +8,7 @@ export function AuthProvider({ children }) {
   const [profile,         setProfile]         = useState(null);
   const [loading,         setLoading]         = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isRecoveryMode,  setIsRecoveryMode]  = useState(false);
 
   const loadProfile = async (authUser) => {
     if (!authUser) { setProfile(null); return; }
@@ -27,11 +28,13 @@ export function AuthProvider({ children }) {
       loadProfile(u).finally(() => setLoading(false));
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       const u = session?.user ?? null;
       setUser(u);
       setIsAuthenticated(!!u);
       loadProfile(u);
+      if (event === 'PASSWORD_RECOVERY') setIsRecoveryMode(true);
+      if (event === 'USER_UPDATED')      setIsRecoveryMode(false);
     });
 
     return () => subscription.unsubscribe();
@@ -106,6 +109,7 @@ export function AuthProvider({ children }) {
       displayName,
       isAuthenticated,
       isSubscribed,
+      isRecoveryMode,
       loading,
       signIn,
       signUp,

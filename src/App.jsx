@@ -7,6 +7,7 @@ import Landing          from './pages/Landing.jsx';
 import Register         from './pages/Register.jsx';
 import Login            from './pages/Login.jsx';
 import Checkout         from './pages/Checkout.jsx';
+import UpdatePassword   from './pages/UpdatePassword.jsx';
 import Onboarding       from './pages/Onboarding.jsx';
 import Dashboard        from './pages/Dashboard.jsx';
 import Ramos            from './pages/Ramos.jsx';
@@ -21,7 +22,7 @@ import ImportarArchivos from './pages/ImportarArchivos.jsx';
 import Admin            from './pages/Admin.jsx';
 
 function AppRoutes() {
-  const { isAuthenticated, isSubscribed, loading, user } = useAuth();
+  const { isAuthenticated, isSubscribed, isRecoveryMode, loading, user } = useAuth();
   const [onboardingDone, setOnboardingDone] = useState(true);
 
   useEffect(() => {
@@ -35,6 +36,15 @@ function AppRoutes() {
     if (user) localStorage.setItem(`uni_onboarding_done_${user.id}`, '1');
     setOnboardingDone(true);
   };
+
+  // ── Password recovery link clicked ──────────────────────────
+  if (isRecoveryMode) {
+    return (
+      <Routes>
+        <Route path="*" element={<UpdatePassword />} />
+      </Routes>
+    );
+  }
 
   if (loading) {
     return (

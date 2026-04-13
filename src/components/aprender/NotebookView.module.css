@@ -17,25 +17,13 @@
 /* ── Source panel ── */
 .sourcePanel {
   background: var(--lg-surface);
-  backdrop-filter: var(--lg-blur-base);
-  -webkit-backdrop-filter: var(--lg-blur-base);
   border: 1px solid var(--lg-border);
-  border-bottom-color: var(--lg-border-bottom);
   border-radius: var(--lg-radius-xl);
   box-shadow: var(--lg-shadow);
   display: flex;
   flex-direction: column;
   overflow: hidden;
   position: relative;
-}
-
-.sourcePanel::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 30%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.40) 0%, transparent 100%);
-  pointer-events: none;
 }
 
 .panelHeader {
@@ -95,7 +83,7 @@
 }
 
 .sourceCard {
-  background: rgba(255,255,255,0.30);
+  background: var(--lg-surface-hover);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-md);
   padding: var(--space-3);
@@ -153,7 +141,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  background: rgba(255,255,255,0.35);
+  background: var(--lg-surface-hover);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-md);
   padding: var(--space-3);
@@ -182,7 +170,7 @@
 .cancelBtn {
   flex: 1;
   padding: 5px 0;
-  background: rgba(255,255,255,0.45);
+  background: var(--lg-surface-hover);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-sm);
   font-size: var(--text-xs);
@@ -192,7 +180,7 @@
   transition: all var(--dur-fast) var(--ease-out);
 }
 
-.cancelBtn:hover { background: rgba(255,255,255,0.70); color: var(--text-primary); }
+.cancelBtn:hover { background: var(--lg-surface-active); color: var(--text-primary); }
 
 .saveBtn {
   flex: 1;
@@ -213,10 +201,7 @@
 /* ── Chat panel ── */
 .chatPanel {
   background: var(--lg-surface);
-  backdrop-filter: var(--lg-blur-base);
-  -webkit-backdrop-filter: var(--lg-blur-base);
   border: 1px solid var(--lg-border);
-  border-bottom-color: var(--lg-border-bottom);
   border-radius: var(--lg-radius-xl);
   box-shadow: var(--lg-shadow);
   display: flex;
@@ -225,22 +210,13 @@
   position: relative;
 }
 
-.chatPanel::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 25%;
-  background: linear-gradient(180deg, rgba(255,255,255,0.40) 0%, transparent 100%);
-  pointer-events: none;
-}
-
 .chatMessages {
   flex: 1;
   overflow-y: auto;
-  padding: var(--space-4);
+  padding: var(--space-6) var(--space-5) var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
+  gap: var(--space-5);
   position: relative;
   z-index: 1;
 }
@@ -268,71 +244,49 @@
 /* ── Messages ── */
 .message {
   display: flex;
-  gap: var(--space-3);
   align-items: flex-start;
   animation: fadeIn 200ms var(--ease-out) both;
 }
 
-.userMsg { flex-direction: row-reverse; }
+.userMsg { justify-content: flex-end; align-items: flex-end; }
 
-.msgAvatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.aiMsg .msgAvatar {
-  background: rgba(var(--accent-rgb), 0.12);
-  color: var(--accent);
-}
-
-.userMsg .msgAvatar {
-  background: rgba(0,0,0,0.07);
-  color: var(--text-secondary);
-}
-
-.msgBubble {
-  max-width: 80%;
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--lg-radius-md);
-}
-
+/* AI text: flows directly without bubble */
 .aiMsg .msgBubble {
-  background: rgba(255,255,255,0.55);
-  border: 1px solid var(--lg-border);
-  border-bottom-color: var(--lg-border-bottom);
+  background: none;
+  border: none;
+  padding: 0;
+  border-radius: 0;
+  width: 100%;
 }
 
+/* User bubble: subtle gray, dark text */
 .userMsg .msgBubble {
-  background: var(--accent);
-  color: #fff;
+  max-width: 75%;
+  background: rgba(0, 0, 0, 0.065);
+  color: var(--text-primary);
+  border-radius: 1.25rem 1.25rem 4px 1.25rem;
+  padding: var(--space-3) var(--space-4);
 }
 
 .msgText {
   font-size: var(--text-sm);
-  line-height: 1.65;
+  line-height: 1.7;
   margin: 0;
   white-space: pre-wrap;
+  color: var(--text-primary);
 }
-
-.userMsg .msgText { color: #fff; }
 
 /* Thinking dots */
 .thinking {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) 0;
 }
 
 .dot {
-  width: 7px;
-  height: 7px;
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
   background: var(--text-muted);
   animation: bounce 1.2s infinite;
@@ -359,18 +313,20 @@
 /* ── Input row ── */
 .inputRow {
   display: flex;
+  align-items: flex-end;
   gap: var(--space-2);
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--lg-border);
   position: relative;
   z-index: 1;
+  background: var(--lg-surface);
 }
 
 .chatInput {
   flex: 1;
-  background: rgba(255,255,255,0.55);
-  border: 1px solid var(--lg-border);
-  border-radius: var(--lg-radius-md);
+  background: var(--lg-surface-hover);
+  border: 1.5px solid var(--lg-border);
+  border-radius: 1.25rem;
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-sm);
   font-family: var(--font-ui);
@@ -382,20 +338,20 @@
 
 .chatInput:focus {
   outline: none;
-  border-color: rgba(var(--accent-rgb), 0.45);
+  border-color: var(--text-secondary);
 }
 
 .chatInput:disabled { opacity: 0.6; }
 
 .sendBtn {
-  width: 44px;
-  height: 44px;
+  width: 40px;
+  height: 40px;
   align-self: flex-end;
-  border-radius: var(--lg-radius-md);
-  background: var(--model-color, var(--accent));
+  border-radius: 10px;
+  background: var(--text-primary);
   border: none;
-  color: #fff;
-  font-size: 18px;
+  color: var(--lg-surface);
+  font-size: 17px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -406,6 +362,6 @@
     transform var(--dur-instant) var(--ease-spring);
 }
 
-.sendBtn:hover:not(:disabled) { opacity: 0.88; }
-.sendBtn:active:not(:disabled) { transform: scale(0.90); }
-.sendBtn:disabled { opacity: 0.40; cursor: default; }
+.sendBtn:hover:not(:disabled) { opacity: 0.80; }
+.sendBtn:active:not(:disabled) { transform: scale(0.92); }
+.sendBtn:disabled { opacity: 0.25; cursor: default; }

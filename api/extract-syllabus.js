@@ -2,7 +2,7 @@
 // Body: { type: 'pdf', base64: string, filename: string }
 //    or { type: 'text', content: string, filename: string }
 // Returns: { name, code, professor, section, credits, has_attendance, blocks }
-// Uses Anthropic claude-sonnet-4-6 with native PDF document support
+// Uses Anthropic claude-haiku-4-5 with native PDF document support
 
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -81,7 +81,7 @@ export default async function handler(req, res) {
 
   try {
     const response = await client.messages.create({
-      model:      'claude-sonnet-4-6',
+      model:      'claude-haiku-4-5-20251001',
       max_tokens: 1024,
       system:     'Eres un asistente experto en leer programas de cursos universitarios chilenos y extraer información estructurada. Respondes ÚNICAMENTE con JSON válido.',
       messages:   [{ role: 'user', content: messageContent }],

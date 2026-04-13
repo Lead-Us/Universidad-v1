@@ -60,12 +60,10 @@ export default function Ramos() {
         {error && <p style={{ color: 'var(--color-danger)', fontSize: 'var(--text-sm)' }}>{error}</p>}
 
         {!loading && ramos.length > 0 && (
-          <div className={styles.scrollSection}>
-            <div className={styles.scrollRow}>
-              {ramos.map(r => (
-                <RamoCard key={r.id} ramo={r} onEdit={openEdit} onDelete={handleDelete} />
-              ))}
-            </div>
+          <div className={styles.cardGrid}>
+            {ramos.map(r => (
+              <RamoCard key={r.id} ramo={r} onEdit={openEdit} onDelete={handleDelete} />
+            ))}
           </div>
         )}
 
