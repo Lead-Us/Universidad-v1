@@ -62,18 +62,32 @@
   to   { opacity: 1; }
 }
 
+/* Mobile: vertical list of days */
 .grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--space-2);
-  overflow-x: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
 }
 
 .col {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  min-width: 130px;
+  min-width: 0;
+}
+
+/* Desktop: 5-column grid */
+@media (min-width: 640px) {
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-2);
+    overflow-x: visible;
+  }
+
+  .col {
+    min-width: 0;
+  }
 }
 
 .dayLabel {
@@ -82,8 +96,19 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  padding-bottom: var(--space-1);
+  padding-bottom: var(--space-2);
   border-bottom: 1px solid var(--lg-border);
+  margin-bottom: var(--space-1);
+}
+
+@media (max-width: 639px) {
+  .dayLabel {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    font-weight: var(--weight-semibold);
+    text-transform: capitalize;
+    letter-spacing: 0;
+  }
 }
 
 .blocks {
@@ -358,10 +383,21 @@
   border-color: rgba(220, 38, 38, 0.35);
 }
 
-@media (max-width: 767px) {
-  .col       { min-width: 100px; }
-  .blockName { font-size: var(--text-xs); }
-  .blockTime { font-size: 10px; }
-  .blockProf { font-size: 9px; }
-  .blockSala { font-size: 9px; }
+@media (max-width: 639px) {
+  .col       { min-width: 0; }
+  .blockName { font-size: var(--text-sm); }
+  .blockTime { font-size: var(--text-xs); }
+  .blockProf { font-size: var(--text-xs); }
+  .blockSala { font-size: var(--text-xs); }
+
+  /* Popup: fijo en pantalla, no relativo al bloque */
+  .popup {
+    position: fixed;
+    bottom: calc(var(--nav-height) + 16px);
+    left: 16px;
+    right: 16px;
+    top: auto;
+    width: auto;
+    z-index: 500;
+  }
 }
