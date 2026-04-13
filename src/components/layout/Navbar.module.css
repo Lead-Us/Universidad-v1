@@ -1,18 +1,17 @@
 /* ══════════════════════════════════════════════════════════════
-   MOBILE BOTTOM BAR — Canva style
+   MOBILE BOTTOM BAR — Dark minimal
    ══════════════════════════════════════════════════════════════ */
 .bottomBar {
   position: fixed;
   bottom: 0; left: 0; right: 0;
   height: var(--nav-height);
-  background: #FFFFFF;
-  border-top: 1px solid rgba(0,0,0,0.09);
+  background: #0d0d0d;
+  border-top: 1px solid #1e1e1e;
   display: flex;
   align-items: stretch;
   justify-content: space-around;
   z-index: 200;
   padding-bottom: env(safe-area-inset-bottom, 0);
-  box-shadow: 0 -1px 0 rgba(0,0,0,0.06);
 }
 
 .sidebar { display: none; }
@@ -24,7 +23,7 @@
   justify-content: center;
   gap: 3px;
   flex: 1;
-  color: rgba(60,60,67,0.50);
+  color: #555555;
   text-decoration: none;
   transition: color var(--dur-fast) var(--ease-out);
   padding: var(--space-1) 0;
@@ -32,13 +31,13 @@
 }
 
 .tabItem:active { opacity: 0.55; }
-.tabItem.active { color: #1C1C1E; }
+.tabItem.active { color: #f0f0f0; }
 
 .tabIcon  { font-size: 21px; line-height: 1; }
 .tabLabel { font-size: 10px; font-weight: var(--weight-semibold); letter-spacing: 0.01em; }
 
 /* ══════════════════════════════════════════════════════════════
-   DESKTOP SIDEBAR — Canva white solid panel
+   DESKTOP SIDEBAR — Dark, 21st.dev style
    ══════════════════════════════════════════════════════════════ */
 @media (min-width: 768px) {
   .bottomBar { display: none; }
@@ -49,13 +48,12 @@
     position: fixed;
     top: 0; left: 0; bottom: 0;
     width: var(--sidebar-width);
-    background: #FFFFFF;
-    border-right: 1px solid rgba(0,0,0,0.09);
+    background: #0d0d0d;
+    border-right: 1px solid #1a1a1a;
     z-index: 200;
     padding: var(--space-5) var(--space-3) var(--space-4);
     transition: width var(--dur-base) var(--ease-out);
     overflow: hidden;
-    box-shadow: var(--lg-shadow-nav);
   }
 
   .sidebarCollapsed { width: var(--sidebar-collapsed); }
@@ -72,37 +70,36 @@
   }
 
   .logoIcon {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
-    background: var(--accent-gradient);
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    background: var(--accent);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
-    font-size: 17px;
-    color: #FFFFFF;
+    font-size: 14px;
+    color: #ffffff;
     font-weight: var(--weight-bold);
     font-family: var(--font-display);
     letter-spacing: -0.02em;
-    box-shadow: 0 2px 8px rgba(58, 58, 60, 0.30);
   }
 
   .logoText {
     font-family: var(--font-display);
-    font-size: var(--text-base);
-    font-weight: var(--weight-bold);
-    color: #1C1C1E;
-    letter-spacing: -0.02em;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: #f0f0f0;
+    letter-spacing: -0.01em;
     overflow: hidden;
   }
 
   .logoInitial {
     font-family: var(--font-display);
-    font-size: var(--text-base);
-    font-weight: var(--weight-bold);
-    color: #1C1C1E;
-    letter-spacing: -0.02em;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+    color: #f0f0f0;
+    letter-spacing: -0.01em;
   }
 
   /* ── Nav list ── */
@@ -110,92 +107,101 @@
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
     flex: 1;
     overflow: hidden;
   }
 
-  /* ── Nav item — Canva hover + active ── */
+  /* ── Nav item ── */
   .sidebarItem {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 9px var(--space-3);
-    border-radius: var(--lg-radius-md);
+    padding: 8px var(--space-3);
+    border-radius: var(--lg-radius-sm);
     font-size: var(--text-sm);
-    font-weight: var(--weight-medium);
-    color: rgba(60,60,67,0.70);
+    font-weight: var(--weight-normal);
+    color: #666666;
     text-decoration: none;
     white-space: nowrap;
     overflow: hidden;
     cursor: pointer;
     transition:
       background  var(--dur-fast) var(--ease-out),
-      color       var(--dur-fast) var(--ease-out),
-      transform   var(--dur-instant) var(--ease-out);
+      color       var(--dur-fast) var(--ease-out);
+    position: relative;
   }
 
   .sidebarItem:hover {
-    background: rgba(0, 0, 0, 0.05);
-    color: #1C1C1E;
+    background: rgba(255, 255, 255, 0.05);
+    color: #cccccc;
   }
 
   .sidebarItem:active {
-    transform: scale(0.97);
-    background: rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.08);
   }
 
-  /* Active: dark filled pill */
+  /* Active: subtle bg + 2px left accent border */
   .sidebarItem.active {
-    background: rgba(0, 0, 0, 0.08);
-    color: #1C1C1E;
-    font-weight: var(--weight-semibold);
+    background: rgba(99, 102, 241, 0.08);
+    color: #f0f0f0;
+    font-weight: var(--weight-medium);
+  }
+
+  .sidebarItem.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--accent);
+    border-radius: 0 2px 2px 0;
   }
 
   .sidebarItem.active .icon {
-    color: #1C1C1E;
+    color: #f0f0f0;
   }
 
-  .icon  { font-size: 18px; flex-shrink: 0; }
+  .icon  { font-size: 17px; flex-shrink: 0; color: inherit; }
   .label { overflow: hidden; flex: 1; }
 
   /* ── Bottom area ── */
   .bottomArea {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 1px;
     padding-top: var(--space-3);
-    border-top: 1px solid var(--lg-border);
+    border-top: 1px solid #1a1a1a;
     overflow: hidden;
   }
 
-  /* ── Collapse toggle — Canva icon button ── */
+  /* ── Collapse toggle ── */
   .toggleBtn {
     display: flex;
     align-items: center;
     justify-content: center;
     background: transparent;
-    border: 1px solid var(--lg-border);
-    color: var(--text-muted);
-    font-size: 15px;
+    border: 1px solid #222222;
+    color: #444444;
+    font-size: 14px;
     cursor: pointer;
     padding: 0;
     border-radius: var(--lg-radius-sm);
     transition:
       background  var(--dur-fast) var(--ease-out),
       color       var(--dur-fast) var(--ease-out),
-      transform   var(--dur-instant) var(--ease-out),
       border-color var(--dur-fast) var(--ease-out);
-    width: 34px;
-    height: 34px;
+    width: 32px;
+    height: 32px;
     margin: 0 auto;
     flex-shrink: 0;
   }
 
   .toggleBtn:hover {
-    background: rgba(0, 0, 0, 0.05);
-    border-color: rgba(0, 0, 0, 0.14);
-    color: #1C1C1E;
+    background: rgba(255, 255, 255, 0.06);
+    border-color: #333333;
+    color: #888888;
   }
 
   .toggleBtn:active { transform: scale(0.92); }

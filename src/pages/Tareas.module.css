@@ -192,7 +192,7 @@
   align-items: flex-start;
   gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
-  border-bottom: 1px solid rgba(0,0,0,0.04);
+  border-bottom: 1px solid #1a1a1a;
   border-left: 3px solid transparent;
   transition: background var(--dur-fast) var(--ease-out);
   position: relative;
@@ -200,7 +200,7 @@
 }
 
 .taskRow:last-child { border-bottom: none; }
-.taskRow:hover { background: rgba(0,0,0,0.03); }
+.taskRow:hover { background: rgba(255,255,255,0.04); }
 .taskRow:hover .taskActions { opacity: 1; }
 
 .done { opacity: 0.50; }
@@ -213,7 +213,7 @@
   height: 20px;
   border-radius: var(--lg-radius-sm);
   border: 2px solid var(--lg-border);
-  background: #FFFFFF;
+  background: #1a1a1a;
   cursor: pointer;
   display: flex;
   align-items: center;

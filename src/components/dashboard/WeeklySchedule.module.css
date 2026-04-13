@@ -331,7 +331,7 @@
   transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
   font-family: var(--font-ui);
 }
-.popupBtn:hover { background: rgba(0, 0, 0, 0.06); color: var(--text-primary); }
+.popupBtn:hover { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); }
 
 .popupBtnSave {
   display: flex;

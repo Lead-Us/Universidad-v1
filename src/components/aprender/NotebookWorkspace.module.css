@@ -431,7 +431,7 @@
 /* User bubble: subtle gray, dark text */
 .userMsg .msgBubble {
   max-width: 75%;
-  background: rgba(0, 0, 0, 0.065);
+  background: #1f1f1f;
   color: var(--text-primary);
   border-radius: 1.25rem 1.25rem 4px 1.25rem;
   padding: var(--space-3) var(--space-4);

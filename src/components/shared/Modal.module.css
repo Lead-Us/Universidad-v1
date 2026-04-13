@@ -74,7 +74,7 @@
     transform   var(--dur-instant) var(--ease-out);
 }
 
-.close:hover  { background: rgba(0, 0, 0, 0.06); color: var(--text-primary); }
+.close:hover  { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); }
 .close:active { transform: scale(0.90); }
 
 .body {

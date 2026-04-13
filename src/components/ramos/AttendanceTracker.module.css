@@ -121,7 +121,7 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  border-bottom: 1px solid rgba(0,0,0,0.06);
+  border-bottom: 1px solid #1e1e1e;
   position: relative;
   z-index: 1;
 }
@@ -132,7 +132,7 @@
   gap: var(--space-3);
   align-items: center;
   padding: 8px var(--space-4);
-  border-bottom: 1px solid rgba(0,0,0,0.04);
+  border-bottom: 1px solid #181818;
   position: relative;
   z-index: 1;
   transition: background var(--dur-fast) var(--ease-out);

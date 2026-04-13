@@ -262,7 +262,7 @@
 }
 
 .modal {
-  background: var(--bg-app-pure, #fff);
+  background: var(--lg-surface);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-2xl);
   box-shadow: var(--lg-shadow-modal);

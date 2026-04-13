@@ -68,7 +68,7 @@
 .input {
   width: 100%;
   background: var(--lg-surface-hover);
-  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border: 1.5px solid var(--input-border);
   color: var(--text-primary);
   border-radius: var(--lg-radius-md);
   padding: var(--space-2) var(--space-3);
@@ -159,7 +159,7 @@
 
 .presetBtn:hover {
   background: var(--lg-surface-hover);
-  border-color: rgba(0, 0, 0, 0.20);
+  border-color: var(--lg-border-dark);
   color: var(--text-primary);
 }
 
@@ -180,7 +180,7 @@
   width: 24px;
   height: 24px;
   border-radius: var(--lg-radius-sm);
-  border: 1px solid rgba(0, 0, 0, 0.10);
+  border: 1px solid var(--lg-border);
   flex-shrink: 0;
 }
 
@@ -206,7 +206,7 @@
   height: 22px;
   border-radius: var(--radius-full);
   flex-shrink: 0;
-  border: 1px solid rgba(0, 0, 0, 0.10);
+  border: 1px solid var(--lg-border);
 }
 
 .fontPresetBtn {
@@ -239,7 +239,7 @@
 
 .resetBtn:hover {
   background: var(--lg-surface-hover);
-  border-color: rgba(0, 0, 0, 0.20);
+  border-color: var(--lg-border-dark);
   color: var(--text-secondary);
 }
 
@@ -278,7 +278,7 @@
 
 .aprenderBtn:hover {
   background: var(--lg-surface-hover);
-  border-color: rgba(0, 0, 0, 0.20);
+  border-color: var(--lg-border-dark);
   transform: translateY(-1px);
 }
 
@@ -312,7 +312,7 @@
 
 .themePill:hover {
   background: var(--lg-surface-hover);
-  border-color: rgba(0, 0, 0, 0.18);
+  border-color: var(--lg-border-dark);
 }
 
 .themeActive {
@@ -325,7 +325,7 @@
   width: 40px;
   height: 28px;
   border-radius: var(--lg-radius-sm);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--lg-border-outer);
   flex-shrink: 0;
 }
 
@@ -560,7 +560,7 @@
 .inputSelect {
   width: 100%;
   background: var(--lg-surface-hover);
-  border: 1.5px solid rgba(0, 0, 0, 0.12);
+  border: 1.5px solid var(--input-border);
   color: var(--text-primary);
   border-radius: var(--lg-radius-md);
   padding: var(--space-2) var(--space-3) var(--space-2) 30px;

@@ -62,7 +62,7 @@
 /* Toggle */
 .toggle {
   display: flex;
-  background: rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.04);
   border-radius: var(--lg-radius-pill);
   padding: 3px;
   gap: 2px;
@@ -85,7 +85,7 @@
 .toggleActive {
   background: var(--lg-surface-hover);
   color: var(--text-primary);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.30);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.60);
 }
 
 /* Form */

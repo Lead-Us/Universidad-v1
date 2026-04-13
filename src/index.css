@@ -1,47 +1,47 @@
 /* ============================================================
-   Universidad v1 — Canva Dark Design System
-   Purple accent · Dark navy surfaces · Smooth ease-out
-   Font: Plus Jakarta Sans
+   Universidad v1 — Dark Minimal Design System
+   Accent: Indigo #6366f1 · Surfaces: #111–#141 · Text: #f0f0f0
+   Font: DM Sans (Google Fonts)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
 /* ============================================================
-   VARIABLES — Canva Dark Design Tokens
+   VARIABLES — Dark Design Tokens
    ============================================================ */
 :root {
   /* ── App background ── */
-  --bg-app:      #F2F2F7;
-  --bg-app-pure: #FFFFFF;
+  --bg-app:      #0a0a0a;
+  --bg-app-pure: #000000;
 
   /* ── Surfaces ── */
-  --lg-surface:        #FFFFFF;
-  --lg-surface-hover:  #F7F7FA;
-  --lg-surface-active: #EBEBF0;
-  --lg-surface-deep:   #F2F2F700;
-  --lg-surface-subtle: #F7F7FA80;
+  --lg-surface:        #111111;
+  --lg-surface-hover:  #181818;
+  --lg-surface-active: #1f1f1f;
+  --lg-surface-deep:   #0d0d0d;
+  --lg-surface-subtle: rgba(255, 255, 255, 0.03);
 
   /* Legacy aliases */
-  --glass:        #FFFFFF;
-  --glass-strong: #F7F7FA;
-  --glass-soft:   #FAFAFA;
-  --glass-subtle: #F7F7FA80;
+  --glass:        #111111;
+  --glass-strong: #141414;
+  --glass-soft:   #0f0f0f;
+  --glass-subtle: rgba(255, 255, 255, 0.03);
 
   /* ── Specular ── */
-  --lg-specular:      rgba(255, 255, 255, 0.80);
-  --lg-specular-soft: rgba(255, 255, 255, 0.60);
-  --lg-specular-edge: rgba(255, 255, 255, 0.90);
+  --lg-specular:      rgba(255, 255, 255, 0.06);
+  --lg-specular-soft: rgba(255, 255, 255, 0.04);
+  --lg-specular-edge: rgba(255, 255, 255, 0.08);
 
   /* ── Borders ── */
-  --lg-border:        rgba(0, 0, 0, 0.09);
-  --lg-border-outer:  rgba(0, 0, 0, 0.06);
-  --lg-border-inner:  rgba(0, 0, 0, 0.10);
-  --lg-border-bottom: rgba(0, 0, 0, 0.06);
-  --lg-border-dark:   rgba(0, 0, 0, 0.14);
+  --lg-border:        #222222;
+  --lg-border-outer:  rgba(255, 255, 255, 0.06);
+  --lg-border-inner:  rgba(255, 255, 255, 0.08);
+  --lg-border-bottom: rgba(255, 255, 255, 0.06);
+  --lg-border-dark:   rgba(255, 255, 255, 0.10);
 
-  --glass-border:       rgba(0, 0, 0, 0.09);
-  --glass-border-hover: rgba(0, 0, 0, 0.16);
-  --glass-border-input: rgba(0, 0, 0, 0.12);
+  --glass-border:       #222222;
+  --glass-border-hover: #333333;
+  --glass-border-input: #2a2a2a;
 
   /* ── Blur ── */
   --lg-blur-xs:    none;
@@ -57,22 +57,22 @@
 
   /* ── Shadows ── */
   --lg-shadow-xs:
-    0 1px 3px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(0, 0, 0, 0.06);
+    0 1px 3px rgba(0, 0, 0, 0.40),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
   --lg-shadow:
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(0, 0, 0, 0.06);
+    0 2px 8px rgba(0, 0, 0, 0.50),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
   --lg-shadow-hover:
-    0 8px 24px rgba(0, 0, 0, 0.12),
-    0 2px 8px rgba(0, 0, 0, 0.08),
-    0 0 0 1px rgba(0, 0, 0, 0.06);
+    0 8px 24px rgba(0, 0, 0, 0.60),
+    0 2px 8px rgba(0, 0, 0, 0.40),
+    0 0 0 1px rgba(255, 255, 255, 0.07);
   --lg-shadow-modal:
-    0 20px 60px rgba(0, 0, 0, 0.18),
-    0 8px 24px rgba(0, 0, 0, 0.10),
-    0 0 0 1px rgba(0, 0, 0, 0.08);
+    0 20px 60px rgba(0, 0, 0, 0.80),
+    0 8px 24px rgba(0, 0, 0, 0.50),
+    0 0 0 1px rgba(255, 255, 255, 0.07);
   --lg-shadow-nav:
-    1px 0 0 rgba(0, 0, 0, 0.09),
-    4px 0 16px rgba(0, 0, 0, 0.06);
+    1px 0 0 #1a1a1a,
+    4px 0 16px rgba(0, 0, 0, 0.40);
 
   --shadow-glass:       var(--lg-shadow);
   --shadow-glass-hover: var(--lg-shadow-hover);
@@ -95,13 +95,13 @@
   --radius-full: 9999px;
 
   /* ── Text ── */
-  --text-primary:         #1C1C1E;
-  --text-secondary:       rgba(60, 60, 67, 0.75);
-  --text-muted:           rgba(60, 60, 67, 0.45);
-  --text-page:            #1C1C1E;
-  --text-page-secondary:  rgba(60, 60, 67, 0.75);
-  --text-on-glass:        #1C1C1E;
-  --text-on-glass-muted:  rgba(60, 60, 67, 0.45);
+  --text-primary:         #f0f0f0;
+  --text-secondary:       #888888;
+  --text-muted:           #555555;
+  --text-page:            #f0f0f0;
+  --text-page-secondary:  #888888;
+  --text-on-glass:        #f0f0f0;
+  --text-on-glass-muted:  #555555;
 
   /* ── Semantic ── */
   --color-success:  #34D399;
@@ -109,30 +109,30 @@
   --color-warning:  #FBBF24;
   --color-info:     #60A5FA;
 
-  /* ── Accent — Canva purple ── */
-  --accent:          #7C3AED;
-  --accent-rgb:      124, 58, 237;
-  --accent-bg:       rgba(124, 58, 237, 0.15);
-  --accent-gradient: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 100%);
+  /* ── Accent — Indigo ── */
+  --accent:          #6366f1;
+  --accent-rgb:      99, 102, 241;
+  --accent-bg:       rgba(99, 102, 241, 0.12);
+  --accent-gradient: linear-gradient(135deg, #818cf8 0%, #4f46e5 100%);
 
   /* ── Neutral helpers ── */
-  --neutral-bubble:       rgba(0, 0, 0, 0.06);
-  --neutral-bubble-faint: rgba(0, 0, 0, 0.03);
-  --neutral-hover:        rgba(0, 0, 0, 0.04);
+  --neutral-bubble:       rgba(255, 255, 255, 0.06);
+  --neutral-bubble-faint: rgba(255, 255, 255, 0.03);
+  --neutral-hover:        rgba(255, 255, 255, 0.04);
 
   /* ── Buttons ── */
-  --btn-bg:       rgba(0, 0, 0, 0.06);
-  --btn-bg-hover: rgba(0, 0, 0, 0.09);
-  --btn-text:     #1C1C1E;
+  --btn-bg:       rgba(255, 255, 255, 0.08);
+  --btn-bg-hover: rgba(255, 255, 255, 0.12);
+  --btn-text:     #f0f0f0;
 
   /* ── Input fields ── */
-  --input-bg:       rgba(0, 0, 0, 0.04);
-  --input-bg-focus: rgba(0, 0, 0, 0.06);
-  --input-border:   rgba(0, 0, 0, 0.12);
+  --input-bg:       #141414;
+  --input-bg-focus: #1a1a1a;
+  --input-border:   #2a2a2a;
 
-  /* ── Typography — Plus Jakarta Sans ── */
-  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-ui:      'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* ── Typography — DM Sans ── */
+  --font-display: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-ui:      'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
 
   --text-xs:   0.75rem;
   --text-sm:   0.875rem;
@@ -142,10 +142,10 @@
   --text-2xl:  1.75rem;
   --text-3xl:  2.25rem;
 
-  --weight-normal:   400;
-  --weight-medium:   500;
-  --weight-semibold: 600;
-  --weight-bold:     700;
+  --weight-normal:    400;
+  --weight-medium:    500;
+  --weight-semibold:  600;
+  --weight-bold:      700;
   --weight-extrabold: 800;
 
   /* ── Spacing (8pt grid) ── */
@@ -174,11 +174,11 @@
   --dur-xslow:   500ms;
 
   /* ── Compatibility ── */
-  --bg-secondary:  #F7F7FA;
-  --bg-elevated:   #EBEBF0;
-  --border-subtle: rgba(0, 0, 0, 0.06);
-  --border-color:  rgba(0, 0, 0, 0.09);
-  --border-strong: rgba(0, 0, 0, 0.16);
+  --bg-secondary:  #141414;
+  --bg-elevated:   #1a1a1a;
+  --border-subtle: rgba(255, 255, 255, 0.05);
+  --border-color:  #222222;
+  --border-strong: #333333;
   --shadow-xl:     var(--lg-shadow-modal);
 }
 
@@ -206,7 +206,6 @@ body {
   transition: background 0.3s ease;
 }
 
-/* Fondo plano, sin gradientes de colores (estilo Canva) */
 body::before {
   content: '';
   position: fixed;
@@ -226,7 +225,7 @@ body::before {
 }
 
 /* ============================================================
-   CARD SURFACE — Canva white panel
+   CARD SURFACE
    ============================================================ */
 .lg-surface,
 .glass-card {
@@ -242,12 +241,11 @@ body::before {
     border-color  var(--dur-fast)  var(--ease-out);
 }
 
-/* Canva card hover lift — the signature interaction */
 .lg-surface:hover,
 .glass-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-2px);
   box-shadow: var(--lg-shadow-hover);
-  border-color: rgba(0, 0, 0, 0.12);
+  border-color: #2e2e2e;
 }
 
 .lg-surface:active,
@@ -301,10 +299,10 @@ input::placeholder, textarea::placeholder { color: var(--text-muted); }
 input:focus, select:focus, textarea:focus {
   outline: none;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(58, 58, 60, 0.10);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
 }
 
-input[type="date"] { color-scheme: light; }
+input[type="date"] { color-scheme: dark; }
 input[type="checkbox"] {
   width: auto;
   accent-color: var(--accent);
@@ -315,15 +313,15 @@ select {
   cursor: pointer;
   appearance: none;
   -webkit-appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(72,72,74,0.6)' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7' viewBox='0 0 12 7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(136,136,136,0.8)' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
   padding-right: 36px;
 }
 
 select option {
-  background: #FFFFFF;
-  color: #1C1C1E;
+  background: #1a1a1a;
+  color: #f0f0f0;
 }
 
 textarea { resize: vertical; min-height: 100px; }
@@ -340,15 +338,15 @@ label {
 .form-row   { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
 
 /* ============================================================
-   SCROLLBAR — Canva thin style
+   SCROLLBAR — thin dark style
    ============================================================ */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.18);
+  background: rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-full);
 }
-::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.28); }
+::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.20); }
 
 /* ============================================================
    FOCUS
@@ -405,7 +403,7 @@ label {
   border-radius: 2px;
   padding: 1px 2px;
 }
-.inline-edit-field:hover { border-bottom-color: rgba(0, 0, 0, 0.22); }
+.inline-edit-field:hover { border-bottom-color: rgba(255, 255, 255, 0.20); }
 .inline-edit-input {
   background: var(--lg-surface-hover) !important;
   border: 1.5px solid var(--accent) !important;
@@ -421,15 +419,21 @@ label {
 /* ============================================================
    STAGGER ANIMATIONS — page entry
    ============================================================ */
-.stagger > *:nth-child(1) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 0ms   both; }
-.stagger > *:nth-child(2) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 40ms  both; }
-.stagger > *:nth-child(3) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 80ms  both; }
-.stagger > *:nth-child(4) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 120ms both; }
-.stagger > *:nth-child(5) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 160ms both; }
-.stagger > *:nth-child(6) { animation: canvaFadeUp var(--dur-base) var(--ease-out) 200ms both; }
+.stagger > *:nth-child(1) { animation: fadeUp var(--dur-base) var(--ease-out) 0ms   both; }
+.stagger > *:nth-child(2) { animation: fadeUp var(--dur-base) var(--ease-out) 40ms  both; }
+.stagger > *:nth-child(3) { animation: fadeUp var(--dur-base) var(--ease-out) 80ms  both; }
+.stagger > *:nth-child(4) { animation: fadeUp var(--dur-base) var(--ease-out) 120ms both; }
+.stagger > *:nth-child(5) { animation: fadeUp var(--dur-base) var(--ease-out) 160ms both; }
+.stagger > *:nth-child(6) { animation: fadeUp var(--dur-base) var(--ease-out) 200ms both; }
 
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* compat alias */
 @keyframes canvaFadeUp {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -437,7 +441,7 @@ label {
    SKELETON LOADER
    ============================================================ */
 .skeleton {
-  background: linear-gradient(90deg, rgba(0,0,0,0.06) 25%, rgba(0,0,0,0.10) 50%, rgba(0,0,0,0.06) 75%);
+  background: linear-gradient(90deg, #1a1a1a 25%, #222222 50%, #1a1a1a 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s ease infinite;
   border-radius: var(--lg-radius-sm);
