@@ -1,16 +1,17 @@
 // POST /api/aprender-chat
-// Body: { sources, methodPrompt, messages }
+// Body: { sources, methodKey, messages }
 // Returns: { reply }
 // Uses Anthropic claude-sonnet-4-6 via ANTHROPIC_API_KEY_APRENDER
 
 import Anthropic from '@anthropic-ai/sdk';
+import { buildSystemPrompt } from './prompts.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { sources = [], methodPrompt = '', messages = [] } = req.body ?? {};
+  const { sources = [], methodKey = '', messages = [] } = req.body ?? {};
 
   const apiKey = process.env.ANTHROPIC_API_KEY_APRENDER || process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -19,28 +20,25 @@ export default async function handler(req, res) {
 
   const client = new Anthropic({ apiKey });
 
-  // Build system prompt from sources + method
+  // Build pedagogical system prompt from .md files
+  const systemBase = buildSystemPrompt(methodKey);
+
+  // Append student material as context
   const sourcesText = sources
     .filter(s => s.content)
     .map((s, i) => `[Fuente ${i + 1}: ${s.title}]\n${s.content}`)
     .join('\n\n---\n\n');
 
-  const systemPrompt = [
-    methodPrompt
-      ? `Instrucción de método de estudio:\n${methodPrompt}`
-      : 'Eres un tutor académico inteligente. Ayuda al estudiante a aprender y entender el material proporcionado.',
-    sourcesText
-      ? `\n\nMaterial de estudio disponible:\n\n${sourcesText}`
-      : '',
-    '\n\nResponde en español. Sé claro, estructurado y pedagógico. Si el estudiante no especifica una tarea, genera un resumen o explicación del material usando el método indicado.',
-  ].join('').trim();
+  const systemPrompt = sourcesText
+    ? `${systemBase}\n\n---\n\nMaterial de estudio disponible:\n\n${sourcesText}`
+    : systemBase;
 
-  // Convert messages to Anthropic format (filter out any system messages)
+  // Convert messages to Anthropic format (filter out system messages)
   const anthropicMessages = messages
     .filter(m => m.role === 'user' || m.role === 'assistant')
     .map(m => ({ role: m.role, content: m.content }));
 
-  // Ensure the last message is from the user
+  // Ensure conversation ends with a user message
   if (anthropicMessages.length === 0 || anthropicMessages[anthropicMessages.length - 1].role !== 'user') {
     anthropicMessages.push({
       role: 'user',
@@ -51,7 +49,7 @@ export default async function handler(req, res) {
   try {
     const response = await client.messages.create({
       model:      'claude-sonnet-4-6',
-      max_tokens: 2048,
+      max_tokens: 5000,
       system:     systemPrompt,
       messages:   anthropicMessages,
     });

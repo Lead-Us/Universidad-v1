@@ -48,7 +48,7 @@ export default async function handler(req, res) {
   try {
     const response = await client.messages.create({
       model:      'claude-sonnet-4-6',
-      max_tokens: 2048,
+      max_tokens: 5000,
       system:     systemPrompt,
       messages:   anthropicMessages,
     });

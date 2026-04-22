@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 .vercel
 .env.secrets
+
+# Archivos de ramos (PDFs, datos, presentaciones — solo locales)
+Ramos/
+
+# Imágenes generadas de redes sociales (solo locales, se regeneran)
+"redes sociales/instagram/*.png"

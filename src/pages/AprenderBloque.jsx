@@ -447,8 +447,8 @@ export default function AprenderBloque() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sources:      fuentes.map(f => ({ title: f.name || '', content: f.content || f.url || '' })),
-          methodPrompt: selectedMethod?.prompt ?? '',
+          sources:   fuentes.map(f => ({ title: f.name || '', content: f.content || f.url || '' })),
+          methodKey: selectedMethod?.key ?? '',
           messages:     messages
             .map(m => ({ role: m.role, content: m.content }))
             .concat([{ role: 'user', content: userContent }]),
