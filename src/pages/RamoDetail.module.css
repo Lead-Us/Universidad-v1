@@ -35,7 +35,6 @@
   border-radius: var(--lg-radius-xl);
   border: 1px solid var(--lg-border);
   border-bottom-color: var(--lg-border-bottom);
-  border-left: 4px solid transparent;
   padding: var(--space-5) var(--space-6);
   margin-bottom: var(--space-6);
   box-shadow: var(--lg-shadow);

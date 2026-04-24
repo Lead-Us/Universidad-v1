@@ -1,47 +1,36 @@
 import { useNavigate } from 'react-router-dom';
 import {
   RiBookOpenLine, RiCalendarLine, RiBrainLine,
-  RiCheckLine, RiArrowRightLine,
-  RiTimerLine, RiGroup2Line, RiFileTextLine,
-  RiSparkling2Line,
+  RiArrowRightLine, RiSparkling2Line,
+  RiFileTextLine, RiShieldCheckLine,
 } from 'react-icons/ri';
 import styles from './Landing.module.css';
 
 const FEATURES = [
   {
+    num: '01',
     icon: RiBookOpenLine,
     title: 'Gestión de Ramos',
-    desc: 'Organiza tus asignaturas, unidades, evaluaciones y asistencia en un solo lugar.',
-    color: '#4f8ef7',
+    desc: 'Organiza tus asignaturas, unidades, evaluaciones y asistencia. Sin planillas, sin desorden.',
   },
   {
+    num: '02',
     icon: RiCalendarLine,
-    title: 'Horario & Calendario',
-    desc: 'Visualiza tus clases semanales y tareas con fechas de entrega en un calendario integrado.',
-    color: '#7c3aed',
+    title: 'Horario & Tareas',
+    desc: 'Tu semana entera de un vistazo. Clases, entregas y evaluaciones en un calendario integrado.',
   },
   {
-    icon: RiSparkling2Line,
-    title: 'Aprender con IA',
-    desc: 'Sube tus apuntes y archivos, elige un método de estudio y deja que la IA genere tu material de aprendizaje.',
-    color: '#059669',
+    num: '03',
+    icon: RiBrainLine,
+    title: 'Aprende con IA',
+    desc: 'Sube tus apuntes y la IA genera tu material de estudio personalizado. Menos tiempo preparando, más tiempo aprendiendo.',
   },
   {
+    num: '04',
     icon: RiFileTextLine,
-    title: 'Importar Syllabus',
-    desc: 'Sube tu carpeta de ramos y la plataforma extrae automáticamente todo el contenido del semestre.',
-    color: '#d97706',
+    title: 'Importa tu Semestre',
+    desc: 'Sube tu carpeta de ramos y la plataforma extrae automáticamente horarios, evaluaciones y unidades.',
   },
-];
-
-const PLAN_FEATURES = [
-  'Ramos ilimitados',
-  'Horario semanal y calendario',
-  'Importación de archivos PDF/DOCX',
-  'IA para estudio (Aprender)',
-  'Seguimiento de asistencia',
-  'Gestión de evaluaciones y notas',
-  'Acceso desde cualquier dispositivo',
 ];
 
 export default function Landing() {
@@ -49,26 +38,22 @@ export default function Landing() {
 
   return (
     <div className={styles.page}>
-      {/* Background */}
-      <div className={styles.bg}>
-        <div className={styles.blob1} />
-        <div className={styles.blob2} />
-        <div className={styles.blob3} />
-      </div>
+      <div className={styles.bgGrid} aria-hidden="true" />
+      <div className={styles.bgGlow} aria-hidden="true" />
 
       {/* ── Nav ── */}
       <header className={styles.nav}>
         <div className={styles.navInner}>
           <div className={styles.logo}>
-            <div className={styles.logoIcon}><RiBookOpenLine /></div>
+            <div className={styles.logoMark}><RiBookOpenLine /></div>
             <span className={styles.logoText}>Universidad</span>
           </div>
           <div className={styles.navActions}>
-            <button className={styles.navGhost} onClick={() => navigate('/login')}>
+            <button className={styles.navLogin} onClick={() => navigate('/login')}>
               Iniciar sesión
             </button>
-            <button className={styles.navPrimary} onClick={() => navigate('/register')}>
-              Crear cuenta <RiArrowRightLine />
+            <button className={styles.navRegister} onClick={() => navigate('/register')}>
+              Empieza gratis <RiArrowRightLine />
             </button>
           </div>
         </div>
@@ -77,93 +62,91 @@ export default function Landing() {
       <main>
         {/* ── Hero ── */}
         <section className={styles.hero}>
-          <div className={styles.heroBadge}>
-            <RiSparkling2Line /> Plataforma académica con IA
+          <div className={styles.heroBeta}>
+            <span className={styles.betaPulse} />
+            Beta abierta — acceso gratuito para estudiantes
           </div>
+
           <h1 className={styles.heroTitle}>
-            Tu universidad,<br />
-            <span className={styles.heroAccent}>organizada al máximo</span>
+            Tu semestre,<br />
+            <em className={styles.heroEm}>sin el caos.</em>
           </h1>
-          <p className={styles.heroSub}>
-            Gestiona ramos, horarios, tareas y aprende con inteligencia artificial.
-            Todo en un solo lugar, pensado para estudiantes chilenos.
+
+          <p className={styles.heroDesc}>
+            Gestiona ramos, horarios y tareas en un solo lugar.
+            Estudia con inteligencia artificial.
+            Pensado para el estudiante universitario chileno.
           </p>
+
           <div className={styles.heroCtas}>
-            <button className={styles.ctaPrimary} onClick={() => navigate('/register')}>
-              Crear cuenta <RiArrowRightLine />
+            <button className={styles.ctaMain} onClick={() => navigate('/register')}>
+              Crear cuenta gratis
+              <RiArrowRightLine className={styles.ctaIcon} />
             </button>
-            <button className={styles.ctaGhost} onClick={() => navigate('/login')}>
-              Iniciar sesión
+            <button className={styles.ctaSub} onClick={() => navigate('/login')}>
+              Ya tengo cuenta
             </button>
           </div>
-          <div className={styles.heroStats}>
-            <div className={styles.stat}>
-              <RiTimerLine className={styles.statIcon} />
-              <span>Ahorra horas de organización</span>
-            </div>
-            <div className={styles.statDot} />
-            <div className={styles.stat}>
-              <RiGroup2Line className={styles.statIcon} />
-              <span>Para todas las universidades</span>
-            </div>
-            <div className={styles.statDot} />
-            <div className={styles.stat}>
-              <RiBrainLine className={styles.statIcon} />
-              <span>IA integrada para estudiar</span>
-            </div>
+
+          <div className={styles.heroTrust}>
+            <span className={styles.trustItem}>
+              <RiShieldCheckLine className={styles.trustIcon} />
+              Sin tarjeta de crédito
+            </span>
+            <span className={styles.trustSep} aria-hidden="true" />
+            <span className={styles.trustItem}>Gratis durante la beta</span>
+            <span className={styles.trustSep} aria-hidden="true" />
+            <span className={styles.trustItem}>Todas las universidades</span>
           </div>
         </section>
 
         {/* ── Features ── */}
         <section className={styles.features}>
-          <div className={styles.sectionInner}>
-            <p className={styles.sectionLabel}>Funcionalidades</p>
-            <h2 className={styles.sectionTitle}>Todo lo que necesitas para el semestre</h2>
-            <div className={styles.featuresGrid}>
-              {FEATURES.map(f => (
-                <div key={f.title} className={styles.featureCard}>
-                  <div className={styles.featureIcon} style={{ background: `${f.color}18`, color: f.color }}>
+          <div className={styles.featuresInner}>
+            <div className={styles.featuresHeader}>
+              <span className={styles.featuresEyebrow}>Funcionalidades</span>
+              <h2 className={styles.featuresTitle}>
+                Todo lo que necesitas<br />para sobrevivir el semestre
+              </h2>
+            </div>
+
+            <div className={styles.featuresList}>
+              {FEATURES.map((f, i) => (
+                <div
+                  key={f.num}
+                  className={styles.featureRow}
+                  style={{ '--delay': `${i * 60}ms` }}
+                >
+                  <span className={styles.featureNum}>{f.num}</span>
+                  <div className={styles.featureIconWrap}>
                     <f.icon />
                   </div>
-                  <h3 className={styles.featureTitle}>{f.title}</h3>
-                  <p className={styles.featureDesc}>{f.desc}</p>
+                  <div className={styles.featureBody}>
+                    <h3 className={styles.featureName}>{f.title}</h3>
+                    <p className={styles.featureDesc}>{f.desc}</p>
+                  </div>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* ── Pricing ── */}
-        <section className={styles.pricing}>
-          <div className={styles.sectionInner}>
-            <p className={styles.sectionLabel}>Planes</p>
-            <h2 className={styles.sectionTitle}>Simple y transparente</h2>
-            <div className={styles.pricingCard}>
-              <div className={styles.pricingLeft}>
-                <div className={styles.priceBadge}>Plan Completo</div>
-                <div className={styles.price}>
-                  <span className={styles.priceCurrency}>CLP</span>
-                  <span className={styles.priceAmount}>$7.990</span>
-                  <span className={styles.pricePer}>/mes</span>
-                </div>
-                <p className={styles.priceSub}>
-                  Sin contratos. Cancela cuando quieras.
-                </p>
-                <button className={styles.ctaPrimary} onClick={() => navigate('/register')}>
-                  Crear cuenta <RiArrowRightLine />
-                </button>
-              </div>
-              <div className={styles.pricingRight}>
-                <ul className={styles.featureList}>
-                  {PLAN_FEATURES.map(f => (
-                    <li key={f} className={styles.featureItem}>
-                      <span className={styles.featureCheck}><RiCheckLine /></span>
-                      {f}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+        {/* ── CTA final ── */}
+        <section className={styles.ctaSection}>
+          <div className={styles.ctaBox}>
+            <div className={styles.ctaBoxBadge}>
+              <RiSparkling2Line /> Completamente gratis
             </div>
+            <h2 className={styles.ctaBoxTitle}>
+              Empieza este semestre organizado
+            </h2>
+            <p className={styles.ctaBoxDesc}>
+              Crea tu cuenta hoy. Sin límites, sin tarjeta de crédito.
+            </p>
+            <button className={styles.ctaMain} onClick={() => navigate('/register')}>
+              Crear cuenta gratis
+              <RiArrowRightLine className={styles.ctaIcon} />
+            </button>
           </div>
         </section>
       </main>
@@ -172,10 +155,10 @@ export default function Landing() {
       <footer className={styles.footer}>
         <div className={styles.footerInner}>
           <div className={styles.logo}>
-            <div className={styles.logoIcon}><RiBookOpenLine /></div>
+            <div className={styles.logoMark}><RiBookOpenLine /></div>
             <span className={styles.logoText}>Universidad</span>
           </div>
-          <p className={styles.footerText}>© 2026 Universidad. Hecho para estudiantes chilenos.</p>
+          <p className={styles.footerCopy}>© 2026 · Hecho para estudiantes chilenos</p>
         </div>
       </footer>
     </div>

@@ -156,6 +156,18 @@
   font-size: 11px;
 }
 
+.ramoTag {
+  background: var(--neutral-bubble);
+  color: var(--text-secondary);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--lg-radius-pill);
+  font-size: 11px;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ── Card menu ── */
 .menuWrap {
   position: absolute;

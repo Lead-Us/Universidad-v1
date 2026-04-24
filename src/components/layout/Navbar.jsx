@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 import {
   RiHome4Line, RiBook2Line, RiCalendarLine, RiLightbulbLine,
-  RiMenuFoldLine, RiMenuUnfoldLine, RiSettingsLine,
+  RiMenuFoldLine, RiMenuUnfoldLine, RiSettingsLine, RiBookOpenLine,
 } from 'react-icons/ri';
 import styles from './Navbar.module.css';
 
@@ -19,7 +19,7 @@ export default function Navbar({ collapsed, onToggle }) {
       <nav className={[styles.sidebar, collapsed ? styles.sidebarCollapsed : ''].join(' ')}>
         <div className={styles.logoArea}>
           {collapsed
-            ? <span className={styles.logoInitial}>U</span>
+            ? <div className={styles.logoMark}><RiBookOpenLine /></div>
             : <span className={styles.logoText}>Universidad</span>
           }
         </div>

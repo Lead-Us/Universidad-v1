@@ -4,7 +4,7 @@
 // Uses Anthropic claude-sonnet-4-6 via ANTHROPIC_API_KEY_APRENDER
 
 import Anthropic from '@anthropic-ai/sdk';
-import { buildSystemPrompt } from './prompts.js';
+import { buildSystemPrompt } from './_prompts.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -26,7 +26,11 @@ export default async function handler(req, res) {
   // Append student material as context
   const sourcesText = sources
     .filter(s => s.content)
-    .map((s, i) => `[Fuente ${i + 1}: ${s.title}]\n${s.content}`)
+    .map((s, i) => {
+      const header = `[Fuente ${i + 1}: ${s.title}]`;
+      const instrNote = s.instructions ? `\nInstrucciones para esta fuente: ${s.instructions}` : '';
+      return `${header}${instrNote}\n${s.content}`;
+    })
     .join('\n\n---\n\n');
 
   const systemPrompt = sourcesText

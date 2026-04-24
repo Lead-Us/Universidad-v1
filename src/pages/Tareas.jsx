@@ -186,7 +186,6 @@ export default function Tareas() {
                         <div
                           key={t.id}
                           className={`${styles.taskRow} ${t.completed ? styles.done : ''}`}
-                          style={ramo ? { borderLeftColor: ramo.color } : undefined}
                         >
                           {/* Checkbox */}
                           <button

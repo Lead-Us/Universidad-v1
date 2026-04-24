@@ -99,7 +99,9 @@ export function AuthProvider({ children }) {
   const displayName = profile?.name || user?.email?.split('@')[0] || 'Usuario';
   // Read subscription_status from app_metadata (set server-side, not editable by user)
   // Falls back to profile column if available (after schema migration)
-  const subStatus = user?.app_metadata?.subscription_status ?? profile?.subscription_status;
+  // During beta, unauthenticated subStatus defaults to 'free' so all new users get access.
+  // To enable paid gating: remove the `?? 'free'` fallback and deploy.
+  const subStatus = user?.app_metadata?.subscription_status ?? profile?.subscription_status ?? 'free';
   const isSubscribed = ['active', 'free'].includes(subStatus);
 
   return (

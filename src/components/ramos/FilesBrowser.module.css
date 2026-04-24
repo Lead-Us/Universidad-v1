@@ -4,6 +4,45 @@
   gap: var(--space-2);
 }
 
+.programaBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  background: rgba(var(--accent-rgb), 0.08);
+  border: 1px solid rgba(var(--accent-rgb), 0.2);
+  border-radius: var(--radius-base);
+  margin-bottom: var(--space-1);
+}
+
+.programaIcon { color: var(--accent); font-size: 1.1rem; flex-shrink: 0; }
+
+.programaInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.programaLabel {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.programaName {
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.programaActive { color: var(--accent) !important; }
+
 .folder {
   background: var(--bg-secondary);
   border-radius: var(--radius-base);

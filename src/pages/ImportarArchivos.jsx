@@ -272,18 +272,34 @@ export default function ImportarArchivos() {
         if (allFiles.length) {
           const ramoKey = structureEntry?.[0];
           const fileObjects = ramoKey ? (rawFileMap[ramoKey] ?? {}) : {};
+
+          // Build reverse map: filename → folder key (from AI classification)
+          const classifiedFiles = ramo.classified_files ?? {};
+          const fileToFolder = {};
+          for (const [folderKey, names] of Object.entries(classifiedFiles)) {
+            for (const name of (names ?? [])) {
+              fileToFolder[name.toLowerCase()] = folderKey;
+            }
+          }
+          const programaFileName = ramo.programa_file ?? programFiles[ramoKey] ?? null;
+
           for (const fileName of allFiles) {
             const fileObj = fileObjects[fileName];
-            if (!fileObj) continue; // omitir nombres inferidos por IA sin File real
+            if (!fileObj) continue;
+            const folderKey = fileToFolder[fileName.toLowerCase()] ?? 'todos';
+            const isPrograma = programaFileName
+              ? fileName.toLowerCase() === programaFileName.toLowerCase()
+              : false;
             try {
               const { path } = await uploadRamoFile(ramoId, fileObj);
               await addFileRecord({
                 ramoId,
-                folder:      'todos',
+                folder:      folderKey,
                 name:        fileObj.name,
                 size:        fileObj.size,
                 storagePath: path,
                 publicUrl:   null,
+                isPrograma,
               });
             } catch (fileErr) {
               console.warn(`[Importar] No se pudo guardar "${fileName}":`, fileErr);

@@ -7,7 +7,7 @@ import {
 import {
   getFiles, getFolders, addFolder, renameFolder, deleteFolderRecord,
   addFileRecord, moveFile, deleteFileRecord, uploadRamoFile, getSignedUrl,
-  MAX_SIZE_B, getDefaultFolders,
+  setProgramaFile, MAX_SIZE_B, getDefaultFolders,
 } from '../../services/ramoFilesService.js';
 import styles from './FilesBrowser.module.css';
 
@@ -92,6 +92,14 @@ export default function FilesBrowser({ unitId: ramoId }) {
     } catch (err) { alert(`Error al eliminar: ${err.message}`); }
   };
 
+  const handleTogglePrograma = async (file) => {
+    const newVal = !file.is_programa;
+    try {
+      await setProgramaFile(ramoId, newVal ? file.id : null);
+      setFiles(prev => prev.map(f => ({ ...f, is_programa: newVal ? f.id === file.id : false })));
+    } catch (err) { alert(`Error: ${err.message}`); }
+  };
+
   const handleMove = async (fileId, toKey) => {
     try {
       await moveFile(fileId, toKey);
@@ -136,8 +144,25 @@ export default function FilesBrowser({ unitId: ramoId }) {
     );
   }
 
+  const programaFile = files.find(f => f.is_programa);
+
   return (
     <div className={styles.browser}>
+      {programaFile && (
+        <div className={styles.programaBanner}>
+          <RiFileTextLine className={styles.programaIcon} />
+          <div className={styles.programaInfo}>
+            <span className={styles.programaLabel}>Programa del ramo</span>
+            <span className={styles.programaName}>{programaFile.name}</span>
+          </div>
+          {(programaFile.storage_path || programaFile.public_url) && (
+            <button className={styles.dlBtn} onClick={() => handleDownload(programaFile)} title="Descargar programa">
+              <RiDownloadLine />
+            </button>
+          )}
+        </div>
+      )}
+
       {folders.map(({ key, label, locked }) => {
         const folderFiles = files.filter(f => f.folder === key);
         const isOpen = !!open[key];
@@ -219,6 +244,13 @@ export default function FilesBrowser({ unitId: ramoId }) {
                             </div>
                           ) : (
                             <>
+                              <button
+                                className={[styles.dlBtn, f.is_programa ? styles.programaActive : ''].join(' ')}
+                                onClick={() => handleTogglePrograma(f)}
+                                title={f.is_programa ? 'Quitar como programa' : 'Marcar como programa del ramo'}
+                              >
+                                📋
+                              </button>
                               <button className={styles.dlBtn} onClick={() => setMoving({ fileId: f.id, fromKey: key })} title="Mover">
                                 <RiArrowRightLine />
                               </button>

@@ -2,19 +2,31 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../lib/AuthContext.jsx';
 import { supabase } from '../lib/supabase.js';
-import { RiBookOpenLine, RiMailLine, RiLockPasswordLine, RiEyeLine, RiEyeOffLine, RiArrowLeftLine } from 'react-icons/ri';
+import { RiBookOpenLine, RiUserLine, RiMailLine, RiLockPasswordLine, RiEyeLine, RiEyeOffLine, RiArrowLeftLine } from 'react-icons/ri';
 import styles from './Login.module.css';
 
 export default function Login() {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const [mode,     setMode]     = useState('login'); // 'login' | 'forgot'
-  const [email,    setEmail]    = useState('');
+  const [identifier, setIdentifier] = useState(''); // email or username
   const [password, setPassword] = useState('');
   const [showPwd,  setShowPwd]  = useState(false);
   const [loading,  setLoading]  = useState(false);
   const [error,    setError]    = useState('');
   const [success,  setSuccess]  = useState('');
+
+  const isEmail = identifier.includes('@');
+
+  // Resolve username → email via secure RPC (works unauthenticated)
+  const resolveEmail = async () => {
+    if (isEmail) return identifier.trim();
+    const { data, error } = await supabase.rpc('resolve_login_identifier', {
+      p_identifier: identifier.trim(),
+    });
+    if (error || !data) throw new Error('Usuario no encontrado.');
+    return data;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,13 +35,15 @@ export default function Login() {
     setLoading(true);
     try {
       if (mode === 'forgot') {
-        const { error: resetErr } = await supabase.auth.resetPasswordForEmail(email, {
+        const resolvedEmail = await resolveEmail();
+        const { error: resetErr } = await supabase.auth.resetPasswordForEmail(resolvedEmail, {
           redirectTo: `${window.location.origin}/login`,
         });
         if (resetErr) throw resetErr;
         setSuccess('Te enviamos un enlace para restablecer tu contraseña. Revisa tu correo.');
       } else {
-        await signIn(email, password);
+        const resolvedEmail = await resolveEmail();
+        await signIn(resolvedEmail, password);
       }
     } catch (err) {
       const msg = err.message || 'Ocurrió un error. Intenta de nuevo.';
@@ -43,10 +57,6 @@ export default function Login() {
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.blob1} />
-      <div className={styles.blob2} />
-      <div className={styles.blob3} />
-
       <div className={styles.card}>
         {/* Logo */}
         <div className={styles.logoArea}>
@@ -74,13 +84,13 @@ export default function Login() {
 
         <form className={styles.form} onSubmit={handleSubmit}>
           <div className={styles.field}>
-            <RiMailLine className={styles.fieldIcon} />
+            {isEmail ? <RiMailLine className={styles.fieldIcon} /> : <RiUserLine className={styles.fieldIcon} />}
             <input
-              type="email"
-              placeholder="Correo electrónico"
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              autoComplete="email"
+              type="text"
+              placeholder={mode === 'forgot' ? 'Correo o nombre de usuario' : 'Correo o nombre de usuario'}
+              value={identifier}
+              onChange={e => setIdentifier(e.target.value)}
+              autoComplete="username"
               required
             />
           </div>

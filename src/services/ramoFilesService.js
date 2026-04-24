@@ -23,7 +23,7 @@ export async function getFiles(ramoId) {
   return data ?? [];
 }
 
-export async function addFileRecord({ ramoId, folder, name, size, storagePath, publicUrl }) {
+export async function addFileRecord({ ramoId, folder, name, size, storagePath, publicUrl, isPrograma = false }) {
   const uid = await getUid();
   const { data, error } = await supabase
     .from('ramo_files')
@@ -35,11 +35,21 @@ export async function addFileRecord({ ramoId, folder, name, size, storagePath, p
       size:         size ?? 0,
       storage_path: storagePath,
       public_url:   publicUrl,
+      is_programa:  isPrograma,
     })
     .select()
     .single();
   if (error) throw error;
   return data;
+}
+
+export async function setProgramaFile(ramoId, fileId) {
+  // Unset existing programa, then set new one
+  await supabase.from('ramo_files').update({ is_programa: false }).eq('ramo_id', ramoId).eq('is_programa', true);
+  if (fileId) {
+    const { error } = await supabase.from('ramo_files').update({ is_programa: true }).eq('id', fileId);
+    if (error) throw error;
+  }
 }
 
 export async function moveFile(id, newFolder) {

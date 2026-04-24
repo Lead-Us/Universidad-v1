@@ -11,7 +11,7 @@ import {
 } from 'react-icons/ri';
 import {
   getCuadernos, getBloques,
-  getFuentes, addFuente, deleteFuente, uploadFuente,
+  getFuentes, addFuente, updateFuente, deleteFuente, uploadFuente,
   getMensajes, addMensaje, clearMensajes,
 } from '../services/aprendizajeService.js';
 import styles from './AprenderBloque.module.css';
@@ -86,15 +86,16 @@ function SourceIcon({ type }) {
 
 // ── Add Source modal ───────────────────────────────────────────
 function AddSourceModal({ blockId, onAdded, onClose }) {
-  const [tab,      setTab]      = useState('file');
-  const [title,    setTitle]    = useState('');
-  const [content,  setContent]  = useState('');
-  const [url,      setUrl]      = useState('');
-  const [files,    setFiles]    = useState([]);
-  const [progress, setProgress] = useState('');
-  const [saving,   setSaving]   = useState(false);
-  const [error,    setError]    = useState('');
-  const [drag,     setDrag]     = useState(false);
+  const [tab,          setTab]          = useState('file');
+  const [title,        setTitle]        = useState('');
+  const [content,      setContent]      = useState('');
+  const [url,          setUrl]          = useState('');
+  const [instructions, setInstructions] = useState('');
+  const [files,        setFiles]        = useState([]);
+  const [progress,     setProgress]     = useState('');
+  const [saving,       setSaving]       = useState(false);
+  const [error,        setError]        = useState('');
+  const [drag,         setDrag]         = useState(false);
   const fileRef = useRef(null);
 
   const addFiles = (incoming) => {
@@ -133,15 +134,15 @@ function AddSourceModal({ blockId, onAdded, onClose }) {
           const f = files[i];
           setProgress(`Subiendo ${i + 1} de ${files.length}: ${f.name}`);
           const { path, publicUrl } = await uploadFuente(blockId, f);
-          await addFuente({ blockId, type: 'file', name: title || f.name, url: publicUrl, filePath: path });
+          await addFuente({ blockId, type: 'file', name: title || f.name, url: publicUrl, filePath: path, instructions });
         }
         setProgress('');
       } else if (tab === 'url') {
         if (!url.trim()) { setError('Ingresa una URL válida.'); setSaving(false); return; }
-        await addFuente({ blockId, type: 'url', name: title || url, url: url.trim() });
+        await addFuente({ blockId, type: 'url', name: title || url, url: url.trim(), instructions });
       } else {
         if (!content.trim()) { setError('Escribe el contenido.'); setSaving(false); return; }
-        await addFuente({ blockId, type: 'text', name: title || 'Texto', content });
+        await addFuente({ blockId, type: 'text', name: title || 'Texto', content, instructions });
       }
       onAdded();
     } catch (err) {
@@ -277,6 +278,20 @@ function AddSourceModal({ blockId, onAdded, onClose }) {
               />
             </div>
           )}
+
+          <div className={styles.formField}>
+            <label className={styles.formLabel} htmlFor="src-instructions">
+              Instrucciones para la IA <span className={styles.optional}>(opcional)</span>
+            </label>
+            <input
+              id="src-instructions"
+              className={styles.formInput}
+              placeholder="ej. Enfócate solo en las fórmulas de esta fuente"
+              value={instructions}
+              onChange={e => setInstructions(e.target.value)}
+              maxLength={300}
+            />
+          </div>
 
           {error && <p className={styles.formError} role="alert">{error}</p>}
 
@@ -448,7 +463,7 @@ export default function AprenderBloque() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sources:   fuentes.map(f => ({ title: f.name || '', content: f.content || f.url || '' })),
+          sources:   fuentes.map(f => ({ title: f.name || '', content: f.content || f.url || '', instructions: f.instructions || '' })),
           methodKey: selectedMethod?.key ?? '',
           messages:     messages
             .map(m => ({ role: m.role, content: m.content }))

@@ -31,16 +31,15 @@
 }
 
 .logoIcon {
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
-  background: var(--accent-gradient);
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: var(--accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 28px;
+  font-size: 26px;
   color: #fff;
-  box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.35);
   margin-bottom: var(--space-1);
 }
 

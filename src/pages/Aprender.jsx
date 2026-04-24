@@ -8,6 +8,7 @@ import {
 import {
   getCuadernos, createCuaderno, updateCuaderno, deleteCuaderno, getBloquesCount,
 } from '../services/aprendizajeService.js';
+import { useRamos } from '../hooks/useRamos.js';
 import styles from './Aprender.module.css';
 
 const COLORS = [
@@ -47,10 +48,11 @@ function ColorPicker({ value, onChange }) {
 }
 
 // ── Create / Edit modal ────────────────────────────────────────
-function NotebookModal({ initial, onSave, onClose }) {
+function NotebookModal({ initial, ramos = [], onSave, onClose }) {
   const [name,   setName]   = useState(initial?.name ?? '');
   const [desc,   setDesc]   = useState(initial?.description ?? '');
   const [color,  setColor]  = useState(initial?.color ?? COLORS[0]);
+  const [ramoId, setRamoId] = useState(initial?.ramo_id ?? '');
   const [saving, setSaving] = useState(false);
   const [error,  setError]  = useState('');
   const inputRef = useRef(null);
@@ -62,7 +64,7 @@ function NotebookModal({ initial, onSave, onClose }) {
     if (!name.trim()) { setError('El nombre es obligatorio.'); return; }
     setSaving(true); setError('');
     try {
-      await onSave({ name: name.trim(), description: desc.trim(), color });
+      await onSave({ name: name.trim(), description: desc.trim(), color, ramoId: ramoId || null });
       onClose();
     } catch (err) {
       setError(err.message || 'Error al guardar.');
@@ -108,6 +110,23 @@ function NotebookModal({ initial, onSave, onClose }) {
               maxLength={200}
             />
           </div>
+
+          {ramos.length > 0 && (
+            <div className={styles.field}>
+              <label className={styles.label} htmlFor="nb-ramo">
+                Ramo <span className={styles.optional}>(opcional)</span>
+              </label>
+              <select
+                id="nb-ramo"
+                className={styles.input}
+                value={ramoId}
+                onChange={e => setRamoId(e.target.value)}
+              >
+                <option value="">Sin ramo</option>
+                {ramos.map(r => <option key={r.id} value={r.id}>{r.name}</option>)}
+              </select>
+            </div>
+          )}
 
           <div className={styles.field}>
             <label className={styles.label}>Color</label>
@@ -190,7 +209,7 @@ function CardMenu({ onEdit, onDelete }) {
 }
 
 // ── Notebook card ──────────────────────────────────────────────
-function NotebookCard({ nb, count, onOpen, onEdit, onDelete }) {
+function NotebookCard({ nb, count, ramoName, onOpen, onEdit, onDelete }) {
   return (
     <article
       className={styles.card}
@@ -212,6 +231,7 @@ function NotebookCard({ nb, count, onOpen, onEdit, onDelete }) {
         {nb.description && <p className={styles.cardDesc}>{nb.description}</p>}
         <div className={styles.cardMeta}>
           <span>{timeAgo(nb.updated_at ?? nb.created_at)}</span>
+          {ramoName && <span className={styles.ramoTag}>{ramoName}</span>}
           <span className={styles.blockPill}>
             {count === 1 ? '1 bloque' : `${count} bloques`}
           </span>
@@ -224,6 +244,7 @@ function NotebookCard({ nb, count, onOpen, onEdit, onDelete }) {
 // ── Page ───────────────────────────────────────────────────────
 export default function Aprender() {
   const navigate = useNavigate();
+  const { ramos } = useRamos();
   const [notebooks,   setNotebooks]   = useState([]);
   const [blockCounts, setBlockCounts] = useState({});
   const [loading,     setLoading]     = useState(true);
@@ -248,7 +269,7 @@ export default function Aprender() {
   useEffect(() => { load(); }, [load]);
 
   const handleCreate = async (data) => { await createCuaderno(data); await load(); };
-  const handleEdit   = async (data) => { await updateCuaderno(editing.id, data); setEditing(null); await load(); };
+  const handleEdit   = async (data) => { await updateCuaderno(editing.id, { ...data, ramo_id: data.ramoId ?? null }); setEditing(null); await load(); };
   const handleDelete = async (id)   => { await deleteCuaderno(id); await load(); };
 
   const filtered = notebooks.filter(nb =>
@@ -321,6 +342,7 @@ export default function Aprender() {
                 key={nb.id}
                 nb={nb}
                 count={blockCounts[nb.id] ?? 0}
+                ramoName={ramos.find(r => r.id === nb.ramo_id)?.name}
                 onOpen={() => navigate(`/aprender/${nb.id}`)}
                 onEdit={() => setEditing(nb)}
                 onDelete={() => handleDelete(nb.id)}
@@ -330,8 +352,8 @@ export default function Aprender() {
         )}
       </div>
 
-      {showCreate && <NotebookModal onSave={handleCreate} onClose={() => setShowCreate(false)} />}
-      {editing    && <NotebookModal initial={editing} onSave={handleEdit} onClose={() => setEditing(null)} />}
+      {showCreate && <NotebookModal ramos={ramos} onSave={handleCreate} onClose={() => setShowCreate(false)} />}
+      {editing    && <NotebookModal ramos={ramos} initial={editing} onSave={handleEdit} onClose={() => setEditing(null)} />}
     </div>
   );
 }

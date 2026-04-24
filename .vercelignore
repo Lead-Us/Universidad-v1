@@ -1,0 +1,13 @@
+node_modules
+dist
+dist-ssr
+.git
+/Ramos
+/redes sociales
+/logs
+/.claude
+.env.secrets
+.env.local
+*.local
+/scripts
+/supabase/functions

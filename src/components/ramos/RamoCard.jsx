@@ -23,7 +23,7 @@ export default function RamoCard({ ramo, onEdit, onDelete }) {
   return (
     <div
       className={styles.card}
-      style={{ borderLeft: `3px solid ${ramo.color}` }}
+      style={{ borderColor: `${ramo.color}50`, background: `${ramo.color}0A` }}
       onClick={() => !confirming && navigate(`/ramos/${ramo.id}`)}
     >
       <div className={styles.top}>

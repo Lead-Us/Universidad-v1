@@ -1,0 +1,18 @@
+{
+  "name": "agente-instagram-uv1",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Agente creativo para Instagram @universidadv1",
+  "scripts": {
+    "weekly": "node run.js weekly",
+    "scrape": "node run.js scrape",
+    "analyze": "node run.js analyze",
+    "generate": "node run.js generate",
+    "track": "node run.js track",
+    "ideas": "node run.js generate"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
+    "dotenv": "^16.4.5"
+  }
+}

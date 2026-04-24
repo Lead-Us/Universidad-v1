@@ -1,9 +1,8 @@
-/* Dark card with colored left border as only color indicator */
+/* Dark card — color identity via full border + bg tint (applied via inline style) */
 .card {
   background: #141414;
   border-radius: var(--lg-radius-lg);
   border: 1px solid #222222;
-  border-left-width: 3px; /* colored via inline style */
   padding: var(--space-5);
   cursor: pointer;
   display: flex;

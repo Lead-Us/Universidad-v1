@@ -129,8 +129,9 @@ function ProfileSection() {
 }
 
 export default function Settings() {
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = user?.app_metadata?.role === 'admin';
   const [signingOut, setSigningOut] = useState(false);
 
   const handleSignOut = async () => {
@@ -149,16 +150,18 @@ export default function Settings() {
         <div className={styles.grid}>
           <ProfileSection />
 
-          <Section icon={RiShieldUserLine} title="Administración">
-            <p className={styles.sectionDesc}>
-              Panel de administración para gestionar accesos y usuarios de la plataforma.
-            </p>
-            <button className={styles.aprenderBtn} onClick={() => navigate('/admin')}>
-              <RiShieldUserLine />
-              <span>Ir al panel admin</span>
-              <RiArrowRightSLine className={styles.aprenderArrow} />
-            </button>
-          </Section>
+          {isAdmin && (
+            <Section icon={RiShieldUserLine} title="Administración">
+              <p className={styles.sectionDesc}>
+                Panel de administración para gestionar accesos y usuarios de la plataforma.
+              </p>
+              <button className={styles.aprenderBtn} onClick={() => navigate('/admin')}>
+                <RiShieldUserLine />
+                <span>Ir al panel admin</span>
+                <RiArrowRightSLine className={styles.aprenderArrow} />
+              </button>
+            </Section>
+          )}
 
           <Section icon={RiFolderUploadLine} title="Importar">
             <p className={styles.sectionDesc}>

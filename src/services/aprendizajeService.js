@@ -18,11 +18,11 @@ export async function getCuadernos() {
   return data ?? [];
 }
 
-export async function createCuaderno({ name, description = '', color = '#4f8ef7' }) {
+export async function createCuaderno({ name, description = '', color = '#4f8ef7', ramoId = null }) {
   const uid = await getUid();
   const { data, error } = await supabase
     .from('learning_models')
-    .insert({ user_id: uid, name, description, color })
+    .insert({ user_id: uid, name, description, color, ramo_id: ramoId || null })
     .select()
     .single();
   if (error) throw error;
@@ -96,11 +96,22 @@ export async function getFuentes(blockId) {
   return data ?? [];
 }
 
-export async function addFuente({ blockId, type, name, content = null, url = null, filePath = null }) {
+export async function addFuente({ blockId, type, name, content = null, url = null, filePath = null, instructions = '' }) {
   const uid = await getUid();
   const { data, error } = await supabase
     .from('aprender_block_sources')
-    .insert({ user_id: uid, block_id: blockId, type, name, content, url, file_path: filePath })
+    .insert({ user_id: uid, block_id: blockId, type, name, content, url, file_path: filePath, instructions })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateFuente(id, changes) {
+  const { data, error } = await supabase
+    .from('aprender_block_sources')
+    .update(changes)
+    .eq('id', id)
     .select()
     .single();
   if (error) throw error;

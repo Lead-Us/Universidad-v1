@@ -67,7 +67,7 @@ export default function RamoDetail() {
         </button>
 
         {/* Header con edición inline */}
-        <div className={styles.header} style={{ borderLeftColor: ramo.color }}>
+        <div className={styles.header} style={{ borderColor: `${ramo.color}50`, background: `${ramo.color}08` }}>
           <div className={styles.headerContent}>
             <InlineEdit
               value={ramo.code}

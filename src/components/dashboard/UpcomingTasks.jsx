@@ -63,7 +63,6 @@ export default function UpcomingTasks() {
             <li
               key={task.id}
               className={`${styles.item} ${task.completed ? styles.done : ''}`}
-              style={ramo ? { borderLeftColor: ramo.color } : undefined}
             >
               <label className={styles.checkLabel}>
                 <input

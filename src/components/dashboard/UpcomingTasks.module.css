@@ -26,7 +26,6 @@
   -webkit-backdrop-filter: var(--blur-sm);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-base);
-  border-left: 3px solid var(--glass-border);
   padding: var(--space-3) var(--space-4);
   transition:
     border-color var(--dur-fast) var(--ease-out),

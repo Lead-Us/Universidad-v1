@@ -62,7 +62,12 @@ INSTRUCCIONES DE EXTRACCIÓN:
 3. **Evaluaciones**: Busca archivos con "Control", "Prueba", "Examen", "Certamen", "Tarea", "Quiz", "Test". Crea módulos de evaluación con pesos que sumen exactamente 100%. Infiere las fechas si aparecen números (ej: "Prueba 1", "Prueba 2" → dos ítems en el módulo Pruebas).
 4. **Unidades y materias**: Busca archivos con "Unidad", "Clase", "Cap", "Tema", "Semana". Agrupa archivos relacionados en la misma unidad.
 5. **Horario**: Si hay archivos de horario, extrae días y horas. Usa formato HH:MM para start_time y end_time.
-6. **Archivos**: Lista TODOS los archivos del ramo en el campo "files".
+6. **Archivos**: Lista TODOS los archivos del ramo en el campo "files". También clasifícalos en "classified_files" según su tipo:
+   - "evaluaciones_pasadas": exámenes/controles pasados, soluciones, pauta, certamen, prueba (archivos de evaluaciones PASADAS, no material de estudio)
+   - "ejercicios": ejercicios, problemas, guías de práctica, talleres, homework
+   - "ppt": presentaciones, slides, diapositivas (.pptx/.ppt o archivos con "slide", "ppt", "clase", "presentacion")
+   - El programa del ramo va en "programa_file" (solo el nombre del archivo)
+   - Archivos que no encajan en ninguna categoría se dejan sin clasificar (van a "todos" por defecto)
 7. **Color**: Asigna un color hex vibrante y único a cada ramo.
 8. **has_attendance**: true si el ramo tiene "asistencia" en algún archivo o si es un laboratorio/taller.
 
@@ -81,6 +86,12 @@ Responde con exactamente este JSON (sin texto adicional, sin bloques de código)
       "color": "#3B82F6",
       "has_attendance": false,
       "files": ["archivo1.pdf", "archivo2.pdf"],
+      "programa_file": "Syllabus ECO355.pdf",
+      "classified_files": {
+        "evaluaciones_pasadas": ["Control1_sol.pdf"],
+        "ejercicios": ["guia1.pdf"],
+        "ppt": ["clase1.pptx"]
+      },
       "evaluationModules": [
         {
           "name": "Controles",

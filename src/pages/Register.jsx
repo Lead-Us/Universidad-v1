@@ -96,13 +96,12 @@ export default function Register() {
   if (success) {
     return (
       <div className={styles.wrap}>
-        <div className={styles.blob1} /><div className={styles.blob2} />
-        <div className={styles.card}>
+          <div className={styles.card}>
           <div className={styles.successIcon}>✉️</div>
           <h2 className={styles.successTitle}>¡Revisa tu correo!</h2>
           <p className={styles.successText}>
             Te enviamos un enlace de confirmación a <strong>{form.email}</strong>.
-            Confirma tu email para continuar con el pago y acceder a la plataforma.
+            Confirma tu email para acceder a la plataforma.
           </p>
           <button className={styles.backBtn} onClick={() => navigate('/login')}>
             Ir a iniciar sesión
@@ -114,9 +113,6 @@ export default function Register() {
 
   return (
     <div className={styles.wrap}>
-      <div className={styles.blob1} />
-      <div className={styles.blob2} />
-
       <div className={styles.card}>
         {/* Header */}
         <button className={styles.backLink} onClick={() => navigate('/')}>

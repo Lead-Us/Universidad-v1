@@ -42,6 +42,7 @@ export default function Calendario() {
   const [modal,    setModal]    = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [saving,   setSaving]   = useState(false);
+  const [showPast, setShowPast] = useState(false);
 
   // ALL tasks — not month-scoped
   const { tasks, loading, add, update, toggle, remove } = useTasks();
@@ -117,9 +118,18 @@ export default function Calendario() {
     finally { setSaving(false); }
   };
 
+  // Past/done tasks hidden by default (only in month view)
+  const isPastOrDone = t =>
+    t.completed || (t.due_date && daysUntil(t.due_date) < 0);
+
+  const visiblePanelTasks = (!selDay && !showPast)
+    ? panelTasks.filter(t => !isPastOrDone(t))
+    : panelTasks;
+  const hiddenCount = !selDay ? panelTasks.filter(isPastOrDone).length : 0;
+
   // Group panel tasks by date
   const grouped = {};
-  panelTasks.forEach(t => {
+  visiblePanelTasks.forEach(t => {
     const k = t.due_date || 'sin-fecha';
     grouped[k] = grouped[k] ?? [];
     grouped[k].push(t);
@@ -182,7 +192,15 @@ export default function Calendario() {
                   )}
                 </div>
                 <div className={styles.panelStats}>
-                  <span className={styles.statPill}>{panelTasks.length} tarea{panelTasks.length !== 1 ? 's' : ''}</span>
+                  {!selDay && hiddenCount > 0 && (
+                    <button
+                      className={styles.clearBtn}
+                      onClick={() => setShowPast(v => !v)}
+                    >
+                      {showPast ? 'Ocultar pasadas' : `+${hiddenCount} pasadas`}
+                    </button>
+                  )}
+                  <span className={styles.statPill}>{visiblePanelTasks.length} tarea{visiblePanelTasks.length !== 1 ? 's' : ''}</span>
                   {panelEvents.length > 0 && (
                     <span className={styles.statPill}>{panelEvents.length} eval.</span>
                   )}
@@ -201,7 +219,7 @@ export default function Calendario() {
                         <div
                           key={c.id}
                           className={styles.eventChip}
-                          style={ramo ? { borderLeftColor: ramo.color, background: `${ramo.color}15` } : undefined}
+                          style={ramo ? { background: `${ramo.color}15`, borderColor: `${ramo.color}35` } : undefined}
                         >
                           <span className={styles.chipTime}>{c.start_time}–{c.end_time}</span>
                           <span className={styles.chipName}>{ramo?.name ?? 'Clase'}</span>
@@ -220,7 +238,7 @@ export default function Calendario() {
                       <div
                         key={ev.id}
                         className={styles.eventChip}
-                        style={{ borderLeftColor: ev._ramoColor, background: `${ev._ramoColor}15` }}
+                        style={{ background: `${ev._ramoColor}15`, borderColor: `${ev._ramoColor}35` }}
                       >
                         <div className={styles.chipInfo}>
                           <span className={styles.chipName}>{ev.name}</span>
@@ -238,7 +256,7 @@ export default function Calendario() {
 
                   {loading ? (
                     <p className={styles.emptyText}>Cargando…</p>
-                  ) : panelTasks.length === 0 ? (
+                  ) : visiblePanelTasks.length === 0 ? (
                     <div className={styles.emptyState}>
                       <p className={styles.emptyText}>
                         {selDay ? 'Sin tareas este día.' : 'Sin tareas este mes.'}
@@ -269,7 +287,6 @@ export default function Calendario() {
                               <div
                                 key={t.id}
                                 className={`${styles.taskRow} ${t.completed ? styles.done : ''}`}
-                                style={ramo ? { borderLeftColor: ramo.color } : undefined}
                               >
                                 <button
                                   className={`${styles.checkBtn} ${t.completed ? styles.checkDone : ''}`}

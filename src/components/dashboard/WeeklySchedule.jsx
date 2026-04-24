@@ -6,13 +6,13 @@ import styles from './WeeklySchedule.module.css';
 
 const DAYS      = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'];
 const DAYS_ALL  = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-
-function hexToRgba(hex, alpha) {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+const BLOCK_TYPES = [
+  { value: 'catedra',   label: 'Cátedra' },
+  { value: 'ayudantia', label: 'Ayudantía' },
+  { value: 'laboratorio', label: 'Laboratorio' },
+  { value: 'otro',      label: 'Otro' },
+];
+const BLOCK_TYPE_LABEL = { catedra: 'Cát.', ayudantia: 'Ay.', laboratorio: 'Lab.', otro: '' };
 
 // ── Inline block edit form ────────────────────────────────────────────
 function BlockEditPopup({ entry, ramos, onSave, onClose, onDelete }) {
@@ -23,6 +23,7 @@ function BlockEditPopup({ entry, ramos, onSave, onClose, onDelete }) {
     sala:           entry.sala ?? '',
     has_attendance: entry.has_attendance ?? false,
     ramo_id:        entry.ramo_id,
+    block_type:     entry.block_type ?? 'catedra',
   });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -77,6 +78,15 @@ function BlockEditPopup({ entry, ramos, onSave, onClose, onDelete }) {
           </div>
         </div>
 
+        <label className={styles.popupLabel}>Tipo</label>
+        <select
+          value={form.block_type}
+          onChange={e => set('block_type', e.target.value)}
+          className={styles.popupSelect}
+        >
+          {BLOCK_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+        </select>
+
         <label className={styles.popupLabel}>Sala</label>
         <input
           value={form.sala}
@@ -117,6 +127,7 @@ function BlockAddPopup({ ramos, onSave, onClose }) {
     end_time:       '10:00',
     sala:           '',
     has_attendance: false,
+    block_type:     'catedra',
   });
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
 
@@ -148,6 +159,11 @@ function BlockAddPopup({ ramos, onSave, onClose }) {
               <input type="time" value={form.end_time} onChange={e => set('end_time', e.target.value)} className={styles.popupInput} />
             </div>
           </div>
+
+          <label className={styles.popupLabel}>Tipo</label>
+          <select value={form.block_type} onChange={e => set('block_type', e.target.value)} className={styles.popupSelect}>
+            {BLOCK_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </select>
 
           <label className={styles.popupLabel}>Sala</label>
           <input value={form.sala} onChange={e => set('sala', e.target.value)} placeholder="B-201" className={styles.popupInput} />
@@ -234,11 +250,14 @@ export default function WeeklySchedule({ showAdd: showAddProp, onAddClose }) {
                   <div key={entry.id} className={styles.blockWrap}>
                     <div
                       className={styles.block}
-                      style={{ background: '#141414', borderLeft: `3px solid ${ramo.color}` }}
+                      style={{ background: `${ramo.color}15`, borderColor: `${ramo.color}40` }}
                       onClick={() => setEditId(editId === entry.id ? null : entry.id)}
                     >
                       <div className={styles.blockHeader}>
                         <span className={styles.blockName}>{ramo.name}</span>
+                        {entry.block_type && entry.block_type !== 'catedra' && (
+                          <span className={styles.blockTypeBadge}>{BLOCK_TYPE_LABEL[entry.block_type] || entry.block_type}</span>
+                        )}
                         {entry.sala && (
                           <span className={styles.blockSalaInline}>{entry.sala}</span>
                         )}
