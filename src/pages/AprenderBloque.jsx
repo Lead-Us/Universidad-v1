@@ -11,7 +11,7 @@ import {
 } from 'react-icons/ri';
 import {
   getCuadernos, getBloques,
-  getFuentes, addFuente, updateFuente, deleteFuente, uploadFuente,
+  getFuentes, addFuente, deleteFuente, uploadFuente,
   getMensajes, addMensaje, clearMensajes,
 } from '../services/aprendizajeService.js';
 import styles from './AprenderBloque.module.css';

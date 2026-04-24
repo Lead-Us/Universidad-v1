@@ -269,7 +269,7 @@ export default function Aprender() {
   useEffect(() => { load(); }, [load]);
 
   const handleCreate = async (data) => { await createCuaderno(data); await load(); };
-  const handleEdit   = async (data) => { await updateCuaderno(editing.id, { ...data, ramo_id: data.ramoId ?? null }); setEditing(null); await load(); };
+  const handleEdit   = async ({ ramoId, ...rest }) => { await updateCuaderno(editing.id, { ...rest, ramo_id: ramoId ?? null }); setEditing(null); await load(); };
   const handleDelete = async (id)   => { await deleteCuaderno(id); await load(); };
 
   const filtered = notebooks.filter(nb =>
