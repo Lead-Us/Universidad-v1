@@ -438,6 +438,7 @@ export default function AprenderBloque() {
 
     setMessages(prev => [...prev, optimisticMsg]);
     setInput('');
+    if (inputRef.current) inputRef.current.style.height = 'auto';
     setGenerating(true);
 
     try {
@@ -475,6 +476,12 @@ export default function AprenderBloque() {
       e.preventDefault();
       handleSend();
     }
+  };
+
+  const handleInputResize = (e) => {
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 120) + 'px';
   };
 
   const color = notebook?.color ?? '#4f7cf6';
@@ -675,10 +682,10 @@ export default function AprenderBloque() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
+                onInput={handleInputResize}
                 rows={1}
                 disabled={generating}
                 aria-label="Mensaje para la IA"
-                style={{ '--rows': Math.min(input.split('\n').length, 5) }}
               />
               <button
                 className={styles.sendBtn}

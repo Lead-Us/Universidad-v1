@@ -286,10 +286,10 @@ export default function AprenderCuaderno() {
         {/* ── Header ── */}
         <div className={styles.header}>
           <div className={styles.headerLeft}>
-            <div className={styles.nbIcon} style={{ background: '#1e1e1e', borderLeft: `3px solid ${color}` }}>
+            <div className={styles.nbIcon} style={{ background: `${color}20`, color: color, border: `1px solid ${color}40` }}>
               <RiBookOpenLine />
             </div>
-            <div>
+            <div className={styles.headerMeta}>
               <h1 className={styles.pageTitle} style={{ '--nb-color': color }}>{notebook.name}</h1>
               {notebook.description && (
                 <p className={styles.pageSub}>{notebook.description}</p>

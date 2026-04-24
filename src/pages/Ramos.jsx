@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RiAddLine } from 'react-icons/ri';
+import { RiAddLine, RiBook2Line } from 'react-icons/ri';
 import { useRamos } from '../hooks/useRamos.js';
 import RamoCard from '../components/ramos/RamoCard.jsx';
 import RamoForm from '../components/ramos/RamoForm.jsx';
@@ -21,8 +21,14 @@ export default function Ramos() {
   const handleSave = async (data) => {
     setSaving(true);
     try {
-      if (edited) await update(edited.id, data);
-      else        await add(data);
+      if (edited) {
+        // Strip blocks: useRamos() returns ramos without .blocks, so RamoForm
+        // initializes with blocks:[] which would wipe the existing schedule.
+        const { blocks: _ignored, ...updateData } = data;
+        await update(edited.id, updateData);
+      } else {
+        await add(data);
+      }
       close();
     } finally {
       setSaving(false);
@@ -32,7 +38,7 @@ export default function Ramos() {
   const handleDelete = async (id) => {
     await remove(id);
     // Also clear localStorage files for this ramo
-    try { localStorage.removeItem(`uni_files_${id}`); } catch {}
+    try { localStorage.removeItem(`uni_files_${id}`); } catch { /* silencioso */ }
   };
 
   return (
@@ -68,8 +74,12 @@ export default function Ramos() {
         )}
 
         {!loading && ramos.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '64px 0', color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
-            <p style={{ marginBottom: 'var(--space-4)' }}>Aún no tienes ramos agregados.</p>
+          <div className={styles.empty}>
+            <div className={styles.emptyIcon}><RiBook2Line /></div>
+            <h2 className={styles.emptyTitle}>Sin ramos aún</h2>
+            <p className={styles.emptyDesc}>
+              Agrega tus asignaturas del semestre para comenzar a organizar tu académico.
+            </p>
             <Button onClick={openCreate}><RiAddLine /> Agregar primer ramo</Button>
           </div>
         )}
