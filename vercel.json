@@ -1,7 +1,7 @@
 {
   "framework": "vite",
   "rewrites": [
-    { "source": "/((?!api/).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|landing/).*)", "destination": "/index.html" }
   ],
   "crons": [
     {
