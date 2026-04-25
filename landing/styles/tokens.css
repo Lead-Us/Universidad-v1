@@ -1,0 +1,67 @@
+:root {
+  /* Backgrounds */
+  --bg:    #0a0a0a;
+  --bg-1:  #111111;
+  --bg-2:  #161616;
+  --bg-3:  #1c1c1c;
+
+  /* Borders */
+  --border:       rgba(255,255,255,0.07);
+  --border-hover: rgba(255,255,255,0.14);
+
+  /* Accent — indigo */
+  --accent:       #6366f1;
+  --accent-light: #818cf8;
+  --accent-dim:   rgba(99,102,241,0.12);
+  --accent-glow:  rgba(99,102,241,0.25);
+
+  /* Gold — institutional */
+  --gold:      #C9A84C;
+  --gold-dim:  rgba(201,168,76,0.15);
+
+  /* Navy — logo background */
+  --navy: #1A2C5B;
+
+  /* Text */
+  --text:           #ffffff;
+  --text-secondary: rgba(255,255,255,0.65);
+  --text-muted:     rgba(255,255,255,0.35);
+
+  /* Typography */
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:    'Outfit', system-ui, sans-serif;
+  --font-mono:    'Courier New', monospace;
+
+  /* Type scale */
+  --text-xs:   0.6875rem; /* 11px */
+  --text-sm:   0.8125rem; /* 13px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg:   1.125rem;
+  --text-xl:   1.25rem;
+  --text-2xl:  1.5rem;
+  --text-3xl:  2rem;
+  --text-4xl:  clamp(2rem, 4vw, 2.75rem);
+  --text-5xl:  clamp(2.5rem, 5vw, 3.5rem);
+  --text-hero: clamp(3rem, 7.5vw, 5.5rem);
+
+  /* Spacing (8px base) */
+  --sp-1:  4px;  --sp-2:  8px;  --sp-3:  12px;
+  --sp-4:  16px; --sp-5:  20px; --sp-6:  24px;
+  --sp-8:  32px; --sp-10: 40px; --sp-12: 48px;
+  --sp-16: 64px; --sp-20: 80px; --sp-24: 96px;
+  --sp-32: 128px;
+
+  /* Motion */
+  --dur-fast: 180ms;
+  --dur-base: 300ms;
+  --dur-slow: 500ms;
+  --ease:     cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+
+  /* Layout */
+  --max-w: 1180px;
+  --nav-h: 64px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+}

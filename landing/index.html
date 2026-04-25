@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universidad V1 — Tu universidad entera, en una app</title>
+  <meta name="description" content="Ramos, notas, horario y un tutor de IA que planifica todo tu estudio. Beta gratuita para universitarios chilenos.">
+  <meta property="og:title" content="Universidad V1 — Tu universidad entera, en una app">
+  <meta property="og:description" content="El tutor de IA que planifica todo tu aprendizaje. Beta gratuita.">
+  <meta property="og:type" content="website">
+  <meta name="theme-color" content="#0a0a0a">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles/tokens.css">
+  <link rel="stylesheet" href="styles/landing.css">
+</head>
+<body>
+
+  <!-- Scroll progress -->
+  <div class="scroll-progress" id="scrollProgress"></div>
+
+  <!-- ══ NAV ═══════════════════════════════════════════════ -->
+  <nav class="nav" id="nav">
+    <div class="container nav-inner">
+      <a href="#" class="logo">
+        <svg class="logo-mark" viewBox="0 0 44 40" fill="none" aria-hidden="true">
+          <path d="M22 3L41 37" stroke="#C9A84C" stroke-width="6" stroke-linecap="round"/>
+          <path d="M22 3L3 37" stroke="#C9A84C" stroke-width="6" stroke-linecap="round"/>
+          <line x1="7" y1="37" x2="37" y2="37" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="logo-text">Universidad <strong>V1</strong></span>
+      </a>
+      <div class="nav-actions">
+        <a href="tutorial.html" class="nav-link">Cómo funciona</a>
+        <a href="https://universidadv1.com/login" class="nav-link">Iniciar sesión</a>
+        <a href="https://universidadv1.com" class="btn btn-nav">Comenzar gratis</a>
+      </div>
+      <button class="nav-hamburger" id="hamburger" aria-label="Abrir menú">
+        <span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+
+  <!-- ══ HERO ══════════════════════════════════════════════ -->
+  <section class="hero" id="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="dot-grid" aria-hidden="true"></div>
+
+    <div class="container hero-inner">
+
+      <!-- Left -->
+      <div class="hero-content">
+        <div class="badge float-in" style="--delay:0ms">BETA GRATUITA</div>
+        <h1 class="hero-title">
+          <span class="word-reveal" style="--delay:80ms">Tu universidad</span>
+          <span class="word-reveal" style="--delay:200ms">entera,</span>
+          <span class="word-reveal accent-word" style="--delay:320ms">en una app.</span>
+        </h1>
+        <p class="hero-sub float-in" style="--delay:440ms">
+          Ramos, notas, horario y tareas — centralizados. Con un tutor de IA que
+          planifica todo tu aprendizaje para que estudies menos y aprendas más.
+        </p>
+        <div class="hero-tags float-in" style="--delay:540ms" aria-hidden="true">
+          <span>Ramos</span><span class="dot">·</span>
+          <span>Notas</span><span class="dot">·</span>
+          <span>Horario</span><span class="dot">·</span>
+          <span>Tutor IA</span>
+        </div>
+        <div class="hero-cta float-in" style="--delay:620ms">
+          <a href="https://universidadv1.com" class="btn btn-primary magnetic-btn">
+            Comenzar gratis <span class="arrow" aria-hidden="true">→</span>
+          </a>
+          <a href="tutorial.html" class="btn-ghost">Ver cómo funciona</a>
+        </div>
+        <p class="cta-note float-in" style="--delay:720ms">Sin tarjeta · 100% gratis en beta</p>
+      </div>
+
+      <!-- Right: animated carousel -->
+      <div class="hero-visual float-in" style="--delay:200ms">
+        <div class="app-window" id="appWindow">
+          <div class="app-header">
+            <span class="app-dot red"></span>
+            <span class="app-dot yellow"></span>
+            <span class="app-dot green"></span>
+            <div class="app-nav-tabs">
+              <button class="app-tab active" data-screen="0">Ramos</button>
+              <button class="app-tab" data-screen="1">Horario</button>
+              <button class="app-tab" data-screen="2">Tareas</button>
+              <button class="app-tab" data-screen="3">Tutor IA</button>
+            </div>
+          </div>
+
+          <div class="app-carousel">
+
+            <!-- Screen 0: Ramos -->
+            <div class="app-screen active" id="screen-0">
+              <div class="app-section-label">MIS RAMOS — SEMESTRE ACTUAL</div>
+              <div class="ramo-card">
+                <div class="ramo-tag">01</div>
+                <div class="ramo-info">
+                  <div class="ramo-name">Cálculo II</div>
+                  <div class="ramo-meta">Módulo Integrales · 3 eval.</div>
+                </div>
+                <div class="ramo-grade pass">5.8</div>
+              </div>
+              <div class="ramo-card">
+                <div class="ramo-tag">02</div>
+                <div class="ramo-info">
+                  <div class="ramo-name">Estadística</div>
+                  <div class="ramo-meta">Prueba el jue 28 abr</div>
+                </div>
+                <div class="ramo-grade warn">4.2</div>
+              </div>
+              <div class="ramo-card">
+                <div class="ramo-tag">03</div>
+                <div class="ramo-info">
+                  <div class="ramo-name">Programación</div>
+                  <div class="ramo-meta">Tarea entregada ✓</div>
+                </div>
+                <div class="ramo-grade pass">6.1</div>
+              </div>
+              <div class="app-upcoming">
+                <div class="upcoming-label">PRÓXIMA EVALUACIÓN</div>
+                <div class="upcoming-item">
+                  <span class="upcoming-icon">⚠</span>
+                  <span>Prueba Estadística — jue 28 abr</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Screen 1: Horario -->
+            <div class="app-screen" id="screen-1">
+              <div class="app-section-label">HORARIO — HOY, MAR 22 ABR</div>
+              <div class="schedule-list">
+                <div class="schedule-item">
+                  <div class="sch-time">08:00</div>
+                  <div class="sch-block color-1">
+                    <div class="sch-name">Cálculo II</div>
+                    <div class="sch-room">Sala J-201 · 2h</div>
+                  </div>
+                </div>
+                <div class="schedule-item">
+                  <div class="sch-time">10:30</div>
+                  <div class="sch-block color-2">
+                    <div class="sch-name">Estadística</div>
+                    <div class="sch-room">Sala B-104 · 1.5h</div>
+                  </div>
+                </div>
+                <div class="schedule-item">
+                  <div class="sch-time">14:00</div>
+                  <div class="sch-block color-3">
+                    <div class="sch-name">Programación</div>
+                    <div class="sch-room">Lab C-302 · 2h</div>
+                  </div>
+                </div>
+              </div>
+              <div class="sch-tomorrow">
+                <div class="upcoming-label">MAÑANA — MIÉ 23 ABR</div>
+                <div class="sch-tomorrow-items">
+                  <span class="sch-pill color-1">Cálculo II 09:00</span>
+                  <span class="sch-pill color-2">Estadística 11:00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Screen 2: Tareas -->
+            <div class="app-screen" id="screen-2">
+              <div class="app-section-label">TAREAS — PRÓXIMAS ENTREGAS</div>
+              <div class="task-list">
+                <div class="task-item urgent">
+                  <div class="task-check"></div>
+                  <div class="task-info">
+                    <div class="task-name">Prueba Estadística</div>
+                    <div class="task-due">jue 28 abr · Evaluación</div>
+                  </div>
+                  <div class="task-badge urgent-badge">URGENTE</div>
+                </div>
+                <div class="task-item">
+                  <div class="task-check"></div>
+                  <div class="task-info">
+                    <div class="task-name">Informe Programación</div>
+                    <div class="task-due">vie 29 abr · Tarea</div>
+                  </div>
+                  <div class="task-days">2d</div>
+                </div>
+                <div class="task-item">
+                  <div class="task-check"></div>
+                  <div class="task-info">
+                    <div class="task-name">Tarea Cálculo II</div>
+                    <div class="task-due">lun 2 may · Tarea</div>
+                  </div>
+                  <div class="task-days">5d</div>
+                </div>
+                <div class="task-item done">
+                  <div class="task-check checked">✓</div>
+                  <div class="task-info">
+                    <div class="task-name">Control Programación</div>
+                    <div class="task-due">completado</div>
+                  </div>
+                </div>
+              </div>
+              <div class="task-summary">3 pendientes · 1 completada</div>
+            </div>
+
+            <!-- Screen 3: Tutor IA -->
+            <div class="app-screen" id="screen-3">
+              <div class="app-section-label">TUTOR IA — ESTADÍSTICA</div>
+              <div class="chat-feed">
+                <div class="chat-msg bot">
+                  <div class="chat-avatar">IA</div>
+                  <div class="chat-bubble">
+                    Analicé tus apuntes. Tienes prueba en <strong>3 días</strong>. Ya armé tu plan de estudio.
+                  </div>
+                </div>
+                <div class="chat-plan">
+                  <div class="plan-row">
+                    <span class="plan-day">Hoy</span>
+                    <span class="plan-topic">→ Probabilidad condicional · 45 min</span>
+                  </div>
+                  <div class="plan-row">
+                    <span class="plan-day">Mañana</span>
+                    <span class="plan-topic">→ Distribuciones normales · 50 min</span>
+                  </div>
+                  <div class="plan-row">
+                    <span class="plan-day">Jue AM</span>
+                    <span class="plan-topic">→ Repaso estratégico · 30 min</span>
+                  </div>
+                </div>
+                <div class="chat-msg user">
+                  <div class="chat-bubble user-bubble">Empecemos</div>
+                </div>
+              </div>
+              <button class="chat-cta-btn">Iniciar sesión 1 →</button>
+            </div>
+
+          </div><!-- /.app-carousel -->
+        </div><!-- /.app-window -->
+
+        <!-- Carousel dots -->
+        <div class="carousel-dots" aria-label="Pantallas de la app">
+          <button class="cdot active" data-screen="0" aria-label="Ramos"></button>
+          <button class="cdot" data-screen="1" aria-label="Horario"></button>
+          <button class="cdot" data-screen="2" aria-label="Tareas"></button>
+          <button class="cdot" data-screen="3" aria-label="Tutor IA"></button>
+        </div>
+      </div>
+
+    </div>
+    <div class="hero-line" aria-hidden="true"></div>
+  </section>
+
+
+  <!-- ══ STATS BAR ══════════════════════════════════════════ -->
+  <div class="stats-bar">
+    <div class="container stats-inner">
+      <div class="stat-item">
+        <span class="stat-num">∞</span>
+        <span class="stat-label">ramos, sin límite</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">IA</span>
+        <span class="stat-label">planifica por ti</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">&lt; 5</span>
+        <span class="stat-label">min para configurar</span>
+      </div>
+      <div class="stat-divider"></div>
+      <div class="stat-item">
+        <span class="stat-num">100%</span>
+        <span class="stat-label">gratuito en beta</span>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ══ FEATURES ══════════════════════════════════════════ -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <div class="section-tag">FEATURES</div>
+        <h2 class="section-title">Un solo lugar.<br>Todo lo que necesitas.</h2>
+      </div>
+
+      <div class="features-grid">
+
+        <div class="feature-card reveal-left">
+          <div class="feature-num">01</div>
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+              <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <h3>Todos tus ramos,<br>organizados de verdad.</h3>
+          <p>Temario, archivos y notas de cada ramo en un solo lugar. Sube tus apuntes y la IA los clasifica automáticamente.</p>
+          <ul class="feature-list">
+            <li>Temario con unidades y materias</li>
+            <li>Calificaciones por módulo de evaluación</li>
+            <li>Control de asistencia automático</li>
+            <li>Archivos clasificados con IA</li>
+          </ul>
+        </div>
+
+        <div class="feature-card reveal-right">
+          <div class="feature-num">02</div>
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/>
+            </svg>
+          </div>
+          <h3>¿Vas pasando?<br>Descúbrelo al instante.</h3>
+          <p>Promedio ponderado automático. Sabe exactamente si estás en zona de aprobación sin abrir una calculadora.</p>
+          <ul class="feature-list">
+            <li>Promedio ponderado en tiempo real</li>
+            <li>Indicador de aprobación por ramo</li>
+            <li>"¿Qué nota necesito para pasar?"</li>
+            <li>Historial completo de evaluaciones</li>
+          </ul>
+        </div>
+
+        <div class="feature-card reveal-left">
+          <div class="feature-num">03</div>
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M3 9h18M9 4v5M15 4v5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>Tu semana entera<br>en un vistazo.</h3>
+          <p>Horario semanal con colores por ramo, clases y horas libres. Sin buscar el PDF de la U cada lunes.</p>
+          <ul class="feature-list">
+            <li>Horario semanal visual con colores</li>
+            <li>Vista semanal y mensual</li>
+            <li>Sincronizado con tareas y evaluaciones</li>
+            <li>Alertas de pruebas próximas</li>
+          </ul>
+        </div>
+
+        <div class="feature-card reveal-right">
+          <div class="feature-num">04</div>
+          <div class="feature-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3>Nada se te<br>escapa.</h3>
+          <p>Tareas, controles, entregas y pruebas — cada una en su ramo con fecha y estado. Zero recordatorios perdidos.</p>
+          <ul class="feature-list">
+            <li>Tareas organizadas por ramo</li>
+            <li>Tarea · Evaluación · Quiz · Control</li>
+            <li>Fechas de entrega siempre visibles</li>
+            <li>Estado completado / pendiente</li>
+          </ul>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ IA — GRAN SECCIÓN ══════════════════════════════════ -->
+  <section class="ia-section" id="ia">
+    <div class="ia-bg-glow ia-glow-1" aria-hidden="true"></div>
+    <div class="ia-bg-glow ia-glow-2" aria-hidden="true"></div>
+
+    <div class="container">
+
+      <!-- Big headline -->
+      <div class="ia-hero reveal-up">
+        <div class="section-tag">TUTOR DE IA</div>
+        <h2 class="ia-big-title">
+          <span class="reveal-line" style="--delay:0ms">El tutor que planifica</span>
+          <span class="reveal-line ia-accent-line" style="--delay:120ms">todo tu semestre.</span>
+        </h2>
+        <p class="ia-lead reveal-up" style="--delay:200ms">
+          No más adivinar qué estudiar ni cuándo. La IA analiza tus apuntes,
+          conoce tus fechas y arma un plan de estudio completo y personalizado —
+          basado en técnicas comprobadas por la psicología cognitiva.
+        </p>
+      </div>
+
+      <!-- Central visual — animated demo -->
+      <div class="ia-central reveal-scale">
+        <div class="ia-demo-window" id="iaDemoWindow">
+
+          <!-- Window header -->
+          <div class="ia-dw-header">
+            <div class="ia-dw-avatar">IA</div>
+            <div class="ia-dw-info">
+              <div class="ia-dw-title">Tutor IA — Estadística</div>
+              <div class="ia-dw-subtitle">Planificación personalizada de estudio</div>
+            </div>
+            <div class="ia-dw-status" id="demoStatus">
+              <span class="dw-dot"></span>
+              <span class="dw-status-text" id="demoStatusText">Listo</span>
+            </div>
+          </div>
+
+          <!-- FORM PHASE -->
+          <div class="ia-dw-form" id="demoForm">
+
+            <!-- Files -->
+            <div class="ia-dw-block">
+              <div class="ia-dw-block-label">FUENTES DE ESTUDIO</div>
+              <div class="demo-file-list">
+                <div class="demo-fi done">
+                  <div class="dfi-badge">PDF</div>
+                  <div class="dfi-info">
+                    <div class="dfi-name">Apuntes_Probabilidad.pdf</div>
+                    <div class="dfi-meta">2.1 MB · Analizado</div>
+                  </div>
+                  <div class="dfi-check">✓</div>
+                </div>
+                <div class="demo-fi uploading" id="dfi2">
+                  <div class="dfi-badge">PDF</div>
+                  <div class="dfi-info">
+                    <div class="dfi-name">Ejercicios_Estadística.pdf</div>
+                    <div class="dfi-meta upload-meta">
+                      <div class="dfi-bar"><div class="dfi-fill" id="dfiProgress"></div></div>
+                    </div>
+                  </div>
+                  <div class="dfi-check pending" id="dfiCheck">···</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Deadline -->
+            <div class="ia-dw-block" id="deadlineBlock">
+              <div class="ia-dw-block-label">¿CUÁNDO ES LA PRUEBA?</div>
+              <div class="deadline-opts" id="deadlineOpts">
+                <button class="dl-opt" id="dlo0">Mañana</button>
+                <button class="dl-opt" id="dlo1">3 días</button>
+                <button class="dl-opt" id="dlo2">4 días</button>
+                <button class="dl-opt" id="dlo3">1 semana</button>
+                <button class="dl-opt" id="dlo4">2 semanas</button>
+              </div>
+            </div>
+
+            <!-- Generate -->
+            <button class="ia-gen-btn" id="demoGenBtn" disabled>
+              <span id="genBtnText">Generar plan de estudio</span>
+              <span class="gen-arrow" id="genArrow">→</span>
+            </button>
+
+          </div><!-- /.ia-dw-form -->
+
+          <!-- TYPING INDICATOR -->
+          <div class="ia-dw-typing hidden" id="demoTyping">
+            <div class="ia-dw-avatar small">IA</div>
+            <div class="typing-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
+
+          <!-- RESPONSE PHASE -->
+          <div class="ia-dw-response hidden" id="demoResponse">
+            <div class="ia-resp-row">
+              <div class="ia-dw-avatar small">IA</div>
+              <div class="ia-resp-msg" id="respMsg">
+                Analicé tus 2 archivos. Para <strong>4 días</strong>, tu plan:
+              </div>
+            </div>
+            <div class="ia-resp-plan" id="respPlan">
+              <div class="ia-rp-item hidden-row" id="rp0">
+                <span class="rp-num">01</span>
+                <div class="rp-body">
+                  <span class="rp-when">Hoy · 45 min</span>
+                  <span class="rp-topic">Probabilidad condicional</span>
+                </div>
+              </div>
+              <div class="ia-rp-item hidden-row" id="rp1">
+                <span class="rp-num">02</span>
+                <div class="rp-body">
+                  <span class="rp-when">Mañana · 40 min</span>
+                  <span class="rp-topic">Distribuciones normales</span>
+                </div>
+              </div>
+              <div class="ia-rp-item hidden-row" id="rp2">
+                <span class="rp-num">03</span>
+                <div class="rp-body">
+                  <span class="rp-when">Mié · 50 min</span>
+                  <span class="rp-topic">Práctica de ejercicios</span>
+                </div>
+              </div>
+              <div class="ia-rp-item hidden-row" id="rp3">
+                <span class="rp-num">04</span>
+                <div class="rp-body">
+                  <span class="rp-when">Jue AM · 25 min</span>
+                  <span class="rp-topic">Repaso estratégico</span>
+                </div>
+              </div>
+            </div>
+            <button class="ia-resp-start hidden-row" id="demoStartBtn">Iniciar Sesión 1 →</button>
+          </div>
+
+        </div><!-- /.ia-demo-window -->
+
+        <!-- Floating badges -->
+        <div class="ia-badge-float badge-f1 float-badge">
+          <span class="badge-icon">🧠</span>
+          <span>Psicología cognitiva</span>
+        </div>
+        <div class="ia-badge-float badge-f2 float-badge">
+          <span class="badge-icon">⚡</span>
+          <span>Personalizado a ti</span>
+        </div>
+        <div class="ia-badge-float badge-f3 float-badge">
+          <span class="badge-icon">📅</span>
+          <span>Planificación automática</span>
+        </div>
+      </div>
+
+      <!-- 4 benefit cards -->
+      <div class="ia-benefits">
+
+        <div class="ia-benefit-card reveal-up" style="--stagger:0ms">
+          <div class="ia-benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M12 12v4M12 12l2-2M12 12l-2-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h4>Plan automático para cada prueba</h4>
+          <p>Antes de cada evaluación, la IA genera un plan de estudio completo: qué estudiar, cuándo y por cuánto tiempo. Sin adivinar.</p>
+        </div>
+
+        <div class="ia-benefit-card reveal-up" style="--stagger:80ms">
+          <div class="ia-benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M12 8v4l3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h4>Técnicas comprobadas por la psicología</h4>
+          <p>Repetición espaciada, recuperación activa, elaboración profunda. Tu cerebro retiene más en menos horas de estudio.</p>
+        </div>
+
+        <div class="ia-benefit-card reveal-up" style="--stagger:160ms">
+          <div class="ia-benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h4>Estudia con tu propio material</h4>
+          <p>La IA lee tus apuntes, PDFs y presentaciones. Te enseña con tu material de ramo — no con contenido genérico de internet.</p>
+        </div>
+
+        <div class="ia-benefit-card reveal-up" style="--stagger:240ms">
+          <div class="ia-benefit-icon">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M13 10V3L4 14h7v7l9-11h-7z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h4>Se adapta a cualquier plazo</h4>
+          <p>¿Prueba mañana? ¿Entrega en 5 días? La IA ajusta el plan a tu tiempo disponible. Siempre listo para lo que venga.</p>
+        </div>
+
+      </div><!-- /.ia-benefits -->
+
+      <!-- Marquee strip -->
+      <div class="ia-marquee-wrap reveal-up">
+        <div class="ia-marquee">
+          <div class="ia-marquee-track">
+            <span>Repetición espaciada</span><span class="m-dot">·</span>
+            <span>Recuperación activa</span><span class="m-dot">·</span>
+            <span>Elaboración profunda</span><span class="m-dot">·</span>
+            <span>Práctica de interleaving</span><span class="m-dot">·</span>
+            <span>Chunking cognitivo</span><span class="m-dot">·</span>
+            <span>Mapas de conocimiento</span><span class="m-dot">·</span>
+            <span>Técnica Feynman</span><span class="m-dot">·</span>
+            <span>Repetición espaciada</span><span class="m-dot">·</span>
+            <span>Recuperación activa</span><span class="m-dot">·</span>
+            <span>Elaboración profunda</span><span class="m-dot">·</span>
+            <span>Práctica de interleaving</span><span class="m-dot">·</span>
+            <span>Chunking cognitivo</span><span class="m-dot">·</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ══ PAIN QUOTE ═════════════════════════════════════════ -->
+  <section class="pain-section">
+    <div class="container">
+      <div class="pain-inner">
+        <p class="pain-quote reveal-up">"¿Cuántas veces te ha pillado de sorpresa una prueba?"</p>
+        <p class="pain-answer reveal-up" style="--delay:200ms">Universidad V1 te avisa — y te prepara — antes.</p>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ COMO FUNCIONA ══════════════════════════════════════ -->
+  <section class="how-section" id="como">
+    <div class="container">
+      <div class="section-header reveal-up">
+        <div class="section-tag">PROCESO</div>
+        <h2 class="section-title">Listo en 5 minutos.</h2>
+      </div>
+
+      <div class="how-steps">
+        <div class="how-step reveal-left">
+          <div class="how-num">01</div>
+          <div class="how-content">
+            <h3>Registra tus ramos</h3>
+            <p>Agrega los ramos del semestre: nombre, créditos y módulos de evaluación. El sistema organiza todo lo demás.</p>
+          </div>
+        </div>
+        <div class="how-connector"></div>
+        <div class="how-step reveal-up">
+          <div class="how-num">02</div>
+          <div class="how-content">
+            <h3>Sube tus archivos</h3>
+            <p>PDFs, apuntes, presentaciones. La IA los lee, los clasifica por ramo y los deja listos para el tutor.</p>
+          </div>
+        </div>
+        <div class="how-connector"></div>
+        <div class="how-step reveal-right">
+          <div class="how-num">03</div>
+          <div class="how-content">
+            <h3>El tutor planifica todo</h3>
+            <p>Elige una prueba o tarea. El tutor arma tu plan de estudio completo con tus fechas y tu material real.</p>
+          </div>
+        </div>
+        <div class="how-connector"></div>
+        <div class="how-step reveal-up">
+          <div class="how-num">04</div>
+          <div class="how-content">
+            <h3>Estudia y aprueba</h3>
+            <p>Sigue el plan. Registra tus notas. El sistema actualiza tu promedio en tiempo real y te avisa de lo siguiente.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="how-cta reveal-up">
+        <a href="tutorial.html" class="btn btn-primary">Ver tutorial completo →</a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ FINAL CTA ══════════════════════════════════════════ -->
+  <section class="final-cta">
+    <div class="cta-glow" aria-hidden="true"></div>
+    <div class="container">
+      <div class="final-cta-inner reveal-up">
+        <svg class="cta-mark" viewBox="0 0 44 40" fill="none" aria-hidden="true">
+          <path d="M22 3L41 37" stroke="#C9A84C" stroke-width="6" stroke-linecap="round"/>
+          <path d="M22 3L3 37" stroke="#C9A84C" stroke-width="6" stroke-linecap="round"/>
+          <line x1="7" y1="37" x2="37" y2="37" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <h2 class="cta-title">
+          <span class="reveal-line" style="--delay:0ms">Únete a la</span>
+          <span class="reveal-line" style="--delay:100ms">beta gratuita.</span>
+        </h2>
+        <p class="cta-sub reveal-up" style="--delay:200ms">
+          Sin tarjeta de crédito. Sin límites artificiales.<br>
+          Solo tus ramos, organizados como se debe.
+        </p>
+        <a href="https://universidadv1.com" class="btn btn-primary btn-large magnetic-btn reveal-up" style="--delay:300ms">
+          Comenzar gratis <span class="arrow" aria-hidden="true">→</span>
+        </a>
+        <div class="cta-meta reveal-up" style="--delay:400ms">
+          Hecho en Chile 🇨🇱 &nbsp;·&nbsp; Para universitarios chilenos
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ══ FOOTER ═════════════════════════════════════════════ -->
+  <footer class="footer">
+    <div class="container footer-inner">
+      <a href="#" class="logo logo-footer" aria-label="Universidad V1">
+        <svg class="logo-mark" viewBox="0 0 44 40" fill="none" aria-hidden="true">
+          <path d="M22 3L41 37" stroke="#C9A84C" stroke-width="6" stroke-linecap="round"/>
+          <path d="M22 3L3 37" stroke="#C9A84C" stroke-width="6" stroke-linecap="round"/>
+          <line x1="7" y1="37" x2="37" y2="37" stroke="#C9A84C" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="logo-text">Universidad <strong>V1</strong></span>
+      </a>
+      <div class="footer-links">
+        <a href="tutorial.html">Tutorial</a>
+        <span>·</span>
+        <a href="https://instagram.com/universidadv1" target="_blank" rel="noopener">@universidadv1</a>
+        <span>·</span>
+        <a href="https://universidadv1.com">universidadv1.com</a>
+      </div>
+      <div class="footer-copy">© 2026 Universidad V1. Beta gratuita.</div>
+    </div>
+  </footer>
+
+  <script src="scripts/main.js"></script>
+</body>
+</html>
