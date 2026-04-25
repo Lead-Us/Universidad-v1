@@ -20,6 +20,7 @@ import Notebook         from './pages/Notebook.jsx';
 import Settings         from './pages/Settings.jsx';
 import ImportarArchivos from './pages/ImportarArchivos.jsx';
 import Admin            from './pages/Admin.jsx';
+import Tutorial         from './pages/Tutorial.jsx';
 
 function AppRoutes() {
   const { isAuthenticated, isSubscribed, isRecoveryMode, loading, user } = useAuth();
@@ -60,6 +61,7 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/"          element={<Landing />} />
+        <Route path="/tutorial"  element={<Tutorial />} />
         <Route path="/login"     element={<Login />} />
         <Route path="/register"  element={<Register />} />
         {/* Stripe redirects land here even before auth is restored — harmless */}
