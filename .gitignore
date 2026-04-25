@@ -24,6 +24,8 @@ dist-ssr
 *.sw?
 .vercel
 .env.secrets
+.env
+*.env
 
 # Archivos de ramos (PDFs, datos, presentaciones — solo locales)
 Ramos/
