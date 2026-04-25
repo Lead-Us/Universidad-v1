@@ -659,7 +659,7 @@ ul { list-style: none; }
 .ia-section {
   position: relative;
   padding-block: var(--sp-24) calc(var(--sp-24) + var(--sp-8));
-  overflow: clip;
+  overflow: hidden;
   border-top: 1px solid var(--border);
 }
 .ia-bg-glow {
@@ -668,12 +668,12 @@ ul { list-style: none; }
   animation: glowPulse 8s ease-in-out infinite;
 }
 .ia-glow-1 {
-  top: -20%; right: -15%; width: 55%; height: 65%;
+  top: 0; right: 0; width: 55%; height: 65%;
   background: radial-gradient(ellipse, rgba(99,102,241,0.14) 0%, transparent 70%);
   filter: blur(80px);
 }
 .ia-glow-2 {
-  bottom: -10%; left: -10%; width: 45%; height: 55%;
+  bottom: 0; left: 0; width: 45%; height: 55%;
   background: radial-gradient(ellipse, rgba(201,168,76,0.07) 0%, transparent 70%);
   filter: blur(100px);
   animation-delay: 4s;
@@ -692,7 +692,7 @@ ul { list-style: none; }
 .reveal-line {
   display: block;
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(16px);
   transition: opacity 0.65s var(--ease-out), transform 0.65s var(--ease-out);
   transition-delay: var(--delay, 0ms);
 }
