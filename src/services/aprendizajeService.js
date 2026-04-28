@@ -177,6 +177,49 @@ export async function getBloquesCount(notebookId) {
   return count ?? 0;
 }
 
+// ── Demo content for new users ────────────────────────────────────────────────
+
+export async function createDemoContent() {
+  const cuaderno = await createCuaderno({
+    name: 'Guía de la App',
+    description: 'Tu punto de partida — aprende cómo funciona Aprender con este bloque de prueba.',
+    color: '#7c3aed',
+  });
+
+  const bloque = await createBloque({
+    notebookId: cuaderno.id,
+    title: 'Cómo usar Aprender',
+    order: 0,
+  });
+
+  await addFuente({
+    blockId: bloque.id,
+    type: 'text',
+    name: 'Tutorial rápido',
+    content: `# Bienvenido a Aprender
+
+Aprender es tu asistente de estudio con IA. Aquí te explicamos cómo funciona:
+
+## 1. Crea un Cuaderno
+Un cuaderno es un espacio para un ramo o tema. Puedes tener tantos como quieras y asociarlos a un ramo específico.
+
+## 2. Agrega Bloques
+Dentro de cada cuaderno, crea bloques por tema o unidad. Este bloque ("Cómo usar Aprender") es tu primer ejemplo.
+
+## 3. Sube tus fuentes
+En cada bloque puedes agregar apuntes, PDFs, URLs o texto como fuentes de estudio.
+
+## 4. Conversa con la IA
+Usa el chat del bloque para hacerle preguntas a la IA sobre el material que subiste. La IA responde basándose en tus fuentes.
+
+---
+Puedes eliminar este cuaderno cuando ya no lo necesites y crear los tuyos propios.`,
+    instructions: '',
+  });
+
+  return cuaderno;
+}
+
 // ── Compatibility aliases (for Notebook.jsx / NotebookWorkspace) ──────────────
 export const getLearningModels = getCuadernos;
 

@@ -255,7 +255,7 @@ export default function WeeklySchedule({ showAdd: showAddProp, onAddClose }) {
                     >
                       <div className={styles.blockHeader}>
                         <span className={styles.blockName}>{ramo.name}</span>
-                        {entry.block_type && entry.block_type !== 'catedra' && (
+                        {entry.block_type && (
                           <span className={styles.blockTypeBadge}>{BLOCK_TYPE_LABEL[entry.block_type] || entry.block_type}</span>
                         )}
                         {entry.sala && (

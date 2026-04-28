@@ -50,6 +50,7 @@ export async function createScheduleEntry(entry) {
     end_time:       entry.end_time,
     sala:           entry.sala || null,
     has_attendance: entry.has_attendance ?? false,
+    block_type:     entry.block_type ?? 'catedra',
   }).select().single();
   if (error) throw error;
   return data;

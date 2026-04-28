@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import * as pdfjsLib from 'pdfjs-dist';
 import { supabase, getUid } from '../lib/supabase.js';
+import { getRamos } from '../services/ramosService.js';
 import { uploadRamoFile, addFileRecord } from '../services/ramoFilesService.js';
 import { v4 as uuidv4 } from 'uuid';
 import {
@@ -10,6 +11,7 @@ import {
   RiCalendarLine, RiFileTextLine, RiAddLine, RiEditLine,
   RiCloseLine, RiFileLine, RiArrowDownSLine, RiArrowRightSLine,
   RiFileSearchLine, RiAlertLine, RiArrowLeftLine,
+  RiRefreshLine,
 } from 'react-icons/ri';
 import styles from './ImportarArchivos.module.css';
 
@@ -19,7 +21,14 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).href;
 
-const STEPS = ['Subir carpeta', 'Editar', 'Procesando IA', 'Vista previa', 'Listo'];
+const STEPS = ['Subir carpeta', 'Editar', 'Procesando IA', 'Vista previa', 'Organizar', 'Listo'];
+
+const DEFAULT_FOLDER_OPTIONS = [
+  { key: 'todos',                label: 'Todos los archivos'   },
+  { key: 'evaluaciones_pasadas', label: 'Evaluaciones pasadas' },
+  { key: 'ejercicios',           label: 'Ejercicios'           },
+  { key: 'ppt',                  label: 'PPT'                  },
+];
 
 // ── Detect program file candidates ────────────────────────────────────
 function detectProgramCandidates(fileNames) {
@@ -88,6 +97,21 @@ export default function ImportarArchivos() {
   // Program file state
   const [rawFileMap,    setRawFileMap]    = useState({}); // { [ramo]: { [filename]: File } }
   const [programFiles,  setProgramFiles]  = useState({}); // { [ramo]: filename | null }
+
+  // Import mode state (step 3 preview)
+  const [importMode,    setImportMode]    = useState('create'); // 'create' | 'update'
+  const [existingRamos, setExistingRamos] = useState([]);       // ramos del usuario
+  const [ramoMapping,   setRamoMapping]   = useState({});       // { resultIdx: existingRamoId | '' }
+
+  // File organization state (step 4)
+  const [fileAssignments, setFileAssignments] = useState({}); // { ramoName: { fileName: folderKey } }
+
+  // Load existing ramos when reaching preview step
+  useEffect(() => {
+    if (step === 3) {
+      getRamos().then(r => setExistingRamos(r)).catch(() => {});
+    }
+  }, [step]);
 
   // ── Parse folder ─────────────────────────────────────────────────────
   const parseFiles = async (fileList) => {
@@ -221,36 +245,68 @@ export default function ImportarArchivos() {
         // Sanitize integer fields — AI may return strings like "No especificado"
         const credits = parseInt(ramo.credits, 10);
 
-        const { data: ramoRow, error: ramoErr } = await supabase.from('ramos').insert({
-          user_id:             uid,
-          name:                ramo.name,
-          code:                ramo.code && /\S/.test(ramo.code) ? ramo.code : null,
-          professor:           ramo.professor && /\S/.test(ramo.professor) ? ramo.professor : null,
-          section:             ramo.section && /\S/.test(ramo.section) ? ramo.section : null,
-          credits:             Number.isFinite(credits) ? credits : 0,
-          color:               ramo.color ?? '#4f8ef7',
-          has_attendance:      ramo.has_attendance ?? false,
-          evaluation_modules:  (ramo.evaluationModules ?? []).map(m => ({
+        const ramoPayload = {
+          name:               ramo.name,
+          code:               ramo.code && /\S/.test(ramo.code) ? ramo.code : null,
+          professor:          ramo.professor && /\S/.test(ramo.professor) ? ramo.professor : null,
+          section:            ramo.section && /\S/.test(ramo.section) ? ramo.section : null,
+          credits:            Number.isFinite(credits) ? credits : 0,
+          evaluation_modules: (ramo.evaluationModules ?? []).map(m => ({
             ...m, id: m.id || uuidv4(),
             items: (m.items || []).map(i => ({ ...i, id: i.id || uuidv4() })),
           })),
-          attendance_sessions: [],
-        }).select().single();
-        if (ramoErr) throw ramoErr;
-        const ramoId = ramoRow.id;
+        };
 
-        if (ramo.schedule?.length) {
-          await supabase.from('schedule').insert(ramo.schedule.map(b => ({
-            user_id: uid, ramo_id: ramoId,
-            day_of_week: parseInt(b.day_of_week, 10) || 0,
-            start_time: b.start_time, end_time: b.end_time, sala: b.sala || '',
-          })));
-        }
-        if (ramo.units?.length) {
-          await supabase.from('units').insert(ramo.units.map((u, ui) => ({
-            user_id: uid, ramo_id: ramoId,
-            name: u.name, order: parseInt(u.order, 10) || ui, materias: u.materias ?? [],
-          })));
+        let ramoId;
+
+        if (importMode === 'update') {
+          // Update mode: apply changes to the mapped existing ramo
+          const targetId = ramoMapping[ramoIdx];
+          if (!targetId) continue; // sin mapeo → saltar
+
+          const { data: updatedRow, error: updateErr } = await supabase.from('ramos')
+            .update(ramoPayload)
+            .eq('id', targetId)
+            .select().single();
+          if (updateErr) throw updateErr;
+          ramoId = updatedRow.id;
+
+          // Reemplazar bloques de horario
+          if (ramo.schedule?.length) {
+            await supabase.from('schedule').delete().eq('ramo_id', ramoId);
+            await supabase.from('schedule').insert(ramo.schedule.map(b => ({
+              user_id: uid, ramo_id: ramoId,
+              day_of_week: parseInt(b.day_of_week, 10) || 0,
+              start_time: b.start_time, end_time: b.end_time, sala: b.sala || '',
+              block_type: b.block_type ?? 'catedra',
+            })));
+          }
+        } else {
+          // Create mode (default): insert new ramo
+          const { data: ramoRow, error: ramoErr } = await supabase.from('ramos').insert({
+            user_id:             uid,
+            ...ramoPayload,
+            color:               ramo.color ?? '#4f8ef7',
+            has_attendance:      ramo.has_attendance ?? false,
+            attendance_sessions: [],
+          }).select().single();
+          if (ramoErr) throw ramoErr;
+          ramoId = ramoRow.id;
+
+          if (ramo.schedule?.length) {
+            await supabase.from('schedule').insert(ramo.schedule.map(b => ({
+              user_id: uid, ramo_id: ramoId,
+              day_of_week: parseInt(b.day_of_week, 10) || 0,
+              start_time: b.start_time, end_time: b.end_time, sala: b.sala || '',
+              block_type: b.block_type ?? 'catedra',
+            })));
+          }
+          if (ramo.units?.length) {
+            await supabase.from('units').insert(ramo.units.map((u, ui) => ({
+              user_id: uid, ramo_id: ramoId,
+              name: u.name, order: parseInt(u.order, 10) || ui, materias: u.materias ?? [],
+            })));
+          }
         }
 
         // Save ALL files from original folder structure to "Todos los archivos"
@@ -286,7 +342,8 @@ export default function ImportarArchivos() {
           for (const fileName of allFiles) {
             const fileObj = fileObjects[fileName];
             if (!fileObj) continue;
-            const folderKey = fileToFolder[fileName.toLowerCase()] ?? 'todos';
+            const ramoAssignments = fileAssignments[ramo.name] ?? {};
+            const folderKey = ramoAssignments[fileName] ?? fileToFolder[fileName.toLowerCase()] ?? 'todos';
             const isPrograma = programaFileName
               ? fileName.toLowerCase() === programaFileName.toLowerCase()
               : false;
@@ -307,7 +364,7 @@ export default function ImportarArchivos() {
           }
         }
       }
-      setStep(4);
+      setStep(5);
     } catch (err) {
       setError(`Error al guardar: ${err.message}`);
     } finally {
@@ -515,6 +572,29 @@ export default function ImportarArchivos() {
           </div>
           <p className={styles.previewNote}>Revisa y elimina lo que no quieras antes de guardar.</p>
 
+          {/* Mode selector */}
+          <div className={styles.modeSelector}>
+            <button
+              className={[styles.modeBtn, importMode === 'create' ? styles.modeBtnActive : ''].join(' ')}
+              onClick={() => setImportMode('create')}
+            >
+              <RiAddLine /> Crear nuevos ramos
+            </button>
+            <button
+              className={[styles.modeBtn, importMode === 'update' ? styles.modeBtnActive : ''].join(' ')}
+              onClick={() => setImportMode('update')}
+              disabled={existingRamos.length === 0}
+            >
+              <RiRefreshLine /> Actualizar ramos existentes
+            </button>
+          </div>
+
+          {importMode === 'update' && (
+            <p className={styles.modeHint}>
+              Selecciona a qué ramo existente corresponde cada ramo detectado. Los que quedes sin asignar serán ignorados.
+            </p>
+          )}
+
           <div className={styles.ramoCards}>
             {result.ramos.map((ramo, idx) => (
               <div key={idx} className={styles.ramoCard}>
@@ -524,10 +604,29 @@ export default function ImportarArchivos() {
                     <strong>{ramo.name}</strong>
                     {ramo.code && <span className={styles.badge}>{ramo.code}</span>}
                   </div>
-                  <button className={styles.removeBtn} onClick={() => removeResultRamo(idx)}>
-                    <RiDeleteBinLine />
-                  </button>
+                  {importMode === 'create' && (
+                    <button className={styles.removeBtn} onClick={() => removeResultRamo(idx)}>
+                      <RiDeleteBinLine />
+                    </button>
+                  )}
                 </div>
+
+                {/* Mapping selector for update mode */}
+                {importMode === 'update' && (
+                  <div className={styles.mappingRow}>
+                    <select
+                      className={styles.mappingSelect}
+                      value={ramoMapping[idx] ?? ''}
+                      onChange={e => setRamoMapping(m => ({ ...m, [idx]: e.target.value }))}
+                    >
+                      <option value="">— No actualizar —</option>
+                      {existingRamos.map(r => (
+                        <option key={r.id} value={r.id}>{r.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
                 <div className={styles.ramoCardMeta}>
                   {ramo.professor && <span>👤 {ramo.professor}</span>}
                   {ramo.credits   && <span>📚 {ramo.credits} créditos</span>}
@@ -546,18 +645,99 @@ export default function ImportarArchivos() {
 
           <div className={styles.actions}>
             <button className={styles.btnSecondary} onClick={() => { setStep(1); setResult(null); }}>Volver</button>
-            <button className={styles.btnPrimary} onClick={saveAll} disabled={saving || !result.ramos.length}>
+            <button
+              className={styles.btnPrimary}
+              disabled={!result.ramos.length}
+              onClick={() => {
+                const assignments = {};
+                for (const ramo of result.ramos) {
+                  assignments[ramo.name] = {};
+                  const classified = ramo.classified_files ?? {};
+                  for (const [folderKey, names] of Object.entries(classified)) {
+                    for (const name of (names ?? [])) {
+                      assignments[ramo.name][name] = folderKey;
+                    }
+                  }
+                  for (const fileName of (ramo.files ?? [])) {
+                    if (!assignments[ramo.name][fileName]) {
+                      assignments[ramo.name][fileName] = 'todos';
+                    }
+                  }
+                }
+                setFileAssignments(assignments);
+                setStep(4);
+              }}
+            >
+              Organizar archivos <RiArrowRightLine />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Step 4: Organizar archivos ── */}
+      {step === 4 && result && (
+        <div className={styles.card}>
+          <div className={styles.previewHeader}>
+            <RiFolderOpenLine />
+            <h2>Organizar archivos</h2>
+          </div>
+          <p className={styles.previewNote}>Asigna cada archivo a la carpeta correcta. La IA ya hizo una clasificación inicial, pero puedes ajustarla.</p>
+
+          {result.ramos.map((ramo, ramoIdx) => {
+            const ramoKey = Object.entries(structure).find(([sName]) => {
+              const rn = ramo.name.toLowerCase();
+              const s = sName.toLowerCase();
+              return s === rn || s.includes(rn) || rn.includes(s);
+            })?.[0] ?? Object.keys(structure)[ramoIdx];
+            const fileNames = ramoKey ? (structure[ramoKey] ?? []) : [];
+            if (!fileNames.length) return null;
+            return (
+              <div key={ramoIdx} className={styles.organizeRamo}>
+                <div className={styles.organizeRamoHeader}>
+                  <span className={styles.organizeRamoColor} style={{ background: ramo.color }} />
+                  <strong>{ramo.name}</strong>
+                  <span className={styles.badge}>{fileNames.length} archivos</span>
+                </div>
+                <div className={styles.organizeFileList}>
+                  {fileNames.map(fileName => (
+                    <div key={fileName} className={styles.organizeFileRow}>
+                      <RiFileLine className={styles.organizeFileIcon} />
+                      <span className={styles.organizeFileName}>{fileName}</span>
+                      <select
+                        className={styles.organizeSelect}
+                        value={fileAssignments[ramo.name]?.[fileName] ?? 'todos'}
+                        onChange={e => setFileAssignments(prev => ({
+                          ...prev,
+                          [ramo.name]: { ...(prev[ramo.name] ?? {}), [fileName]: e.target.value },
+                        }))}
+                      >
+                        {DEFAULT_FOLDER_OPTIONS.map(f => (
+                          <option key={f.key} value={f.key}>{f.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+
+          {error && <p className={styles.error}><RiErrorWarningLine /> {error}</p>}
+
+          <div className={styles.actions}>
+            <button className={styles.btnSecondary} onClick={() => setStep(3)}>Volver</button>
+            <button className={styles.btnPrimary} onClick={saveAll} disabled={saving}>
               {saving
                 ? <><RiLoader4Line className={styles.spinnerSmall} /> {progress || 'Guardando…'}</>
-                : <>Guardar todo <RiCheckLine /></>
+                : <>Confirmar y guardar <RiCheckLine /></>
               }
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Step 4: Done ── */}
-      {step === 4 && (
+      {/* ── Step 5: Done ── */}
+      {step === 5 && (
         <div className={[styles.card, styles.cardCenter].join(' ')}>
           <div className={styles.successIcon}><RiCheckLine /></div>
           <h2 className={styles.successTitle}>¡Importación completada!</h2>

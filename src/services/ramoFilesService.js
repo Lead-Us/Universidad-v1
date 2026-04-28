@@ -143,3 +143,36 @@ export async function renameFolder(ramoId, key, newLabel) {
 export async function deleteFolderRecord(ramoId, key) {
   await supabase.from('ramo_file_folders').delete().eq('ramo_id', ramoId).eq('key', key);
 }
+
+// ── Cross-ramo queries ────────────────────────────────────────────────────────
+
+export async function getAllUserFiles() {
+  const uid = await getUid();
+  const { data, error } = await supabase
+    .from('ramo_files')
+    .select('*, ramos(id, name, code, color)')
+    .eq('user_id', uid)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export async function renameFile(id, newName) {
+  const { error } = await supabase
+    .from('ramo_files')
+    .update({ name: newName })
+    .eq('id', id);
+  if (error) throw error;
+}
+
+export async function uploadToFolder(ramoId, folderKey, file) {
+  const { path } = await uploadRamoFile(ramoId, file);
+  return addFileRecord({
+    ramoId,
+    folder:      folderKey,
+    name:        file.name,
+    size:        file.size,
+    storagePath: path,
+    publicUrl:   null,
+  });
+}

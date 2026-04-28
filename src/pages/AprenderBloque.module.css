@@ -1045,6 +1045,156 @@
   font-weight: 500; margin: 0; text-align: center;
 }
 
+/* ── Library picker ── */
+.libSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.libSearchWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.libSearchIcon {
+  position: absolute;
+  left: 0.75rem;
+  font-size: 1rem;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.libSearchInput {
+  width: 100%;
+  padding: 0.625rem 0.875rem 0.625rem 2.25rem;
+  background: var(--lg-surface);
+  border: 1px solid var(--lg-border-dark);
+  border-radius: var(--lg-radius-md);
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+  outline: none;
+  font-family: inherit;
+  min-height: 44px;
+  box-sizing: border-box;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+.libSearchInput::placeholder { color: var(--text-muted); }
+.libSearchInput:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15);
+}
+
+.libList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--lg-border);
+  border-radius: var(--lg-radius-md);
+  background: var(--lg-surface);
+}
+
+.libFile {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.875rem;
+  cursor: pointer;
+  transition: background 150ms ease;
+  border-bottom: 1px solid var(--lg-border);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.libFile:last-child { border-bottom: none; }
+.libFile:hover { background: var(--lg-surface-hover); }
+.libFileSelected { background: rgba(var(--accent-rgb), 0.06) !important; }
+
+.libFileCheck {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1.5px solid var(--lg-border-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: white;
+  flex-shrink: 0;
+  transition: border-color 150ms ease, background 150ms ease;
+}
+
+.libFileCheckSelected {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.libFileIcon {
+  font-size: 1rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.libFileInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.libFileName {
+  font-size: var(--text-xs);
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.libFileMeta {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.libEmpty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.75rem 1.25rem;
+  text-align: center;
+  border: 1px solid var(--lg-border);
+  border-radius: var(--lg-radius-md);
+}
+
+.libEmptyIcon {
+  font-size: 1.75rem;
+  color: var(--text-muted);
+  opacity: 0.4;
+}
+
+.libEmpty p {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.libSelCount {
+  font-size: var(--text-xs);
+  color: var(--accent);
+  font-weight: 600;
+  text-align: right;
+  margin: 0;
+}
+
 .formError {
   font-size: var(--text-xs);
   color: var(--color-danger);

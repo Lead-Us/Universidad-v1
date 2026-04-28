@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/AuthContext.jsx';
 import { SettingsProvider } from './lib/SettingsContext.jsx';
 import { useState, useEffect } from 'react';
+import { createDemoContent } from './services/aprendizajeService.js';
 import Layout           from './components/layout/Layout.jsx';
 import Landing          from './pages/Landing.jsx';
 import Register         from './pages/Register.jsx';
@@ -34,7 +35,10 @@ function AppRoutes() {
   }, [user]);
 
   const completeOnboarding = () => {
-    if (user) localStorage.setItem(`uni_onboarding_done_${user.id}`, '1');
+    if (user) {
+      localStorage.setItem(`uni_onboarding_done_${user.id}`, '1');
+      createDemoContent().catch(() => {});
+    }
     setOnboardingDone(true);
   };
 

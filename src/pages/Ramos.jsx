@@ -3,6 +3,7 @@ import { RiAddLine, RiBook2Line } from 'react-icons/ri';
 import { useRamos } from '../hooks/useRamos.js';
 import RamoCard from '../components/ramos/RamoCard.jsx';
 import RamoForm from '../components/ramos/RamoForm.jsx';
+import Biblioteca from '../components/ramos/Biblioteca.jsx';
 import Modal    from '../components/shared/Modal.jsx';
 import Button   from '../components/shared/Button.jsx';
 import LoadingSpinner from '../components/shared/LoadingSpinner.jsx';
@@ -56,6 +57,8 @@ export default function Ramos() {
             <RiAddLine /> Agregar ramo
           </Button>
         </div>
+
+        <Biblioteca ramos={ramos} />
 
         {loading && (
           <div style={{ display: 'flex', justifyContent: 'center', padding: '48px 0' }}>

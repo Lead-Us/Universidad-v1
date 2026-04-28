@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { marked } from 'marked';
+import * as pdfjsLib from 'pdfjs-dist';
 import {
   RiArrowLeftLine, RiAddLine, RiDeleteBinLine,
   RiSparkling2Line, RiSendPlane2Fill,
@@ -8,15 +9,54 @@ import {
   RiRefreshLine, RiCheckLine, RiUploadLine,
   RiGlobalLine, RiAttachment2, RiBookOpenLine,
   RiArrowRightSLine, RiArrowLeftSLine,
+  RiFolder3Line, RiSearchLine,
 } from 'react-icons/ri';
 import {
   getCuadernos, getBloques,
   getFuentes, addFuente, deleteFuente, uploadFuente,
   getMensajes, addMensaje, clearMensajes,
 } from '../services/aprendizajeService.js';
+import { getAllUserFiles, getSignedUrl } from '../services/ramoFilesService.js';
 import styles from './AprenderBloque.module.css';
 
 marked.setOptions({ breaks: true, gfm: true });
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
+  'pdfjs-dist/build/pdf.worker.min.mjs',
+  import.meta.url,
+).href;
+
+// ── Extract text from PDF / DOCX for AI context ────────────────
+async function extractFileText(file) {
+  if (/\.pdf$/i.test(file.name)) {
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let text = '';
+      for (let i = 1; i <= Math.min(pdf.numPages, 15); i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(item => item.str).join(' ') + '\n';
+      }
+      return text.slice(0, 12000);
+    } catch { return ''; }
+  }
+  if (/\.(docx|doc)$/i.test(file.name)) {
+    try {
+      const { unzipSync } = await import('fflate');
+      const buf = new Uint8Array(await file.arrayBuffer());
+      const unzipped = unzipSync(buf);
+      const xmlKey = Object.keys(unzipped).find(k => k === 'word/document.xml');
+      if (!xmlKey) return '';
+      const xml = new TextDecoder().decode(unzipped[xmlKey]);
+      return xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 12000);
+    } catch { return ''; }
+  }
+  if (/\.(txt|md)$/i.test(file.name)) {
+    try { return (await file.text()).slice(0, 12000); } catch { return ''; }
+  }
+  return '';
+}
 
 const ACCEPTED = '.pdf,.docx,.doc,.ppt,.pptx,.txt,.md,.png,.jpg,.jpeg,.webp';
 const MAX_SIZE_MB = 50;
@@ -98,6 +138,34 @@ function AddSourceModal({ blockId, onAdded, onClose }) {
   const [drag,         setDrag]         = useState(false);
   const fileRef = useRef(null);
 
+  // ── Library state ──────────────────────────────────────────
+  const [libFiles,    setLibFiles]    = useState([]);
+  const [libLoading,  setLibLoading]  = useState(false);
+  const [libSearch,   setLibSearch]   = useState('');
+  const [libSelected, setLibSelected] = useState(new Set());
+
+  useEffect(() => {
+    if (tab !== 'biblioteca') return;
+    setLibLoading(true);
+    getAllUserFiles()
+      .then(setLibFiles)
+      .catch(() => setLibFiles([]))
+      .finally(() => setLibLoading(false));
+  }, [tab]);
+
+  const filteredLib = libFiles.filter(f =>
+    f.name.toLowerCase().includes(libSearch.toLowerCase()) ||
+    (f.ramos?.name ?? '').toLowerCase().includes(libSearch.toLowerCase())
+  );
+
+  const toggleLib = (id) => {
+    setLibSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
   const addFiles = (incoming) => {
     const valid = [];
     const errs  = [];
@@ -132,17 +200,48 @@ function AddSourceModal({ blockId, onAdded, onClose }) {
         if (files.length === 0) { setError('Selecciona al menos un archivo.'); setSaving(false); return; }
         for (let i = 0; i < files.length; i++) {
           const f = files[i];
+          setProgress(`Extrayendo texto ${i + 1} de ${files.length}: ${f.name}`);
+          const extractedText = await extractFileText(f);
           setProgress(`Subiendo ${i + 1} de ${files.length}: ${f.name}`);
           const { path, publicUrl } = await uploadFuente(blockId, f);
-          await addFuente({ blockId, type: 'file', name: title || f.name, url: publicUrl, filePath: path, instructions });
+          await addFuente({
+            blockId,
+            type: 'file',
+            name: title || f.name,
+            url: publicUrl,
+            filePath: path,
+            instructions,
+            content: extractedText || null,
+          });
         }
         setProgress('');
       } else if (tab === 'url') {
         if (!url.trim()) { setError('Ingresa una URL válida.'); setSaving(false); return; }
         await addFuente({ blockId, type: 'url', name: title || url, url: url.trim(), instructions });
-      } else {
+      } else if (tab === 'text') {
         if (!content.trim()) { setError('Escribe el contenido.'); setSaving(false); return; }
         await addFuente({ blockId, type: 'text', name: title || 'Texto', content, instructions });
+      } else if (tab === 'biblioteca') {
+        if (libSelected.size === 0) { setError('Selecciona al menos un archivo.'); setSaving(false); return; }
+        const selected = libFiles.filter(f => libSelected.has(f.id));
+        for (let i = 0; i < selected.length; i++) {
+          const f = selected[i];
+          setProgress(`Procesando ${i + 1} de ${selected.length}: ${f.name}`);
+          const signedUrl = await getSignedUrl(f.storage_path);
+          const blob = await fetch(signedUrl).then(r => r.blob());
+          const fileObj = new File([blob], f.name, { type: blob.type });
+          const extractedText = await extractFileText(fileObj);
+          await addFuente({
+            blockId,
+            type: 'file',
+            name: f.name,
+            url: null,
+            filePath: null,
+            instructions,
+            content: extractedText || null,
+          });
+        }
+        setProgress('');
       }
       onAdded();
     } catch (err) {
@@ -152,9 +251,10 @@ function AddSourceModal({ blockId, onAdded, onClose }) {
   };
 
   const tabs = [
-    { id: 'file', label: 'Archivos', icon: RiUploadLine },
-    { id: 'url',  label: 'URL',      icon: RiLinksLine },
-    { id: 'text', label: 'Texto',    icon: RiText },
+    { id: 'file',      label: 'Subir',     icon: RiUploadLine  },
+    { id: 'url',       label: 'URL',       icon: RiLinksLine   },
+    { id: 'text',      label: 'Texto',     icon: RiText        },
+    { id: 'biblioteca', label: 'Biblioteca', icon: RiFolder3Line },
   ];
 
   return (
@@ -180,7 +280,7 @@ function AddSourceModal({ blockId, onAdded, onClose }) {
         </div>
 
         <form onSubmit={handleSubmit} className={styles.addForm}>
-          {tab !== 'file' && (
+          {tab !== 'file' && tab !== 'biblioteca' && (
             <div className={styles.formField}>
               <label className={styles.formLabel} htmlFor="src-title">
                 Título <span className={styles.optional}>(opcional)</span>
@@ -279,19 +379,73 @@ function AddSourceModal({ blockId, onAdded, onClose }) {
             </div>
           )}
 
-          <div className={styles.formField}>
-            <label className={styles.formLabel} htmlFor="src-instructions">
-              Instrucciones para la IA <span className={styles.optional}>(opcional)</span>
-            </label>
-            <input
-              id="src-instructions"
-              className={styles.formInput}
-              placeholder="ej. Enfócate solo en las fórmulas de esta fuente"
-              value={instructions}
-              onChange={e => setInstructions(e.target.value)}
-              maxLength={300}
-            />
-          </div>
+          {tab === 'biblioteca' && (
+            <div className={styles.libSection}>
+              <div className={styles.libSearchWrap}>
+                <RiSearchLine className={styles.libSearchIcon} />
+                <input
+                  className={styles.libSearchInput}
+                  placeholder="Buscar archivos o ramos…"
+                  value={libSearch}
+                  onChange={e => setLibSearch(e.target.value)}
+                  autoFocus
+                />
+              </div>
+              {libLoading ? (
+                <p className={styles.progressText}>Cargando biblioteca…</p>
+              ) : filteredLib.length === 0 ? (
+                <div className={styles.libEmpty}>
+                  <RiFolder3Line className={styles.libEmptyIcon} />
+                  <p>{libSearch ? 'Sin resultados.' : 'No tienes archivos subidos aún. Súbelos desde la sección Ramos.'}</p>
+                </div>
+              ) : (
+                <ul className={styles.libList}>
+                  {filteredLib.map(f => {
+                    const sel = libSelected.has(f.id);
+                    return (
+                      <li
+                        key={f.id}
+                        className={[styles.libFile, sel ? styles.libFileSelected : ''].join(' ')}
+                        onClick={() => toggleLib(f.id)}
+                      >
+                        <div className={[styles.libFileCheck, sel ? styles.libFileCheckSelected : ''].join(' ')}>
+                          {sel && <RiCheckLine />}
+                        </div>
+                        <RiFileLine className={styles.libFileIcon} />
+                        <div className={styles.libFileInfo}>
+                          <span className={styles.libFileName}>{f.name}</span>
+                          <span className={styles.libFileMeta}>
+                            {f.ramos?.name ?? 'Sin ramo'}{f.size ? ` · ${fmtSize(f.size)}` : ''}
+                          </span>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+              {libSelected.size > 0 && (
+                <p className={styles.libSelCount}>
+                  {libSelected.size} archivo{libSelected.size !== 1 ? 's' : ''} seleccionado{libSelected.size !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+          )}
+
+          {tab !== 'biblioteca' && (
+            <div className={styles.formField}>
+              <label className={styles.formLabel} htmlFor="src-instructions">
+                Instrucciones para la IA <span className={styles.optional}>(opcional)</span>
+              </label>
+              <input
+                id="src-instructions"
+                className={styles.formInput}
+                placeholder="ej. Enfócate solo en las fórmulas de esta fuente"
+                value={instructions}
+                onChange={e => setInstructions(e.target.value)}
+                maxLength={300}
+              />
+            </div>
+          )}
 
           {error && <p className={styles.formError} role="alert">{error}</p>}
 
@@ -299,10 +453,12 @@ function AddSourceModal({ blockId, onAdded, onClose }) {
             <button type="button" className={styles.btnGhost} onClick={onClose} disabled={saving}>Cancelar</button>
             <button type="submit" className={styles.btnPrimary} disabled={saving}>
               {saving
-                ? (progress || 'Subiendo…')
+                ? (progress || 'Procesando…')
                 : tab === 'file' && files.length > 1
                   ? `Subir ${files.length} archivos`
-                  : 'Agregar'}
+                  : tab === 'biblioteca' && libSelected.size > 1
+                    ? `Agregar ${libSelected.size} archivos`
+                    : 'Agregar'}
             </button>
           </div>
         </form>

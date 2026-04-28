@@ -18,6 +18,15 @@ const UNIVERSIDADES = [
 
 const ANOS = ['1°', '2°', '3°', '4°', '5°', '6° o más', 'Magíster'];
 
+const CARRERAS = {
+  'Universidad de los Andes':   ['Ingeniería Comercial', 'Derecho', 'Medicina', 'Psicología', 'Ingeniería Civil Industrial', 'Ingeniería en Computación', 'Otra'],
+  'Universidad Adolfo Ibáñez':  ['Ingeniería Comercial', 'Ingeniería Civil Industrial', 'Derecho', 'Psicología', 'Ingeniería en Información y Control de Gestión', 'Otra'],
+  'Universidad Católica':       ['Ingeniería Civil', 'Ingeniería Comercial', 'Derecho', 'Medicina', 'Arquitectura', 'Psicología', 'Educación', 'Otra'],
+  'FEN - Universidad de Chile': ['Ingeniería Comercial', 'Contador Auditor', 'Economía', 'Otra'],
+  'Universidad del Desarrollo': ['Ingeniería Comercial', 'Derecho', 'Medicina', 'Psicología', 'Diseño', 'Ingeniería Civil', 'Otra'],
+  'Otra':                       ['Ingeniería', 'Derecho', 'Medicina', 'Psicología', 'Administración', 'Educación', 'Arte y Diseño', 'Ciencias', 'Otra'],
+};
+
 function Section({ icon: Icon, title, children }) {
   return (
     <div className={styles.section}>
@@ -38,6 +47,7 @@ function ProfileSection() {
     apellido1:  profile?.apellido1  ?? '',
     apellido2:  profile?.apellido2  ?? '',
     university: profile?.university ?? '',
+    carrera:    profile?.carrera    ?? '',
     study_year: profile?.study_year ?? '',
     email:      user?.email         ?? '',
   });
@@ -46,6 +56,10 @@ function ProfileSection() {
   const [error,  setError]  = useState('');
 
   const set = (k) => (e) => setForm(f => ({ ...f, [k]: e.target.value }));
+
+  const handleUniversity = (e) => setForm(f => ({ ...f, university: e.target.value, carrera: '' }));
+
+  const carrerasDisponibles = CARRERAS[form.university] ?? [];
 
   const handleSave = async () => {
     setSaving(true);
@@ -56,6 +70,7 @@ function ProfileSection() {
         apellido1:  form.apellido1.trim(),
         apellido2:  form.apellido2.trim(),
         university: form.university,
+        carrera:    form.carrera,
         study_year: form.study_year,
       });
       setSaved(true);
@@ -91,7 +106,7 @@ function ProfileSection() {
             <label className={styles.inputLabel}>Universidad</label>
             <div className={styles.selectWrap}>
               <RiBuilding2Line className={styles.selectIcon} />
-              <select className={styles.inputSelect} value={form.university} onChange={set('university')}>
+              <select className={styles.inputSelect} value={form.university} onChange={handleUniversity}>
                 <option value="">Seleccionar…</option>
                 {UNIVERSIDADES.map(u => <option key={u} value={u}>{u}</option>)}
               </select>
@@ -106,6 +121,22 @@ function ProfileSection() {
                 {ANOS.map(a => <option key={a} value={a}>{a}</option>)}
               </select>
             </div>
+          </div>
+        </div>
+
+        <div>
+          <label className={styles.inputLabel}>Carrera <span className={styles.optionalTag}>(opcional)</span></label>
+          <div className={styles.selectWrap}>
+            <RiGraduationCapLine className={styles.selectIcon} />
+            <select
+              className={styles.inputSelect}
+              value={form.carrera}
+              onChange={set('carrera')}
+              disabled={carrerasDisponibles.length === 0}
+            >
+              <option value="">{form.university ? 'Seleccionar…' : 'Selecciona una universidad primero'}</option>
+              {carrerasDisponibles.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
         </div>
 
