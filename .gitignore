@@ -29,6 +29,7 @@ dist-ssr
 
 # Archivos de ramos (PDFs, datos, presentaciones — solo locales)
 Ramos/
+!src/components/ramos/
 
 # Imágenes generadas de redes sociales (solo locales, se regeneran)
 "redes sociales/instagram/*.png"
