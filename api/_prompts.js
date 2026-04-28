@@ -1,27 +1,43 @@
-// Builds the system prompt for the pedagogical chat API.
-// Reads base prompt + method file from "Aprender modelos/" at project root.
+// Builds system prompts for the pedagogical chat API.
+// Reads prompt files from "Aprender modelos/" at project root.
 
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
 const PROMPTS_DIR = join(process.cwd(), 'Aprender modelos');
 
-const METHOD_FILES = {
-  herrera_aprender:       '01_HERRERA_APRENDER.md',
-  herrera_practicar:      '02_HERRERA_PRACTICAR.md',
-  mate_flash:             '03_MATEMATICO_FLASH.md',
-  mate_practica:          '04_MATEMATICO_PRACTICA_FULL.md',
-};
+function read(filename) {
+  return readFileSync(join(PROMPTS_DIR, filename), 'utf8');
+}
 
 /**
- * Reads 00_BASE_PROMPT.md and concatenates the method file for methodKey.
- * Returns the full system prompt string ready for injection into the Anthropic API.
- * If methodKey is unknown or empty, returns only the base prompt.
+ * Full conductor prompt: base rules + conductor + all 5 teaching methods.
+ * Used for all regular chat messages after the study plan is generated.
  */
-export function buildSystemPrompt(methodKey = '') {
-  const base = readFileSync(join(PROMPTS_DIR, '00_BASE_PROMPT.md'), 'utf8');
-  const methodFile = METHOD_FILES[methodKey];
-  if (!methodFile) return base;
-  const method = readFileSync(join(PROMPTS_DIR, methodFile), 'utf8');
-  return `${base}\n\n---\n\n${method}`;
+export function buildConductorPrompt() {
+  return [
+    read('00_BASE_PROMPT.md'),
+    read('06_CONDUCTOR.md'),
+    read('01_HERRERA_COMPLETO.md'),
+    read('02_MATEMATICO.md'),
+    read('03_TECNICO_MEMORIZACION.md'),
+    read('04_HISTORIA_HUMANIDADES.md'),
+    read('05_IDIOMAS.md'),
+  ].join('\n\n---\n\n');
+}
+
+/**
+ * Plan generation prompt: used only for the first message when the student
+ * requests a study plan. Returns a structured topic roadmap.
+ */
+export function buildPlanPrompt() {
+  return [
+    read('00_BASE_PROMPT.md'),
+    read('07_PLAN_GENERATOR.md'),
+  ].join('\n\n---\n\n');
+}
+
+// Legacy alias — kept for any other endpoints that may import this
+export function buildSystemPrompt() {
+  return buildConductorPrompt();
 }

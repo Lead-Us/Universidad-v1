@@ -6,15 +6,16 @@ import {
   RiArrowLeftLine, RiAddLine, RiDeleteBinLine,
   RiSparkling2Line, RiSendPlane2Fill,
   RiFileLine, RiLinksLine, RiText, RiCloseLine,
-  RiRefreshLine, RiCheckLine, RiUploadLine,
-  RiGlobalLine, RiAttachment2, RiBookOpenLine,
-  RiArrowRightSLine, RiArrowLeftSLine,
+  RiRefreshLine, RiUploadLine,
+  RiGlobalLine, RiAttachment2,
+  RiArrowLeftSLine,
   RiFolder3Line, RiSearchLine,
 } from 'react-icons/ri';
 import {
   getCuadernos, getBloques,
   getFuentes, addFuente, deleteFuente, uploadFuente,
   getMensajes, addMensaje, clearMensajes,
+  getBlockMemory, upsertBlockMemory, getProjectMemory, upsertProjectMemory,
 } from '../services/aprendizajeService.js';
 import { getAllUserFiles, getSignedUrl } from '../services/ramoFilesService.js';
 import styles from './AprenderBloque.module.css';
@@ -33,12 +34,12 @@ async function extractFileText(file) {
       const arrayBuffer = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
       let text = '';
-      for (let i = 1; i <= Math.min(pdf.numPages, 15); i++) {
+      for (let i = 1; i <= Math.min(pdf.numPages, 60); i++) {
         const page = await pdf.getPage(i);
         const content = await page.getTextContent();
         text += content.items.map(item => item.str).join(' ') + '\n';
       }
-      return text.slice(0, 12000);
+      return text.slice(0, 80000);
     } catch { return ''; }
   }
   if (/\.(docx|doc)$/i.test(file.name)) {
@@ -49,11 +50,11 @@ async function extractFileText(file) {
       const xmlKey = Object.keys(unzipped).find(k => k === 'word/document.xml');
       if (!xmlKey) return '';
       const xml = new TextDecoder().decode(unzipped[xmlKey]);
-      return xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 12000);
+      return xml.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80000);
     } catch { return ''; }
   }
   if (/\.(txt|md)$/i.test(file.name)) {
-    try { return (await file.text()).slice(0, 12000); } catch { return ''; }
+    try { return (await file.text()).slice(0, 80000); } catch { return ''; }
   }
   return '';
 }
@@ -551,22 +552,26 @@ export default function AprenderBloque() {
   const [loading,        setLoading]        = useState(true);
   const [showAdd,        setShowAdd]        = useState(false);
   const [showSources,    setShowSources]    = useState(true);
-  const [showMethod,     setShowMethod]     = useState(false);
-  const [selectedMethod, setSelectedMethod] = useState(null);
+  const [blockMemory,    setBlockMemory]    = useState('');
+  const [projectMemory,  setProjectMemory]  = useState('');
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const [nbs, blks, srcs, msgs] = await Promise.all([
+      const [nbs, blks, srcs, msgs, bMem, pMem] = await Promise.all([
         getCuadernos(),
         getBloques(notebookId),
         getFuentes(blockId),
         getMensajes(blockId),
+        getBlockMemory(blockId),
+        getProjectMemory(notebookId),
       ]);
       setNotebook(nbs.find(n => n.id === notebookId) ?? null);
       setBlock(blks.find(b => b.id === blockId) ?? null);
       setFuentes(srcs);
       setMessages(msgs);
+      setBlockMemory(bMem);
+      setProjectMemory(pMem);
     } catch { /* silencioso */ }
     finally { setLoading(false); }
   }, [notebookId, blockId]);
@@ -594,16 +599,16 @@ export default function AprenderBloque() {
     setMessages([]);
   };
 
-  const handleSelectMethod = (method) => {
-    setSelectedMethod(prev => prev?.key === method.key ? null : method);
-  };
+  const handleGeneratePlan = () => handleSend({ planMode: true });
 
-  const handleSend = async () => {
+  const handleSend = async ({ planMode = false } = {}) => {
     const text = input.trim();
-    if (!text && fuentes.length === 0) return;
+    if (!planMode && !text && fuentes.length === 0) return;
     if (generating) return;
 
-    const userContent = text || 'Genera un resumen o explicación del material proporcionado.';
+    const userContent = planMode
+      ? 'Genera mi plan de estudio.'
+      : (text || 'Genera un resumen o explicación del material proporcionado.');
     const tempId = `tmp-${Date.now()}`;
     const optimisticMsg = { id: tempId, role: 'user', content: userContent };
 
@@ -615,23 +620,78 @@ export default function AprenderBloque() {
     try {
       const savedUser = await addMensaje({ blockId, role: 'user', content: userContent });
 
+      const allMessages = messages
+        .map(m => ({ role: m.role, content: m.content }))
+        .concat([{ role: 'user', content: userContent }]);
+
       const res = await fetch('/api/aprender-chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          sources:   fuentes.map(f => ({ title: f.name || '', content: f.content || f.url || '', instructions: f.instructions || '' })),
-          methodKey: selectedMethod?.key ?? '',
-          messages:     messages
-            .map(m => ({ role: m.role, content: m.content }))
-            .concat([{ role: 'user', content: userContent }]),
+          sources:       fuentes.map(f => ({ title: f.name || '', content: f.content || f.url || '', instructions: f.instructions || '' })),
+          messages:      allMessages,
+          blockMemory,
+          projectMemory,
+          planMode,
         }),
       });
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Error del servidor');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || 'Error del servidor');
+      }
 
-      const savedAI = await addMensaje({ blockId, role: 'assistant', content: data.reply });
-      setMessages(prev => prev.filter(m => m.id !== tempId).concat([savedUser, savedAI]));
+      // Replace optimistic user message with saved record
+      setMessages(prev => prev.map(m => m.id === tempId ? savedUser : m));
+
+      // Read SSE stream progressively
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      const tempAiId = `tmp-ai-${Date.now()}`;
+      let fullReply = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // keep incomplete line in buffer
+
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          const jsonStr = line.slice(6).trim();
+          if (!jsonStr) continue;
+          let payload;
+          try { payload = JSON.parse(jsonStr); } catch { continue; }
+
+          if (payload.chunk) {
+            const isFirst = fullReply === '';
+            fullReply += payload.chunk;
+            if (isFirst) {
+              setMessages(prev => [...prev, { id: tempAiId, role: 'assistant', content: fullReply }]);
+            } else {
+              setMessages(prev => prev.map(m => m.id === tempAiId ? { ...m, content: fullReply } : m));
+            }
+          }
+
+          if (payload.done) {
+            const savedAI = await addMensaje({ blockId, role: 'assistant', content: fullReply });
+            setMessages(prev => prev.map(m => m.id === tempAiId ? savedAI : m));
+            if (payload.blockMemory && payload.blockMemory !== blockMemory) {
+              setBlockMemory(payload.blockMemory);
+              upsertBlockMemory(blockId, payload.blockMemory).catch(() => {});
+            }
+            if (payload.projectMemory && payload.projectMemory !== projectMemory) {
+              setProjectMemory(payload.projectMemory);
+              upsertProjectMemory(notebookId, payload.projectMemory).catch(() => {});
+            }
+          }
+
+          if (payload.error) throw new Error(payload.error);
+        }
+      }
     } catch (err) {
       setMessages(prev => prev.filter(m => m.id !== tempId));
       const errMsg = { id: `err-${Date.now()}`, role: 'assistant', content: `❌ ${err.message || 'Error al generar respuesta. Intenta de nuevo.'}` };
@@ -717,19 +777,6 @@ export default function AprenderBloque() {
             {fuentes.length > 0 && <span className={styles.badge}>{fuentes.length}</span>}
           </button>
 
-          {/* Method toggle */}
-          <button
-            className={[styles.iconBtnSm, showMethod ? styles.iconBtnActive : ''].join(' ')}
-            onClick={() => setShowMethod(v => !v)}
-            aria-label="Mostrar/ocultar método de estudio"
-            aria-pressed={showMethod}
-            title="Método de estudio"
-            style={selectedMethod ? { color: selectedMethod.color } : undefined}
-          >
-            <RiBookOpenLine />
-            {selectedMethod && <span className={styles.badge} style={{ background: selectedMethod.color }}>✓</span>}
-          </button>
-
           <button
             className={styles.iconBtnSm}
             onClick={handleClearChat}
@@ -784,6 +831,16 @@ export default function AprenderBloque() {
             )}
           </div>
 
+          {blockMemory && (
+            <div className={styles.memorySection}>
+              <div className={styles.memoryHeader}>
+                <RiSparkling2Line className={styles.memoryIcon} />
+                <span>Memoria del bloque</span>
+              </div>
+              <p className={styles.memoryText}>{blockMemory}</p>
+            </div>
+          )}
+
           <div className={styles.sourcesFooter}>
             <button
               className={styles.addSourceBtn}
@@ -806,16 +863,23 @@ export default function AprenderBloque() {
                   <RiSparkling2Line />
                 </div>
                 <h3 className={styles.chatEmptyTitle}>Listo para ayudarte</h3>
-                <p className={styles.chatEmptyText}>
-                  {fuentes.length === 0
-                    ? 'Agrega al menos una fuente y luego escribe tu consulta o presiona Generar.'
-                    : 'Escribe tu consulta o presiona ↵ para que la IA genere contenido basado en tus fuentes.'}
-                </p>
-                {selectedMethod && (
-                  <div className={styles.methodPill} style={{ '--m-color': selectedMethod.color }}>
-                    <span>{selectedMethod.emoji}</span>
-                    <span>{selectedMethod.name}</span>
-                  </div>
+                {fuentes.length > 0 ? (
+                  <>
+                    <p className={styles.chatEmptyText}>
+                      Genera un plan de estudio personalizado basado en tus fuentes, o escribe tu consulta directamente.
+                    </p>
+                    <button
+                      className={styles.planBtn}
+                      onClick={handleGeneratePlan}
+                      style={{ '--color': color }}
+                    >
+                      <RiSparkling2Line /> Generar plan de estudio
+                    </button>
+                  </>
+                ) : (
+                  <p className={styles.chatEmptyText}>
+                    Agrega al menos una fuente para comenzar.
+                  </p>
                 )}
               </div>
             )}
@@ -824,25 +888,12 @@ export default function AprenderBloque() {
               <ChatMessage key={msg.id ?? msg.created_at} msg={msg} />
             ))}
 
-            {generating && <TypingIndicator />}
+            {generating && messages[messages.length - 1]?.role !== 'assistant' && <TypingIndicator />}
             <div ref={messagesEndRef} />
           </div>
 
           {/* Input bar */}
           <div className={styles.inputBar}>
-            {selectedMethod && (
-              <div className={styles.methodIndicator} style={{ '--m-color': selectedMethod.color }}>
-                <span className={styles.methodIndicatorEmoji}>{selectedMethod.emoji}</span>
-                <span className={styles.methodIndicatorName}>{selectedMethod.name}</span>
-                <button
-                  className={styles.methodIndicatorClear}
-                  onClick={() => setSelectedMethod(null)}
-                  aria-label="Quitar método"
-                >
-                  <RiCloseLine />
-                </button>
-              </div>
-            )}
             <div className={styles.inputWrap}>
               <textarea
                 ref={inputRef}
@@ -875,66 +926,6 @@ export default function AprenderBloque() {
           </div>
         </main>
 
-        {/* ── Right: Method panel ── */}
-        <aside
-          className={[
-            styles.methodPanel,
-            showMethod ? styles.methodPanelOpen : styles.methodPanelClosed,
-          ].join(' ')}
-          aria-label="Panel de métodos de estudio"
-        >
-          <div className={styles.methodPanelHead}>
-            <button
-              className={styles.panelCollapseBtn}
-              onClick={() => setShowMethod(false)}
-              aria-label="Ocultar métodos"
-              title="Ocultar"
-            >
-              <RiArrowRightSLine />
-            </button>
-            <div className={styles.methodPanelTitle}>
-              <RiBookOpenLine className={styles.methodPanelIcon} />
-              <span>Método</span>
-            </div>
-          </div>
-
-          <div className={styles.methodScroll}>
-            <p className={styles.methodPanelHint}>
-              Selecciona cómo la IA debe enseñarte el material.
-            </p>
-
-            <div className={styles.methodCards}>
-              {METHODS.map(m => {
-                const isSelected = selectedMethod?.key === m.key;
-                return (
-                  <button
-                    key={m.key}
-                    className={[styles.methodCard, isSelected ? styles.methodCardSelected : ''].join(' ')}
-                    style={{ '--m-color': m.color }}
-                    onClick={() => handleSelectMethod(m)}
-                    aria-pressed={isSelected}
-                    title={m.name}
-                  >
-                    <div className={styles.methodCardTop}>
-                      <span className={styles.methodEmoji} aria-hidden>{m.emoji}</span>
-                      {isSelected && (
-                        <span className={styles.methodCheckBadge} aria-label="Seleccionado">
-                          <RiCheckLine />
-                        </span>
-                      )}
-                    </div>
-                    <p className={styles.methodCardName}>{m.name}</p>
-                    <p className={styles.methodCardShort}>{m.short}</p>
-                  </button>
-                );
-              })}
-            </div>
-
-            {!selectedMethod && (
-              <p className={styles.methodNoneHint}>Sin método activo — la IA usará un modo tutor general.</p>
-            )}
-          </div>
-        </aside>
       </div>
 
       {/* ── Add Source modal ── */}

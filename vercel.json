@@ -1,5 +1,8 @@
 {
   "framework": "vite",
+  "functions": {
+    "api/aprender-chat.js": { "maxDuration": 300 }
+  },
   "rewrites": [
     { "source": "/", "destination": "/landing/index.html" },
     { "source": "/((?!api/|landing/).*)", "destination": "/index.html" }

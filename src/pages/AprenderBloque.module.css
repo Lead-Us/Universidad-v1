@@ -12,19 +12,18 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 1.25rem;
+  padding: 0 var(--space-5);
   height: 56px;
   border-bottom: 1px solid var(--lg-border);
   background: var(--lg-surface);
-  backdrop-filter: var(--blur-sm);
   flex-shrink: 0;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .topBarLeft {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: var(--space-3);
   min-width: 0;
   flex: 1;
 }
@@ -32,22 +31,23 @@
 .topBarRight {
   display: flex;
   align-items: center;
-  gap: 0.375rem;
+  gap: var(--space-1);
   flex-shrink: 0;
 }
 
 .backBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.625rem;
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-3);
   border-radius: var(--lg-radius-sm);
   background: none;
   border: none;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   cursor: pointer;
-  transition: color 150ms ease, background 150ms ease;
+  transition: color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
   white-space: nowrap;
   min-height: 36px;
   font-family: inherit;
@@ -69,9 +69,9 @@
 .blockName {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-primary);
   min-width: 0;
   overflow: hidden;
@@ -81,9 +81,9 @@
 
 .blockNum {
   font-size: var(--text-xs);
-  font-weight: 800;
-  padding: 0.15rem 0.4rem;
-  border-radius: var(--lg-radius-sm);
+  font-weight: var(--weight-extrabold);
+  padding: 2px var(--space-1);
+  border-radius: var(--radius-xs);
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
@@ -174,22 +174,22 @@
 }
 
 .sourcesPanelHead {
-  padding: 0.75rem 1rem;
+  padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--lg-border);
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: var(--space-2);
   min-width: 0;
 }
 
 .sourcesPanelTitle {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--space-2);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-primary);
   min-width: 0;
   flex: 1;
@@ -197,7 +197,7 @@
   overflow: hidden;
 }
 
-.sourcesPanelIcon { font-size: 1rem; color: var(--text-muted); flex-shrink: 0; }
+.sourcesPanelIcon { font-size: var(--text-base); color: var(--text-muted); flex-shrink: 0; }
 
 .sourceCount {
   margin-left: auto;
@@ -206,8 +206,8 @@
   color: var(--text-secondary);
   border-radius: var(--lg-radius-pill);
   font-size: 11px;
-  font-weight: 600;
-  padding: 0 0.4rem;
+  font-weight: var(--weight-semibold);
+  padding: 0 var(--space-1);
   min-width: 20px;
   text-align: center;
   flex-shrink: 0;
@@ -216,7 +216,7 @@
 .sourcesScroll {
   flex: 1;
   overflow-y: auto;
-  padding: 0.625rem 0;
+  padding: var(--space-2) 0;
   min-width: 0;
 }
 
@@ -224,9 +224,9 @@
 .sourceItem {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.625rem 1rem;
-  transition: background 150ms ease;
+  gap: var(--space-3);
+  padding: var(--space-2) var(--space-4);
+  transition: background var(--dur-fast) var(--ease-out);
 }
 
 .sourceItem:hover { background: var(--lg-surface-hover); }
@@ -321,6 +321,43 @@
 }
 
 /* ── Sources footer ── */
+/* ── Memory section (inside sources panel) ── */
+.memorySection {
+  margin: 0 0.75rem 0;
+  padding: 0.625rem 0.75rem;
+  background: rgba(var(--accent-rgb), 0.06);
+  border: 1px solid rgba(var(--accent-rgb), 0.18);
+  border-radius: var(--lg-radius-md);
+}
+
+.memoryHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.375rem;
+}
+
+.memoryIcon {
+  font-size: 0.7rem;
+  flex-shrink: 0;
+}
+
+.memoryText {
+  font-size: 11px;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .sourcesFooter {
   padding: 0.75rem;
   border-top: 1px solid var(--lg-border);
@@ -369,10 +406,10 @@
 .messages {
   flex: 1;
   overflow-y: auto;
-  padding: 2.5rem max(1.5rem, calc(50% - 420px)) 1rem;
+  padding: var(--space-10) max(var(--space-6), calc(50% - 420px)) var(--space-4);
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-8);
   scroll-behavior: smooth;
   transition: padding 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -384,8 +421,8 @@
   align-items: center;
   text-align: center;
   margin: auto;
-  padding: 2rem;
-  gap: 0.875rem;
+  padding: var(--space-8);
+  gap: var(--space-3);
   max-width: 380px;
 }
 
@@ -396,14 +433,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.75rem;
+  font-size: var(--text-2xl);
 }
 
 .chatEmptyTitle {
   font-size: var(--text-lg);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   color: var(--text-primary);
   margin: 0;
+  letter-spacing: -0.02em;
 }
 
 .chatEmptyText {
@@ -413,18 +451,24 @@
   margin: 0;
 }
 
-/* Method pill in empty state */
-.methodPill {
+.planBtn {
   display: inline-flex;
   align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.875rem;
-  background: color-mix(in srgb, var(--m-color) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--m-color) 35%, transparent);
-  border-radius: var(--lg-radius-pill);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--m-color);
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding: 10px var(--space-5);
+  border-radius: var(--lg-radius-lg);
+  border: none;
+  background: var(--color, var(--accent));
+  color: #fff;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: opacity var(--dur-fast);
+}
+
+.planBtn:hover {
+  opacity: 0.85;
 }
 
 /* ── Message rows ── */
@@ -476,35 +520,40 @@
   white-space: pre-wrap;
 }
 
-/* Markdown in AI messages */
+/* Markdown in AI messages — Inter typography (Claude-style) */
 .bubbleMarkdown {
-  font-size: var(--text-sm);
+  font-family: var(--font-claude);
+  font-size: var(--text-sm);      /* 1rem after global scale = 16px */
   color: var(--text-primary);
+  line-height: 1.85;
+  letter-spacing: 0.005em;
+  font-weight: 400;
 }
 
-.bubbleMarkdown p            { margin: 0 0 0.75rem; line-height: 1.75; }
+.bubbleMarkdown p            { margin: 0 0 1rem; line-height: 1.85; }
 .bubbleMarkdown p:last-child { margin-bottom: 0; }
 .bubbleMarkdown h1,
 .bubbleMarkdown h2,
-.bubbleMarkdown h3      { font-weight: 700; margin: 1.25rem 0 0.5rem; color: var(--text-primary); }
+.bubbleMarkdown h3      { font-family: var(--font-claude); font-weight: 600; letter-spacing: -0.01em; margin: 1.5rem 0 0.625rem; color: var(--text-primary); }
 .bubbleMarkdown h1      { font-size: var(--text-lg); }
 .bubbleMarkdown h2      { font-size: var(--text-base); }
 .bubbleMarkdown h3      { font-size: var(--text-sm); }
 .bubbleMarkdown ul,
-.bubbleMarkdown ol      { padding-left: 1.5rem; margin: 0.5rem 0; }
-.bubbleMarkdown li      { margin-bottom: 0.375rem; line-height: 1.65; }
-.bubbleMarkdown code    { background: rgba(255,255,255,0.08); border-radius: 4px; padding: 0.15em 0.4em; font-size: 0.875em; font-family: monospace; }
-.bubbleMarkdown pre     { background: rgba(255,255,255,0.04); border: 1px solid var(--lg-border); border-radius: 8px; padding: 1rem; overflow-x: auto; margin: 0.75rem 0; }
-.bubbleMarkdown pre code { background: none; padding: 0; }
-.bubbleMarkdown strong  { font-weight: 700; }
-.bubbleMarkdown em      { font-style: italic; }
+.bubbleMarkdown ol      { padding-left: 1.625rem; margin: 0.625rem 0; }
+.bubbleMarkdown li      { margin-bottom: 0.5rem; line-height: 1.8; }
+.bubbleMarkdown code    { background: rgba(255,255,255,0.09); border-radius: 5px; padding: 0.18em 0.45em; font-size: 0.88em; font-family: 'SF Mono', 'Fira Code', Consolas, monospace; letter-spacing: 0; }
+.bubbleMarkdown pre     { background: rgba(255,255,255,0.04); border: 1px solid var(--lg-border); border-radius: 10px; padding: 1.125rem; overflow-x: auto; margin: 1rem 0; }
+.bubbleMarkdown pre code { background: none; padding: 0; font-size: 0.9em; }
+.bubbleMarkdown strong  { font-weight: 600; color: var(--text-primary); }
+.bubbleMarkdown em      { font-style: italic; color: var(--text-secondary); }
+.bubbleMarkdown a       { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
 .bubbleMarkdown blockquote {
   background: rgba(255, 255, 255, 0.03);
-  border: 1px solid var(--lg-border);
-  border-radius: 6px;
-  padding: 0.5rem 0.875rem;
-  color: var(--text-muted);
-  margin: 0.75rem 0;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 0.625rem 1rem;
+  color: var(--text-secondary);
+  margin: 1rem 0;
   font-style: italic;
 }
 
@@ -542,66 +591,19 @@
   transition: padding 250ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Method indicator above input */
-.methodIndicator {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.375rem 0.625rem;
-  margin-bottom: 0.5rem;
-  background: color-mix(in srgb, var(--m-color) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--m-color) 28%, transparent);
-  border-radius: var(--lg-radius-md);
-}
-
-.methodIndicatorEmoji {
-  font-size: 0.9rem;
-  line-height: 1;
-}
-
-.methodIndicatorName {
-  flex: 1;
-  font-size: var(--text-xs);
-  font-weight: 600;
-  color: var(--m-color);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.methodIndicatorClear {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: none;
-  border: none;
-  color: var(--m-color);
-  opacity: 0.7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  cursor: pointer;
-  flex-shrink: 0;
-  padding: 0;
-  transition: opacity 150ms ease;
-}
-
-.methodIndicatorClear:hover { opacity: 1; }
-
 .inputWrap {
   display: flex;
   align-items: flex-end;
-  gap: 0.625rem;
-  background: #1a1a1a;
-  border: 1px solid #333333;
-  border-radius: 12px;
-  padding: 0.625rem 0.625rem 0.625rem 1.125rem;
-  transition: border-color 150ms ease;
+  gap: var(--space-2);
+  background: var(--input-bg-focus);
+  border: 1.5px solid var(--lg-border-dark);
+  border-radius: var(--lg-radius-lg);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+  transition: border-color var(--dur-fast) var(--ease-out);
 }
 
 .inputWrap:focus-within {
-  border-color: #444444;
+  border-color: #555555;
 }
 
 .chatInput {
@@ -615,8 +617,8 @@
   resize: none;
   max-height: 160px;
   min-height: 24px;
-  line-height: 1.5;
-  padding: 0;
+  line-height: 1.6;
+  padding: var(--space-2) 0;
   field-sizing: content;
 }
 
@@ -626,17 +628,17 @@
 .sendBtn {
   width: 36px;
   height: 36px;
-  border-radius: 10px;
+  border-radius: var(--lg-radius-md);
   background: var(--text-primary);
   border: none;
   color: var(--lg-surface);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
+  font-size: var(--text-base);
   cursor: pointer;
   flex-shrink: 0;
-  transition: opacity 150ms ease, transform 150ms ease;
+  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out);
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -657,169 +659,8 @@
 .inputHint {
   font-size: 11px;
   color: var(--text-muted);
-  margin: 0.375rem 0 0 0.25rem;
+  margin: var(--space-1) 0 0 var(--space-1);
   text-align: right;
-  opacity: 0.7;
-}
-
-/* ── Method panel ── */
-.methodPanel {
-  width: 256px;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  border-left: 1px solid var(--lg-border);
-  background: var(--lg-surface);
-  overflow: hidden;
-  transition: width 250ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.methodPanelClosed {
-  width: 0;
-}
-
-.methodPanelHead {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--lg-border);
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.methodPanelTitle {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--text-primary);
-  min-width: 0;
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.methodPanelIcon { font-size: 1rem; color: var(--text-muted); flex-shrink: 0; }
-
-.methodScroll {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0.875rem 0.75rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  min-width: 0;
-}
-
-.methodPanelHint {
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  line-height: 1.5;
-  margin: 0 0.25rem 0.375rem;
-}
-
-.methodCards {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-/* ── Method card ── */
-.methodCard {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.3rem;
-  padding: 0.75rem;
-  background: var(--lg-surface);
-  border: 1.5px solid var(--lg-border);
-  border-radius: var(--lg-radius-lg);
-  cursor: pointer;
-  text-align: left;
-  font-family: inherit;
-  transition:
-    border-color 150ms ease,
-    background 150ms ease,
-    box-shadow 150ms ease,
-    transform 100ms ease;
-  -webkit-tap-highlight-color: transparent;
-  width: 100%;
-  min-height: 44px;
-}
-
-.methodCard:hover {
-  border-color: var(--m-color);
-  background: color-mix(in srgb, var(--m-color) 5%, var(--lg-surface));
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--m-color) 15%, transparent);
-}
-
-.methodCard:active { transform: scale(0.98); }
-.methodCard:focus-visible { outline: 2px solid var(--m-color); outline-offset: 2px; }
-
-.methodCardSelected {
-  border-color: var(--m-color);
-  background: color-mix(in srgb, var(--m-color) 9%, var(--lg-surface));
-  box-shadow: 0 2px 12px color-mix(in srgb, var(--m-color) 20%, transparent);
-}
-
-.methodCardTop {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-}
-
-.methodEmoji {
-  font-size: 1.25rem;
-  line-height: 1;
-}
-
-.methodCheckBadge {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--m-color);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.7rem;
-  flex-shrink: 0;
-  animation: popIn 150ms cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-@keyframes popIn {
-  from { opacity: 0; transform: scale(0.5); }
-  to   { opacity: 1; transform: scale(1); }
-}
-
-.methodCardName {
-  font-size: var(--text-xs);
-  font-weight: 700;
-  color: var(--text-primary);
-  margin: 0;
-  line-height: 1.3;
-}
-
-.methodCardSelected .methodCardName {
-  color: var(--m-color);
-}
-
-.methodCardShort {
-  font-size: 11px;
-  color: var(--text-muted);
-  margin: 0;
-  line-height: 1.4;
-}
-
-.methodNoneHint {
-  font-size: 11px;
-  color: var(--text-muted);
-  text-align: center;
-  margin: 0.5rem 0.25rem 0;
-  line-height: 1.5;
   opacity: 0.7;
 }
 
@@ -1274,23 +1115,6 @@
   .sourcesPanelOpen  { transform: translateX(0);    }
   .sourcesPanelClosed { transform: translateX(-100%); }
 
-  /* Method panel slides in from right */
-  .methodPanel {
-    position: fixed;
-    top: 0;
-    bottom: var(--nav-height, 60px);
-    right: 0;
-    width: 85vw !important;
-    max-width: 300px;
-    z-index: 100;
-    border-left: 1px solid var(--lg-border);
-    transform: translateX(100%);
-    transition: transform 280ms cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .methodPanelOpen   { transform: translateX(0);   }
-  .methodPanelClosed { transform: translateX(100%); }
-
   .topBar { padding: 0 0.75rem; }
   .backLabel { display: none; }
   .messages { padding: 1.5rem 1rem 0.75rem; }
@@ -1301,10 +1125,8 @@
 @media (min-width: 769px) {
   /* On desktop, panels are inline. panelCollapseBtn hides them. */
   .sourcesPanelClosed { width: 0; }
-  .methodPanelClosed  { width: 0; }
 }
 
 @media (max-width: 1100px) {
   .sourcesPanel { width: 240px; }
-  .methodPanel  { width: 220px; }
 }
