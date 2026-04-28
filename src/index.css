@@ -4,7 +4,7 @@
    Font: DM Sans (Google Fonts)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Inter:wght@300;400;500;600;700&display=swap');
 
 /* ============================================================
    VARIABLES — Dark Design Tokens
@@ -130,17 +130,19 @@
   --input-bg-focus: #1a1a1a;
   --input-border:   #2a2a2a;
 
-  /* ── Typography — DM Sans ── */
+  /* ── Typography — DM Sans / Inter ── */
   --font-display: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-ui:      'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-claude:  'Inter', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
 
-  --text-xs:   0.75rem;
-  --text-sm:   0.875rem;
-  --text-base: 1rem;
-  --text-lg:   1.125rem;
-  --text-xl:   1.375rem;
-  --text-2xl:  1.75rem;
-  --text-3xl:  2.25rem;
+  /* +15% scale vs original (0.75 / 0.875 / 1 / 1.125 / 1.375 / 1.75 / 2.25) */
+  --text-xs:   0.875rem;   /* was 0.75rem  */
+  --text-sm:   1rem;       /* was 0.875rem */
+  --text-base: 1.125rem;   /* was 1rem     */
+  --text-lg:   1.3rem;     /* was 1.125rem */
+  --text-xl:   1.575rem;   /* was 1.375rem */
+  --text-2xl:  2rem;       /* was 1.75rem  */
+  --text-3xl:  2.625rem;   /* was 2.25rem  */
 
   --weight-normal:    400;
   --weight-medium:    500;
@@ -180,6 +182,15 @@
   --border-color:  #2a2a2a;
   --border-strong: #3a3a3a;
   --shadow-xl:     var(--lg-shadow-modal);
+}
+
+/* ============================================================
+   ICON SCALE — react-icons SVGs use width/height="1em"
+   Scaling to 1.15em gives ~15% larger icons app-wide.
+   ============================================================ */
+svg[height="1em"] {
+  width:  1.15em;
+  height: 1.15em;
 }
 
 /* ============================================================
@@ -287,7 +298,8 @@ input, select, textarea {
   border: 1.5px solid var(--input-border);
   color: var(--text-primary);
   border-radius: var(--lg-radius-md);
-  padding: 10px var(--space-3);
+  padding: 11px var(--space-3);
+  min-height: 44px;
   width: 100%;
   transition:
     border-color var(--dur-fast) var(--ease-out),
@@ -382,14 +394,16 @@ label {
   justify-content: space-between;
   margin-bottom: var(--space-6);
   gap: var(--space-4);
+  flex-wrap: wrap;
 }
 
 .section-title {
   font-family: var(--font-display);
-  font-size: clamp(1.75rem, 3vw, 2.25rem);
+  font-size: clamp(1.625rem, 3vw, 2.125rem);
   font-weight: var(--weight-extrabold);
   letter-spacing: -0.03em;
   color: var(--text-primary);
+  line-height: 1.15;
 }
 
 .cards-grid { display: grid; grid-template-columns: 1fr; gap: var(--space-4); }

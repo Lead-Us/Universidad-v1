@@ -193,20 +193,22 @@
 /* ── Submit ── */
 .submitBtn {
   width: 100%;
-  padding: 13px;
-  border-radius: var(--lg-radius-md);
+  padding: 14px var(--space-5);
+  min-height: 50px;
+  border-radius: var(--lg-radius-pill);
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
   font-family: var(--font-ui);
   color: #fff;
-  background: var(--accent);
+  background: var(--accent-gradient);
   border: none;
   cursor: pointer;
-  transition: all var(--dur-fast) var(--ease-out);
-  box-shadow: 0 2px 8px rgba(var(--accent-rgb), 0.35);
+  letter-spacing: -0.01em;
+  transition: opacity var(--dur-fast) var(--ease-out), transform var(--dur-instant) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out);
+  box-shadow: 0 2px 10px rgba(var(--accent-rgb), 0.35);
   margin-top: var(--space-1);
 }
-.submitBtn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); }
+.submitBtn:hover:not(:disabled) { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(var(--accent-rgb), 0.45); }
 .submitBtn:active { transform: scale(0.98); }
 .submitBtn:disabled { opacity: 0.60; cursor: not-allowed; }
 

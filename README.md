@@ -60,10 +60,11 @@ Aprender modelos/  # Prompts pedagógicos en Markdown
 | `/settings` | Configuración | Autenticado + suscrito |
 | `/importar` | Importar archivos | Autenticado + suscrito |
 | `/admin` | Panel admin | Autenticado + suscrito |
+| `/tutorial` | Tutorial de la app | Público |
 | `/login` | Inicio de sesión | Público |
 | `/register` | Registro | Público |
 | `/checkout` | Pago Stripe | Autenticado |
-| `/onboarding` | Onboarding inicial | Post-registro |
+| `/tareas` | Alias de `/calendario` | Autenticado + suscrito |
 
 ## API Endpoints
 
@@ -88,8 +89,14 @@ Aprender modelos/  # Prompts pedagógicos en Markdown
 | `units` | `materias` | Pertenece a un ramo |
 | `schedule` | — | `day_of_week`: 0=Lun … 6=Dom (NO convención JS) |
 | `tasks` | — | `type` ∈ {tarea, evaluación, control, quiz} |
-| `learning_models` | — | Estrategias de estudio personalizadas |
-| `learning_submodules` | — | Pertenece a `learning_model` |
+| `learning_models` | — | Cuadernos de aprendizaje |
+| `learning_submodules` | — | Legacy; pertenece a `learning_model` |
+| `aprender_blocks` | — | Bloques de un cuaderno (`project_id` → `learning_models`) |
+| `aprender_block_sources` | — | Fuentes por bloque (archivo, URL, texto) |
+| `aprender_block_chats` | — | Historial de chat por bloque |
+| `aprender_block_memory` | — | Memoria pedagógica IA por bloque (UNIQUE user_id+block_id) |
+| `aprender_project_memory` | — | Memoria pedagógica IA por cuaderno (UNIQUE user_id+project_id) |
+| `feedback` | — | Feedback de usuarios |
 
 Todas las tablas: RLS habilitado, política `auth.uid() = user_id` en cada fila.
 
@@ -135,9 +142,9 @@ npm run test:chat    # Test del sistema de chat
 
 **`schedule.day_of_week`:** 0=Lunes … 6=Domingo (distinto a la convención JS de 0=Domingo).
 
-## Temas
+## Tema
 
-La app soporta 5 temas: `oscuro · noche · claro · calido · colorido` — aplicados por `SettingsContext` en runtime via CSS custom properties. Nunca hardcodear colores; usar siempre `var(--...)`.
+**Tema oscuro único** — `SettingsContext` aplica un tema dark minimal fijo en runtime via CSS custom properties en `document.documentElement`. No hay selector de temas. Nunca hardcodear colores; usar siempre `var(--...)`.
 
 ## Deployment
 

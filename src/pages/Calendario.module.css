@@ -15,6 +15,17 @@
   }
 }
 
+/* ── Column containers ────────────────────────────────────────────────── */
+.calCol {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.taskCol {
+  min-width: 0;
+  overflow: hidden;
+}
+
 /* ── Calendar card ────────────────────────────────────────────────────── */
 .calCard {
   background: var(--lg-surface);

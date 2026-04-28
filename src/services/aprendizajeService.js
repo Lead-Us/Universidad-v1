@@ -180,6 +180,10 @@ export async function getBloquesCount(notebookId) {
 // ── Demo content for new users ────────────────────────────────────────────────
 
 export async function createDemoContent() {
+  // Only create if the user has no notebooks yet
+  const existing = await getCuadernos();
+  if (existing.length > 0) return null;
+
   const cuaderno = await createCuaderno({
     name: 'Guía de la App',
     description: 'Tu punto de partida — aprende cómo funciona Aprender con este bloque de prueba.',
@@ -218,6 +222,48 @@ Puedes eliminar este cuaderno cuando ya no lo necesites y crear los tuyos propio
   });
 
   return cuaderno;
+}
+
+// ── AI Memory ─────────────────────────────────────────────────────────────────
+
+export async function getBlockMemory(blockId) {
+  const { data } = await supabase
+    .from('aprender_block_memory')
+    .select('content')
+    .eq('block_id', blockId)
+    .maybeSingle();
+  return data?.content ?? '';
+}
+
+export async function upsertBlockMemory(blockId, content) {
+  const uid = await getUid();
+  const { error } = await supabase
+    .from('aprender_block_memory')
+    .upsert(
+      { user_id: uid, block_id: blockId, content, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id,block_id' }
+    );
+  if (error) throw error;
+}
+
+export async function getProjectMemory(projectId) {
+  const { data } = await supabase
+    .from('aprender_project_memory')
+    .select('content')
+    .eq('project_id', projectId)
+    .maybeSingle();
+  return data?.content ?? '';
+}
+
+export async function upsertProjectMemory(projectId, content) {
+  const uid = await getUid();
+  const { error } = await supabase
+    .from('aprender_project_memory')
+    .upsert(
+      { user_id: uid, project_id: projectId, content, updated_at: new Date().toISOString() },
+      { onConflict: 'user_id,project_id' }
+    );
+  if (error) throw error;
 }
 
 // ── Compatibility aliases (for Notebook.jsx / NotebookWorkspace) ──────────────

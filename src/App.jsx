@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './lib/AuthContext.jsx';
 import { SettingsProvider } from './lib/SettingsContext.jsx';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { createDemoContent } from './services/aprendizajeService.js';
 import Layout           from './components/layout/Layout.jsx';
 import Landing          from './pages/Landing.jsx';
@@ -9,7 +9,6 @@ import Register         from './pages/Register.jsx';
 import Login            from './pages/Login.jsx';
 import Checkout         from './pages/Checkout.jsx';
 import UpdatePassword   from './pages/UpdatePassword.jsx';
-import Onboarding       from './pages/Onboarding.jsx';
 import Dashboard        from './pages/Dashboard.jsx';
 import Ramos            from './pages/Ramos.jsx';
 import RamoDetail       from './pages/RamoDetail.jsx';
@@ -25,22 +24,14 @@ import Tutorial         from './pages/Tutorial.jsx';
 
 function AppRoutes() {
   const { isAuthenticated, isSubscribed, isRecoveryMode, loading, user } = useAuth();
-  const [onboardingDone, setOnboardingDone] = useState(true);
 
+  // Create demo content once for new users (skips silently if they already have notebooks)
+  const userId = user?.id;
   useEffect(() => {
-    if (user) {
-      const done = !!localStorage.getItem(`uni_onboarding_done_${user.id}`);
-      setOnboardingDone(done);
-    }
-  }, [user]);
-
-  const completeOnboarding = () => {
-    if (user) {
-      localStorage.setItem(`uni_onboarding_done_${user.id}`, '1');
+    if (userId && isSubscribed) {
       createDemoContent().catch(() => {});
     }
-    setOnboardingDone(true);
-  };
+  }, [userId, isSubscribed]);
 
   // ── Password recovery link clicked ──────────────────────────
   if (isRecoveryMode) {
@@ -86,11 +77,6 @@ function AppRoutes() {
         <Route path="*"                   element={<Navigate to="/checkout" replace />} />
       </Routes>
     );
-  }
-
-  // ── Subscribed but onboarding not done ───────────────────────
-  if (!onboardingDone) {
-    return <Onboarding onComplete={completeOnboarding} />;
   }
 
   // ── Full app ─────────────────────────────────────────────────

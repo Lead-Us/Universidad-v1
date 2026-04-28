@@ -120,6 +120,7 @@ const REVEAL_SELECTORS = [
   '.reveal-clip', '.reveal-line'
 ];
 
+// Safari has a bug with negative rootMargin — use threshold only
 const revealObs = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     if (entry.isIntersecting) {
@@ -127,7 +128,7 @@ const revealObs = new IntersectionObserver((entries) => {
       revealObs.unobserve(entry.target);
     }
   });
-}, { threshold: 0.12, rootMargin: '0px 0px -56px 0px' });
+}, { threshold: 0.1 });
 
 document.querySelectorAll(REVEAL_SELECTORS.join(',')).forEach(el => {
   revealObs.observe(el);

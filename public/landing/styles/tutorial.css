@@ -21,7 +21,7 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   z-index: 200; transition: width 0.05s linear;
   box-shadow: 0 0 8px rgba(99,102,241,0.4);
 }
-.container { width: min(1180px, 100% - 48px); margin-inline: auto; }
+.container { width: calc(100% - 48px); max-width: 1180px; margin-left: auto; margin-right: auto; }
 .btn { display: inline-flex; align-items: center; gap: 6px; padding: 12px 24px; border-radius: 100px; font-family: var(--font-display); font-weight: 600; font-size: 0.875rem; letter-spacing: 0.02em; transition: transform 0.18s ease, box-shadow 0.18s ease; }
 .btn-primary { background: var(--accent); color: #fff; box-shadow: 0 0 0 0 rgba(99,102,241,0.3); }
 .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 40px rgba(99,102,241,0.35); }
@@ -31,7 +31,7 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 .logo-mark { width: 28px; height: auto; flex-shrink: 0; }
 .logo-text { font-family: var(--font-display); font-size: 0.8125rem; letter-spacing: 0.04em; color: rgba(255,255,255,0.65); text-transform: uppercase; }
 .logo-text strong { color: var(--accent-light); font-weight: 700; }
-.footer { border-top: 1px solid rgba(255,255,255,0.07); padding-block: 40px 48px; }
+.footer { border-top: 1px solid rgba(255,255,255,0.07); padding-top: 40px; padding-bottom: 48px; }
 .footer-inner { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px; }
 .logo-footer .logo-text { font-size: 0.6875rem; }
 .footer-links { display: flex; align-items: center; gap: 12px; font-size: 0.875rem; color: rgba(255,255,255,0.35); }
@@ -65,7 +65,8 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 /* ─── TUTORIAL HERO ──────────────────────────────────────── */
 .tut-hero {
   position: relative;
-  padding-block: calc(64px + 56px) 96px;
+  padding-top: calc(64px + 56px);
+  padding-bottom: 96px;
   overflow: hidden;
   border-bottom: 1px solid rgba(255,255,255,0.07);
 }
@@ -105,7 +106,8 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 
 /* ─── STEP SECTIONS ──────────────────────────────────────── */
 .tut-step {
-  padding-block: 96px;
+  padding-top: 96px;
+  padding-bottom: 96px;
   border-top: 1px solid rgba(255,255,255,0.07);
 }
 .tut-step--alt { background: #0d0d0d; }
@@ -297,7 +299,10 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 
 /* ─── FINAL CTA ──────────────────────────────────────────── */
 .tut-final {
-  position: relative; padding-block: 80px; overflow: hidden;
+  position: relative;
+  padding-top: 80px;
+  padding-bottom: 80px;
+  overflow: hidden;
   border-top: 1px solid rgba(255,255,255,0.07);
 }
 .tut-final-glow {
@@ -320,14 +325,20 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 
 /* ─── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .tut-step-inner { grid-template-columns: 1fr; gap: 48px; }
+  .tut-hero { padding-top: calc(56px + 32px); padding-bottom: 48px; }
+  .tut-step { padding-top: 56px; padding-bottom: 56px; }
+  .tut-step-inner { grid-template-columns: 1fr; gap: 40px; }
   .tut-step-inner--reversed { direction: ltr; }
-  .nav-actions .nav-link { display: none; }
+  /* Keep "← Volver" visible — compact it */
+  .nav-actions { gap: 12px; }
+  .nav-actions .nav-link { font-size: 12px; }
+  .nav-actions .btn-primary { font-size: 12px; padding: 9px 18px; }
   .reveal-left, .reveal-right { transform: translateY(32px); }
   .reveal-left.in, .reveal-right.in { transform: none; }
   .footer-inner { flex-direction: column; }
 }
 @media (max-width: 480px) {
   .container { width: calc(100% - 32px); }
+  .logo-text { font-size: 10px; letter-spacing: 0.02em; }
   .tut-steps-nav { gap: 6px; }
 }

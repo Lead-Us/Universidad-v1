@@ -48,7 +48,7 @@
 
 .title {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
   font-weight: var(--weight-semibold);
   color: var(--text-primary);
   letter-spacing: -0.02em;
@@ -60,21 +60,22 @@
   color: var(--text-muted);
   font-size: var(--text-base);
   cursor: pointer;
-  padding: 5px;
+  padding: 6px;
   border-radius: var(--lg-radius-sm);
   line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
   transition:
     background  var(--dur-fast) var(--ease-out),
     color       var(--dur-fast) var(--ease-out),
     transform   var(--dur-instant) var(--ease-out);
 }
 
-.close:hover  { background: rgba(255, 255, 255, 0.08); color: var(--text-primary); }
+.close:hover  { background: rgba(255, 255, 255, 0.10); color: var(--text-primary); border-color: var(--lg-border-dark); }
 .close:active { transform: scale(0.90); }
 
 .body {

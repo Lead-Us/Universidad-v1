@@ -21,9 +21,9 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
+  gap: 4px;
   flex: 1;
-  color: #555555;
+  color: #606060;
   text-decoration: none;
   transition: color var(--dur-fast) var(--ease-out);
   padding: var(--space-1) 0;
@@ -33,8 +33,8 @@
 .tabItem:active { opacity: 0.55; }
 .tabItem.active { color: #f0f0f0; }
 
-.tabIcon  { font-size: 21px; line-height: 1; }
-.tabLabel { font-size: 10px; font-weight: var(--weight-semibold); letter-spacing: 0.01em; }
+.tabIcon  { font-size: 22px; line-height: 1; }
+.tabLabel { font-size: 11px; font-weight: var(--weight-semibold); letter-spacing: 0.01em; }
 
 /* ══════════════════════════════════════════════════════════════
    DESKTOP SIDEBAR — Dark, 21st.dev style
@@ -122,15 +122,16 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 8px var(--space-3);
+    padding: 9px var(--space-3);
     border-radius: var(--lg-radius-sm);
     font-size: var(--text-sm);
     font-weight: var(--weight-normal);
-    color: #666666;
+    color: #777777;
     text-decoration: none;
     white-space: nowrap;
     overflow: hidden;
     cursor: pointer;
+    min-height: 38px;
     transition:
       background  var(--dur-fast) var(--ease-out),
       color       var(--dur-fast) var(--ease-out);
@@ -138,17 +139,17 @@
   }
 
   .sidebarItem:hover {
-    background: rgba(255, 255, 255, 0.05);
-    color: #cccccc;
+    background: rgba(255, 255, 255, 0.06);
+    color: #dddddd;
   }
 
   .sidebarItem:active {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.09);
   }
 
   /* Active: filled bg + accent icon */
   .sidebarItem.active {
-    background: rgba(99, 102, 241, 0.10);
+    background: rgba(99, 102, 241, 0.12);
     color: #f0f0f0;
     font-weight: var(--weight-medium);
   }
@@ -157,7 +158,7 @@
     color: var(--accent);
   }
 
-  .icon  { font-size: 17px; flex-shrink: 0; color: inherit; }
+  .icon  { font-size: 18px; flex-shrink: 0; color: inherit; }
   .label { overflow: hidden; flex: 1; }
 
   /* ── Bottom area ── */

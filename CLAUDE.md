@@ -30,8 +30,14 @@ supabase/       # schema.sql + Deno edge functions
 | `units` | `materias` | Belongs to ramo |
 | `schedule` | — | `day_of_week` 0=Mon…6=Sun (not JS convention) |
 | `tasks` | — | `type` ∈ {tarea, evaluación, control, quiz} |
-| `learning_models` | — | Custom study strategies |
-| `learning_submodules` | — | Belongs to learning_model |
+| `learning_models` | — | Cuadernos (notebooks) |
+| `learning_submodules` | — | Legacy; belongs to learning_model |
+| `aprender_blocks` | — | Bloques inside a cuaderno (`project_id` → learning_models) |
+| `aprender_block_sources` | — | Fuentes per block (file, url, text) |
+| `aprender_block_chats` | — | Chat history per block |
+| `aprender_block_memory` | — | AI pedagogical memory per block (UNIQUE user_id+block_id) |
+| `aprender_project_memory` | — | AI pedagogical memory per notebook (UNIQUE user_id+project_id) |
+| `feedback` | — | User feedback submissions |
 | `profiles` | — | Mirrors auth.users, has `name` |
 
 All tables: RLS enabled, `auth.uid() = user_id` policy on every row.
@@ -119,21 +125,38 @@ Routes are registered in `src/App.jsx` inside `<Route element={<Layout />}>`.
 ALL visual tokens are CSS custom properties — never hardcode colors, shadows, or blur.
 ```css
 /* Surfaces */      var(--lg-surface)  var(--lg-surface-hover)  var(--lg-border)
-/* Shadows */       var(--lg-shadow)   var(--lg-shadow-hover)
-/* Blur */          var(--blur-sm)     var(--blur-base)  var(--blur-lg)
+/* Shadows */       var(--lg-shadow)   var(--lg-shadow-hover)   var(--lg-shadow-modal)
+/* Blur */          var(--blur-sm)     var(--blur-base)  var(--blur-lg)  /* all → none currently */
 /* Text */          var(--text-primary) var(--text-secondary) var(--text-muted)
 /* Accent */        var(--accent)      var(--accent-rgb)  var(--accent-bg)
 /* Typography */    var(--text-xs/sm/base/lg/xl/2xl/3xl)
-/* Timing */        var(--dur-fast) = 280ms   var(--dur-base) = 380ms
+/* Timing */        var(--dur-fast) = 180ms   var(--dur-base) = 240ms
+/* Radius */        var(--lg-radius-xl) var(--lg-radius-lg) var(--lg-radius-md)
+/* Spacing */       var(--space-1) … var(--space-16)  (8pt grid)
+/* Fonts */         var(--font-display) = DM Sans   var(--font-claude) = Inter (AI chat only)
 ```
-Themes: `claro · calido · colorido · oscuro · noche` — applied by `SettingsContext` at runtime.
+**Single dark theme** — `SettingsContext` applies one fixed dark minimal theme at runtime via inline CSS vars on `document.documentElement`. There is no multi-theme switcher.
 Icons: `react-icons/ri` only (Remix Icons). Example: `import { RiAddLine } from 'react-icons/ri'`.
 
 ## AI Integration
-- `/api/process-folder.js` — Vercel serverless, POST, uses `GROQ_API_KEY`
-  - Receives `{ structure, textContents }`, returns `{ ramos: [...] }`
-  - Tries 4 Groq models in fallback chain (llama-3.3-70b → llama3-70b → llama3-8b → mixtral)
-- `supabase/functions/process-folder/` — Deno edge function, uses `ANTHROPIC_API_KEY`, same interface
+
+### `/api/aprender-chat.js` — Primary AI chat (Anthropic)
+- POST, streams SSE (`text/event-stream`)
+- Body: `{ sources, messages, blockMemory, projectMemory, planMode? }`
+- Events: `{ chunk }` during stream, then `{ done, blockMemory, projectMemory }` at end
+- Uses `ANTHROPIC_API_KEY_APRENDER` (falls back to `ANTHROPIC_API_KEY`)
+- Model: `claude-sonnet-4-6`
+- Prompts built in `api/_prompts.js` → `buildConductorPrompt()` / `buildPlanPrompt()`
+- After each exchange, generates updated `blockMemory` (≤200 words) and `projectMemory` (≤150 words)
+
+### `/api/process-folder.js` — Folder import (Groq)
+- POST, uses `GROQ_API_KEY`
+- Receives `{ structure, textContents }`, returns `{ ramos: [...] }`
+- Tries 4 Groq models in fallback chain (llama-3.3-70b → llama3-70b → llama3-8b → mixtral)
+
+### `/api/notebook-chat.js` — Legacy notebook chat
+### `/api/extract-syllabus.js` — Extract syllabus data from a single file
+### `supabase/functions/process-folder/` — Deno edge function, uses `ANTHROPIC_API_KEY`, same interface as process-folder
 
 ## Env Vars
 | Var | Where | Purpose |
@@ -141,7 +164,8 @@ Icons: `react-icons/ri` only (Remix Icons). Example: `import { RiAddLine } from 
 | `VITE_SUPABASE_URL` | Vite client | Supabase project URL |
 | `VITE_SUPABASE_ANON_KEY` | Vite client | Supabase anon key |
 | `GROQ_API_KEY` | Vercel server-only | Groq API for folder import |
-| `ANTHROPIC_API_KEY` | Supabase edge fn | Claude API for edge fn |
+| `ANTHROPIC_API_KEY_APRENDER` | Vercel server-only | Claude for aprender-chat (primary) |
+| `ANTHROPIC_API_KEY` | Supabase edge fn + fallback | Claude API for edge fn |
 
 ## Gotchas
 1. `getUid()` throws if not authenticated — wrap write operations in try/catch
@@ -149,3 +173,6 @@ Icons: `react-icons/ri` only (Remix Icons). Example: `import { RiAddLine } from 
 3. `schedule.day_of_week`: 0=Monday through 6=Sunday — NOT JavaScript's 0=Sunday
 4. `tasks.due_date` is a `date` string (`YYYY-MM-DD`) — append `T12:00:00` when constructing `Date` to avoid timezone shifts
 5. `/api/*` files are Vercel serverless (CommonJS) — not processed by Vite, no ESM imports
+6. **SSE streaming** in `/api/aprender-chat.js`: set `res.setHeader('Content-Type', 'text/event-stream')` and flush with `res.write()`. Client reads with `ReadableStream` / `EventSource`. Never buffer the full response.
+7. **AI Memory upsert**: `aprender_block_memory` and `aprender_project_memory` use `UNIQUE(user_id, block_id/project_id)` — always use `.upsert(..., { onConflict: '...' })`, never `.insert()`.
+8. **`/tareas` route** → renders `<Calendario />` — it's an alias, not a separate page.
