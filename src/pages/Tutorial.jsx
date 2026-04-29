@@ -23,6 +23,19 @@ export default function Tutorial() {
     }
     window.addEventListener('scroll', updateNav, { passive: true });
 
+    /* ─── MOBILE HAMBURGER ──────────────────────────────── */
+    const hamburger = document.getElementById('hamburger');
+    function handleHamburger() {
+      if (!nav) return;
+      const open = nav.classList.toggle('open');
+      hamburger.setAttribute('aria-expanded', open);
+    }
+    function handleClickOutside(e) {
+      if (nav && !nav.contains(e.target)) nav.classList.remove('open');
+    }
+    hamburger?.addEventListener('click', handleHamburger);
+    document.addEventListener('click', handleClickOutside);
+
     /* ─── SCROLL REVEALS ────────────────────────────────── */
     const revealObs = new IntersectionObserver(entries => {
       entries.forEach(e => {
@@ -50,6 +63,8 @@ export default function Tutorial() {
       observers.forEach(obs => obs.disconnect());
       window.removeEventListener('scroll', updateProgress);
       window.removeEventListener('scroll', updateNav);
+      hamburger?.removeEventListener('click', handleHamburger);
+      document.removeEventListener('click', handleClickOutside);
     };
   }, []);
 
@@ -72,6 +87,10 @@ export default function Tutorial() {
             <a href="/" className="nav-link">← Volver</a>
             <a href="/register" className="btn btn-primary">Comenzar gratis</a>
           </div>
+          <a href="/register" className="nav-login-mobile">Comenzar gratis</a>
+          <button className="nav-hamburger" id="hamburger" aria-label="Abrir menú">
+            <span></span><span></span>
+          </button>
         </div>
       </nav>
 

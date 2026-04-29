@@ -384,10 +384,12 @@ export default function Landing() {
             <span className="logo-text">Universidad <strong>V1</strong></span>
           </a>
           <div className="nav-actions">
+            <a href="/" className="nav-link">Inicio</a>
             <a href="/tutorial" className="nav-link">Cómo funciona</a>
             <a href="/login" className="nav-link">Iniciar sesión</a>
             <a href="/register" className="btn btn-nav">Comenzar gratis</a>
           </div>
+          <a href="/login" className="nav-login-mobile">Iniciar sesión</a>
           <button className="nav-hamburger" id="hamburger" aria-label="Abrir menú">
             <span></span><span></span>
           </button>

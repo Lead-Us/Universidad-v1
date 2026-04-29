@@ -68,6 +68,7 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   padding-block: 64px 96px;
   overflow: hidden;
   border-bottom: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
 }
 .tut-hero-glow {
   position: absolute; top: -20%; right: -10%;
@@ -299,6 +300,7 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 .tut-final {
   position: relative; padding-block: 128px; overflow: hidden;
   border-top: 1px solid rgba(255,255,255,0.07);
+  flex-shrink: 0;
 }
 .tut-final-glow {
   position: absolute; top: 50%; left: 50%;
@@ -318,11 +320,43 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
 .tut-final-sub { font-size: 1.125rem; color: rgba(255,255,255,0.65); max-width: 38ch; }
 .tut-final-meta { font-family: var(--font-mono); font-size: 0.6875rem; color: rgba(255,255,255,0.35); letter-spacing: 0.04em; }
 
+/* ─── MOBILE NAV ─────────────────────────────────────────── */
+.nav-hamburger {
+  display: none; flex-direction: column; gap: 5px; padding: 8px;
+  background: none; border: none; cursor: pointer;
+}
+.nav-hamburger span {
+  display: block; width: 22px; height: 1.5px;
+  background: rgba(255,255,255,0.65);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.nav-login-mobile { display: none; }
+
+.nav.open .nav-actions {
+  display: flex; flex-direction: column;
+  position: fixed; top: 64px; left: 0; right: 0;
+  background: rgba(10,10,10,0.98);
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 32px 24px; gap: 24px; z-index: 99;
+}
+.nav.open .nav-actions .nav-link  { display: block !important; }
+.nav.open .nav-actions .btn-primary { display: flex !important; width: 100%; justify-content: center; }
+.nav.open .nav-hamburger span:first-child { transform: rotate(45deg) translate(4px, 4px); }
+.nav.open .nav-hamburger span:last-child  { transform: rotate(-45deg) translate(4px, -4px); }
+
 /* ─── RESPONSIVE ─────────────────────────────────────────── */
 @media (max-width: 768px) {
   .tut-step-inner { grid-template-columns: 1fr; gap: 48px; }
   .tut-step-inner--reversed { direction: ltr; }
-  .nav-actions .nav-link { display: none; }
+  .nav-actions { display: none; }
+  .nav-hamburger { display: flex; }
+  .nav-login-mobile {
+    display: block;
+    font-size: 0.875rem;
+    color: rgba(255,255,255,0.65);
+    transition: color 0.18s;
+  }
+  .nav-login-mobile:hover { color: #fff; }
   .reveal-left, .reveal-right { transform: translateY(32px); }
   .reveal-left.in, .reveal-right.in { transform: none; }
   .footer-inner { flex-direction: column; }
