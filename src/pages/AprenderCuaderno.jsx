@@ -207,6 +207,8 @@ export default function AprenderCuaderno() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    // Track last visit for sorting in Aprender.jsx
+    localStorage.setItem(`uni_nb_visited_${notebookId}`, String(Date.now()));
     try {
       const nbs = await getCuadernos();
       setNotebook(nbs.find(n => n.id === notebookId) ?? null);

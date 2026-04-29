@@ -67,6 +67,7 @@
     white-space: nowrap;
     overflow: hidden;
     min-height: 48px;
+    flex-shrink: 0;
   }
 
   .logoIcon {
@@ -178,8 +179,8 @@
     justify-content: center;
     background: transparent;
     border: 1px solid #222222;
-    color: #444444;
-    font-size: 14px;
+    color: #555555;
+    font-size: 16px;
     cursor: pointer;
     padding: 0;
     border-radius: var(--lg-radius-sm);
@@ -189,7 +190,6 @@
       border-color var(--dur-fast) var(--ease-out);
     width: 32px;
     height: 32px;
-    margin: 0 auto;
     flex-shrink: 0;
   }
 

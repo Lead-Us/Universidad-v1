@@ -39,17 +39,6 @@ export default function FeedbackButton() {
   const [sent,     setSent]     = useState(false);
   const [error,    setError]    = useState('');
 
-  // Auto-open once every 3 days
-  useEffect(() => {
-    if (!user?.id) return;
-    const timer = setTimeout(() => {
-      if (shouldAutoPrompt(user.id)) {
-        setOpen(true);
-        markShown(user.id);
-      }
-    }, 8000); // slight delay after page load
-    return () => clearTimeout(timer);
-  }, [user?.id]);
 
   const handleOpen = () => {
     resetForm();

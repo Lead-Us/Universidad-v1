@@ -23,7 +23,7 @@ export function useTasks() {
 
   useEffect(() => { reload(); }, [reload]);
 
-  const add    = async (task)        => { await createTask(task);        await reload(); };
+  const add    = async (task)        => { const created = await createTask(task); await reload(); return created; };
   const update = async (id, changes) => { await updateTask(id, changes); await reload(); };
   const toggle = async (id)          => { await toggleTask(id);          await reload(); };
   const remove = async (id)          => { await deleteTask(id);          await reload(); };
@@ -64,7 +64,7 @@ export function useTasksByMonth(year, month) {
 
   useEffect(() => { reload(); }, [reload]);
 
-  const add    = async (task)        => { await createTask(task);        await reload(); };
+  const add    = async (task)        => { const created = await createTask(task); await reload(); return created; };
   const update = async (id, changes) => { await updateTask(id, changes); await reload(); };
   const toggle = async (id)          => { await toggleTask(id);          await reload(); };
   const remove = async (id)          => { await deleteTask(id);          await reload(); };

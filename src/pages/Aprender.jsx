@@ -256,6 +256,13 @@ export default function Aprender() {
     setLoading(true);
     try {
       const nbs = await getCuadernos();
+      // Sort by last visited (localStorage), then by created_at
+      nbs.sort((a, b) => {
+        const aV = parseInt(localStorage.getItem(`uni_nb_visited_${a.id}`) ?? '0', 10);
+        const bV = parseInt(localStorage.getItem(`uni_nb_visited_${b.id}`) ?? '0', 10);
+        if (aV !== bV) return bV - aV;
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
       setNotebooks(nbs);
       const counts = {};
       await Promise.all(nbs.map(async nb => {

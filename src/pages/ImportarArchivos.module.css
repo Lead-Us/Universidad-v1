@@ -264,7 +264,7 @@
   z-index: 1;
 }
 .ramoCard {
-  background: rgba(255,255,255,0.30);
+  background: rgba(255,255,255,0.05);
   border: 1px solid var(--lg-border);
   border-radius: var(--lg-radius-lg);
   padding: var(--space-4);

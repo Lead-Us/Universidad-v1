@@ -82,8 +82,11 @@ export default function Tareas() {
 
   const handleCreate = async (data) => {
     setSaving(true);
-    try   { await add(data); setModal(false); }
-    finally { setSaving(false); }
+    try {
+      const created = await add(data);
+      setModal(false);
+      if (created) setEditTask(created);
+    } finally { setSaving(false); }
   };
 
   const handleEdit = async (data) => {

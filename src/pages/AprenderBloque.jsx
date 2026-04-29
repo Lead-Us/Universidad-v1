@@ -18,6 +18,7 @@ import {
   getBlockMemory, upsertBlockMemory, getProjectMemory, upsertProjectMemory,
 } from '../services/aprendizajeService.js';
 import { getAllUserFiles, getSignedUrl } from '../services/ramoFilesService.js';
+import { supabase } from '../lib/supabase.js';
 import styles from './AprenderBloque.module.css';
 
 marked.setOptions({ breaks: true, gfm: true });
@@ -489,7 +490,7 @@ function SourceItem({ source, onDelete }) {
       <div className={styles.sourceActions}>
         {confirming ? (
           <div className={styles.sourceConfirm}>
-            <button className={styles.confirmBtn} onClick={() => onDelete(source.id)} aria-label="Confirmar eliminación">
+            <button className={styles.confirmBtn} onClick={() => onDelete(source)} aria-label="Confirmar eliminación">
               <RiCheckLine />
             </button>
             <button className={styles.cancelBtn} onClick={() => setConfirming(false)} aria-label="Cancelar">
@@ -541,6 +542,7 @@ export default function AprenderBloque() {
   const { notebookId, blockId } = useParams();
   const navigate = useNavigate();
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
 
   const [notebook,       setNotebook]       = useState(null);
@@ -579,7 +581,12 @@ export default function AprenderBloque() {
   useEffect(() => { load(); }, [load]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (distanceFromBottom < 150) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages, generating]);
 
   const handleSourceAdded = async () => {
@@ -588,10 +595,17 @@ export default function AprenderBloque() {
     setFuentes(srcs);
   };
 
-  const handleDeleteSource = async (id) => {
-    await deleteFuente(id);
-    const srcs = await getFuentes(blockId);
-    setFuentes(srcs);
+  const handleDeleteSource = async (source) => {
+    try {
+      if (source.type === 'file' && source.file_path) {
+        await supabase.storage.from('aprender-files').remove([source.file_path]);
+      }
+      await deleteFuente(source.id);
+      const srcs = await getFuentes(blockId);
+      setFuentes(srcs);
+    } catch (err) {
+      console.error('Error al eliminar fuente:', err);
+    }
   };
 
   const handleClearChat = async () => {
@@ -856,7 +870,7 @@ export default function AprenderBloque() {
         <main className={styles.chatPanel}>
 
           {/* Messages */}
-          <div className={styles.messages} aria-live="polite" aria-label="Conversación">
+          <div ref={messagesContainerRef} className={styles.messages} aria-live="polite" aria-label="Conversación">
             {messages.length === 0 && !generating && (
               <div className={styles.chatEmpty}>
                 <div className={styles.chatEmptyIcon} style={{ background: `${color}18`, color }}>
@@ -906,7 +920,6 @@ export default function AprenderBloque() {
                 onKeyDown={handleKeyDown}
                 onInput={handleInputResize}
                 rows={1}
-                disabled={generating}
                 aria-label="Mensaje para la IA"
               />
               <button

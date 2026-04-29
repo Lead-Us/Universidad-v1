@@ -133,11 +133,11 @@ export default function ImportarArchivos() {
       }
     }
 
-    // Auto-detect program files (1 candidate → auto-select, else null)
+    // Auto-detect program files (1 candidate → auto-select, else undefined = not yet decided)
     const detected = {};
     for (const [ramo, fileNames] of Object.entries(tree)) {
       const candidates = detectProgramCandidates(fileNames);
-      detected[ramo] = candidates.length === 1 ? candidates[0] : null;
+      detected[ramo] = candidates.length === 1 ? candidates[0] : undefined;
     }
 
     setStructure(tree);
@@ -177,7 +177,7 @@ export default function ImportarArchivos() {
     const name = newRamoInput.trim();
     if (!name) return;
     setStructure(s => ({ ...s, [name]: [] }));
-    setProgramFiles(p => ({ ...p, [name]: null }));
+    setProgramFiles(p => ({ ...p, [name]: undefined }));
     setNewRamoInput('');
     setAddingRamo(false);
   };
@@ -193,9 +193,10 @@ export default function ImportarArchivos() {
   // ── Process with AI ──────────────────────────────────────────────────
   const processWithAI = async () => {
     if (!Object.keys(structure).length) { setError('Agrega al menos un ramo.'); return; }
-    const ramosSinPrograma = Object.keys(structure).filter(r => !programFiles[r]);
-    if (ramosSinPrograma.length) {
-      setError(`Sin programa seleccionado: ${ramosSinPrograma.join(', ')}. Selecciona el archivo del programa para cada ramo.`);
+    // Block only when the user hasn't made an explicit choice yet (undefined = not decided)
+    const ramosSinDecidir = Object.keys(structure).filter(r => programFiles[r] === undefined);
+    if (ramosSinDecidir.length) {
+      setError(`Debes seleccionar el programa (o marcarlo como "Sin programa") para: ${ramosSinDecidir.join(', ')}.`);
       return;
     }
     setError('');
@@ -500,15 +501,21 @@ export default function ImportarArchivos() {
                         <span className={styles.programLabel}>Programa del curso</span>
                         {selected ? (
                           <span className={styles.programDetected}><RiCheckLine /> {selected}</span>
+                        ) : selected === '' || selected === null ? (
+                          <span className={styles.programDetected} style={{ opacity: 0.6 }}>Sin programa</span>
                         ) : (
-                          <span className={styles.programWarning}><RiAlertLine /> No detectado — selecciona manualmente</span>
+                          <span className={styles.programWarning}><RiAlertLine /> No detectado — selecciona o marca sin programa</span>
                         )}
                       </div>
                       <select
                         className={styles.programSelect}
-                        value={selected ?? ''}
-                        onChange={e => setProgramFiles(p => ({ ...p, [ramo]: e.target.value || null }))}
+                        value={selected ?? '__pending__'}
+                        onChange={e => {
+                          const v = e.target.value;
+                          setProgramFiles(p => ({ ...p, [ramo]: v === '__pending__' ? undefined : v }));
+                        }}
                       >
+                        {selected === undefined && <option value="__pending__" disabled>— Seleccionar —</option>}
                         <option value="">Sin programa</option>
                         {files.filter(f => /\.(pdf|docx)$/i.test(f)).map(f => (
                           <option key={f} value={f}>{f}</option>

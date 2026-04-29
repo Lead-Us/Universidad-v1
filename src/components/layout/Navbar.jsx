@@ -18,10 +18,14 @@ export default function Navbar({ collapsed, onToggle }) {
       {/* ── Desktop sidebar ── */}
       <nav className={[styles.sidebar, collapsed ? styles.sidebarCollapsed : ''].join(' ')}>
         <div className={styles.logoArea}>
-          {collapsed
-            ? <div className={styles.logoMark}><RiBookOpenLine /></div>
-            : <span className={styles.logoText}>Universidad</span>
-          }
+          <button
+            className={styles.toggleBtn}
+            onClick={onToggle}
+            title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+          >
+            {collapsed ? <RiMenuUnfoldLine /> : <RiMenuFoldLine />}
+          </button>
+          {!collapsed && <span className={styles.logoText}>Universidad</span>}
         </div>
 
         <ul className={styles.sidebarList}>
@@ -42,7 +46,7 @@ export default function Navbar({ collapsed, onToggle }) {
           ))}
         </ul>
 
-        {/* Settings + toggle at bottom */}
+        {/* Settings at bottom */}
         <div className={styles.bottomArea}>
           <NavLink
             to="/settings"
@@ -54,14 +58,6 @@ export default function Navbar({ collapsed, onToggle }) {
             <RiSettingsLine className={styles.icon} />
             {!collapsed && <span className={styles.label}>Configuración</span>}
           </NavLink>
-
-          <button
-            className={styles.toggleBtn}
-            onClick={onToggle}
-            title={collapsed ? 'Expandir menú' : 'Colapsar menú'}
-          >
-            {collapsed ? <RiMenuUnfoldLine /> : <RiMenuFoldLine />}
-          </button>
         </div>
       </nav>
 
