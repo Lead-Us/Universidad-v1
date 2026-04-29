@@ -40,6 +40,13 @@ public/
 Ramos/
 "Aprender modelos"/
 
+# Social media content (not source code)
+"redes sociales"/
+APP_OVERVIEW.md
+
+# Documentation artifacts (generated/external)
+docs/webc-uai-scraper.md
+
 # Supabase local dev artifacts
 supabase/.branches/
 supabase/.temp/

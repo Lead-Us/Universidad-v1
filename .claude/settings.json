@@ -10,6 +10,17 @@
           }
         ]
       }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/ernestoah/Documents/Antigravity/universidadv1/.claude/hooks/check-env-staged.sh"
+          }
+        ]
+      }
     ]
   },
   "permissions": {
@@ -23,11 +34,19 @@
       "Bash(git log*)",
       "Bash(git add src/*)",
       "Bash(git add .claude/*)",
-      "Bash(git commit*)"
+      "Bash(git add supabase/*)",
+      "Bash(git add api/*)",
+      "Bash(git add docs/*)",
+      "Bash(git commit*)",
+      "Bash(git stash*)",
+      "Bash(git worktree*)",
+      "mcp__puppeteer__*",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [
       "Bash(rm -rf*)",
-      "Bash(git push --force*)"
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)"
     ]
   }
 }
