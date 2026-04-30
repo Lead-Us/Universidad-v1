@@ -27,7 +27,12 @@ function buildGrid(year, month) {
  *   onSelectDay(ds|null) — called when a cell is clicked
  */
 export default function CalendarView({ year, month, onPrev, onNext, tasks = [], events = [], selectedDay, onSelectDay }) {
-  const todayStr = new Date().toISOString().split('T')[0];
+  // Build today's YYYY-MM-DD from the **local** clock — `toISOString()`
+  // converts to UTC, so in Chile (UTC-3/-4) any time after ~20:00 local
+  // already rolls forward to the next UTC day and the calendar
+  // highlighted tomorrow (#27).
+  const _now = new Date();
+  const todayStr = `${_now.getFullYear()}-${String(_now.getMonth() + 1).padStart(2, '0')}-${String(_now.getDate()).padStart(2, '0')}`;
 
   // Group dots by date
   const dotsByDay = {};
