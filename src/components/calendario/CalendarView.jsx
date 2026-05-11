@@ -19,15 +19,15 @@ function buildGrid(year, month) {
 /**
  * Controlled calendar grid.
  * Props:
- *   year, month          — current view (numbers)
- *   onPrev, onNext       — navigation callbacks
- *   tasks[]              — { due_date, _ramoColor } — for task dots
- *   events[]             — { date, _ramoColor }     — for eval dots
- *   selectedDay          — 'YYYY-MM-DD' | null
- *   onSelectDay(ds|null) — called when a cell is clicked
+ *   year, month         , current view (numbers)
+ *   onPrev, onNext      , navigation callbacks
+ *   tasks[]             , { due_date, _ramoColor }, for task dots
+ *   events[]            , { date, _ramoColor }    , for eval dots
+ *   selectedDay         , 'YYYY-MM-DD' | null
+ *   onSelectDay(ds|null), called when a cell is clicked
  */
 export default function CalendarView({ year, month, onPrev, onNext, tasks = [], events = [], selectedDay, onSelectDay }) {
-  // Build today's YYYY-MM-DD from the **local** clock — `toISOString()`
+  // Build today's YYYY-MM-DD from the **local** clock, `toISOString()`
   // converts to UTC, so in Chile (UTC-3/-4) any time after ~20:00 local
   // already rolls forward to the next UTC day and the calendar
   // highlighted tomorrow (#27).
