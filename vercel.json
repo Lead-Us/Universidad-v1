@@ -1,0 +1,8 @@
+{
+  "buildCommand": null,
+  "outputDirectory": ".",
+  "framework": null,
+  "crons": [
+    { "path": "/api/weekly-metrics", "schedule": "0 12 * * 1" }
+  ]
+}
