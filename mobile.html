@@ -2177,6 +2177,22 @@ function RamoNotas({ ramo, updateRamo }) {
     updateRamo(ramo.id, r => ({ ...r, evaluation_modules: r.evaluation_modules.map(m => m.id === mid ? { ...m, weight: w } : m) }));
     setEditWeight(null);
   };
+  const moveMod = (idx, dir) => {
+    const mods = [...(ramo.evaluation_modules || [])];
+    const ni = idx + dir;
+    if (ni < 0 || ni >= mods.length) return;
+    [mods[idx], mods[ni]] = [mods[ni], mods[idx]];
+    updateRamo(ramo.id, r => ({ ...r, evaluation_modules: mods }));
+  };
+  const moveItem = (mid, idx, dir) => {
+    updateRamo(ramo.id, r => ({ ...r, evaluation_modules: r.evaluation_modules.map(m => {
+      if (m.id !== mid) return m;
+      const items = [...m.items]; const ni = idx + dir;
+      if (ni < 0 || ni >= items.length) return m;
+      [items[idx], items[ni]] = [items[ni], items[idx]];
+      return { ...m, items };
+    }) }));
+  };
 
   return (
     <div style={{ padding: '16px 16px 20px' }}>
@@ -2200,7 +2216,7 @@ function RamoNotas({ ramo, updateRamo }) {
         </div>
       )}
 
-      {(ramo.evaluation_modules || []).map(mod => {
+      {(ramo.evaluation_modules || []).map((mod, modIdx) => {
         const graded = mod.items.filter(it => it.grade != null);
         const modAvg = graded.length > 0 ? graded.reduce((s, it) => s + it.grade, 0) / graded.length : null;
         const isModExp = expandedMod === mod.id;
@@ -2221,9 +2237,13 @@ function RamoNotas({ ramo, updateRamo }) {
               )}
               <button onClick={e => { e.stopPropagation(); setAddItem(mod.id); setItemName(''); }} style={{ width: 20, height: 20, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--k3)', display: 'grid', placeItems: 'center', borderRadius: 4, fontSize: 16 }}>+</button>
             </div>
-            {/* Module delete row */}
+            {/* Module actions row */}
             {isModExp && (
-              <div style={{ padding: '7px 14px 7px', background: 'var(--p)', borderBottom: '1px solid var(--ls)', display: 'flex', justifyContent: 'flex-end', animation: 'fadeIn .15s ease' }}>
+              <div style={{ padding: '7px 14px 7px', background: 'var(--p)', borderBottom: '1px solid var(--ls)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', animation: 'fadeIn .15s ease' }}>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <button onClick={() => moveMod(modIdx, -1)} disabled={modIdx === 0} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--w)', color: modIdx === 0 ? 'var(--k4)' : 'var(--k3)', fontSize: 12, cursor: modIdx === 0 ? 'default' : 'pointer', opacity: modIdx === 0 ? .4 : 1 }}>▲</button>
+                  <button onClick={() => moveMod(modIdx, 1)} disabled={modIdx === (ramo.evaluation_modules || []).length - 1} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--w)', color: modIdx === (ramo.evaluation_modules || []).length - 1 ? 'var(--k4)' : 'var(--k3)', fontSize: 12, cursor: modIdx === (ramo.evaluation_modules || []).length - 1 ? 'default' : 'pointer', opacity: modIdx === (ramo.evaluation_modules || []).length - 1 ? .4 : 1 }}>▼</button>
+                </div>
                 <button onClick={() => delModule(mod.id)}
                   style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: 'var(--er)', color: '#fff', fontSize: 12, fontWeight: 500, cursor: 'pointer', opacity: .9 }}>
                   Eliminar modulo
@@ -2238,7 +2258,7 @@ function RamoNotas({ ramo, updateRamo }) {
                 <button onClick={() => setAddItem(null)} style={{ padding: '6px 10px', borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--p)', color: 'var(--k3)', fontSize: 13, cursor: 'pointer' }}>×</button>
               </div>
             )}
-            {mod.items.map(item => {
+            {mod.items.map((item, itemIdx) => {
               const isEd = editGrade?.m === mod.id && editGrade?.i === item.id;
               const isExp = expanded === item.id;
               return (
@@ -2261,7 +2281,11 @@ function RamoNotas({ ramo, updateRamo }) {
                   </div>
                   {/* Expandable delete row */}
                   {isExp && (
-                    <div style={{ padding: '7px 14px 7px', background: 'var(--p)', borderBottom: '1px solid var(--ls)', display: 'flex', justifyContent: 'flex-end', animation: 'fadeIn .15s ease' }}>
+                    <div style={{ padding: '7px 14px 7px', background: 'var(--p)', borderBottom: '1px solid var(--ls)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', animation: 'fadeIn .15s ease' }}>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button onClick={() => moveItem(mod.id, itemIdx, -1)} disabled={itemIdx === 0} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--w)', color: itemIdx === 0 ? 'var(--k4)' : 'var(--k3)', fontSize: 12, cursor: itemIdx === 0 ? 'default' : 'pointer', opacity: itemIdx === 0 ? .4 : 1 }}>▲</button>
+                        <button onClick={() => moveItem(mod.id, itemIdx, 1)} disabled={itemIdx === mod.items.length - 1} style={{ padding: '5px 10px', borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--w)', color: itemIdx === mod.items.length - 1 ? 'var(--k4)' : 'var(--k3)', fontSize: 12, cursor: itemIdx === mod.items.length - 1 ? 'default' : 'pointer', opacity: itemIdx === mod.items.length - 1 ? .4 : 1 }}>▼</button>
+                      </div>
                       <button onClick={() => delItem(mod.id, item.id)}
                         style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: 'var(--er)', color: '#fff', fontSize: 12, fontWeight: 500, cursor: 'pointer', opacity: .9 }}>
                         Eliminar

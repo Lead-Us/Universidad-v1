@@ -708,6 +708,11 @@ function TabNotas({ramo,updateRamo}){
   const [nItem,setNItem]=useState({name:'',date:''});
   const [editWeightId,setEditWeightId]=useState(null);
   const [weightVal,setWeightVal]=useState('');
+  const [dragMod,setDragMod]=useState(null);
+  const [dragOverMod,setDragOverMod]=useState(null);
+  const [dragItem,setDragItem]=useState(null);
+  const [dragOverItem,setDragOverItem]=useState(null);
+  const [dragItemMod,setDragItemMod]=useState(null);
 
   const promTotal=computeNota(mods);
 
@@ -760,10 +765,17 @@ function TabNotas({ramo,updateRamo}){
       </div>
       {mods.length===0&&<div style={{fontSize:12,color:'var(--k4)',padding:'16px 0'}}>Sin evaluaciones configuradas.<br/>Haz clic en "Nuevo módulo" para agregar (Ej: Controles, Pruebas, Tareas).</div>}
 
-      {mods.map((m)=>(
-        <div key={m.id} style={{marginBottom:28,background:'var(--w)',borderRadius:12,border:'1px solid var(--ln)',overflow:'hidden'}}>
+      {mods.map((m,i)=>(
+        <div key={m.id}
+          draggable
+          onDragStart={()=>setDragMod(i)}
+          onDragOver={e=>{e.preventDefault();setDragOverMod(i);}}
+          onDrop={()=>{if(dragMod!==null&&dragOverMod!==null&&dragMod!==dragOverMod){const arr=[...mods];const[item]=arr.splice(dragMod,1);arr.splice(dragOverMod,0,item);updateRamo(ramo.id,{evaluation_modules:arr});}setDragMod(null);setDragOverMod(null);}}
+          onDragEnd={()=>{setDragMod(null);setDragOverMod(null);}}
+          style={{marginBottom:28,background:'var(--w)',borderRadius:12,border:`1.5px solid ${dragOverMod===i?'#1654b0':'var(--ln)'}`,overflow:'hidden',transition:'border-color .15s'}}>
           {/* Module header */}
           <div style={{display:'flex',alignItems:'center',gap:8,padding:'11px 14px',background:`${ramo.color||'#1654b0'}0a`,borderBottom:'1px solid var(--ls)'}}>
+            <span style={{color:'var(--k4)',cursor:'grab',display:'flex',flexShrink:0}}><IcoDrag s={13}/></span>
             <div style={{flex:1,fontSize:13,fontWeight:600}}>{m.name}</div>
             <div style={{display:'flex',alignItems:'center',gap:4,fontSize:11,color:'var(--k4)'}}>
               Pondera:
@@ -793,8 +805,15 @@ function TabNotas({ramo,updateRamo}){
           {(m.items||[]).length===0&&addItemMod!==m.id&&(
             <div style={{padding:'12px 14px',fontSize:12,color:'var(--k4)'}}>Sin evaluaciones en este módulo. Haz clic en + para agregar.</div>
           )}
-          {(m.items||[]).map((it)=>(
-            <div key={it.id} className="eb-wrap" style={{display:'grid',gridTemplateColumns:'1fr 90px 80px 28px',gap:8,padding:'9px 14px',borderBottom:'1px solid var(--ls)',alignItems:'center'}}>
+          {(m.items||[]).map((it,itemIndex)=>(
+            <div key={it.id} className="eb-wrap"
+              draggable
+              onDragStart={e=>{e.stopPropagation();setDragItemMod(m.id);setDragItem(itemIndex);}}
+              onDragOver={e=>{e.preventDefault();e.stopPropagation();setDragOverItem(itemIndex);}}
+              onDrop={e=>{e.stopPropagation();if(dragItemMod===m.id&&dragItem!==null&&dragOverItem!==null&&dragItem!==dragOverItem){const items=[...(m.items||[])];const[moved]=items.splice(dragItem,1);items.splice(dragOverItem,0,moved);updateRamo(ramo.id,{evaluation_modules:mods.map(mod=>mod.id===m.id?{...mod,items}:mod)});}setDragItem(null);setDragOverItem(null);setDragItemMod(null);}}
+              onDragEnd={()=>{setDragItem(null);setDragOverItem(null);setDragItemMod(null);}}
+              style={{display:'grid',gridTemplateColumns:'18px 1fr 90px 80px 28px',gap:8,padding:'9px 14px',borderBottom:'1px solid var(--ls)',alignItems:'center',background:dragOverItem===itemIndex&&dragItemMod===m.id?'rgba(22,84,176,.06)':'transparent',transition:'background .1s'}}>
+              <span style={{color:'var(--k4)',cursor:'grab',display:'flex'}}><IcoDrag s={11}/></span>
               <div style={{fontSize:13,fontWeight:500}}>{it.name}</div>
               <div style={{fontSize:11,color:'var(--k4)'}}>{it.date||'—'}</div>
               {/* Grade cell — click to edit */}
