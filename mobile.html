@@ -4209,6 +4209,8 @@ function BibliotecaRamo({ ramo, updateRamo }) {
   const [addingFolder, setAddingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState('');
   const [confirmDeleteFolder, setConfirmDeleteFolder] = useState(null);
+  const [confirmDeleteFile, setConfirmDeleteFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const archivos = ramo.archivos || [];
   const c = ramo.color || '#1654b0';
   const temario = ramo.temario || [];
@@ -4247,19 +4249,72 @@ function BibliotecaRamo({ ramo, updateRamo }) {
     setAddingFolder(false);
   };
 
+  const uploadFile = () => {
+    const input = document.createElement('input');
+    input.type = 'file'; input.accept = '.pdf,.docx,.pptx,.xlsx,.txt,.png,.jpg'; input.multiple = true;
+    input.onchange = async (ev) => {
+      const files = Array.from(ev.target.files || []);
+      if (!files.length) return;
+      setUploading(true);
+      for (const file of files) {
+        const localId = 'f' + Date.now() + Math.random().toString(36).slice(2, 5);
+        const newFile = { id: localId, name: file.name, date: new Date().toISOString().slice(0, 10), programa: false };
+        updateRamo(ramo.id, r => ({ ...r, archivos: [...r.archivos, newFile] }));
+        if (supabaseClient && !_devMode && _userId) {
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+          const path = `${_userId}/${ramo.id}/${Date.now()}_${safeName}`;
+          const { error } = await supabaseClient.storage.from('ramo-files').upload(path, file, { upsert: true });
+          if (!error) {
+            const { data } = await dbInsert('ramo_files', { ramo_id: ramo.id, name: file.name, size: file.size, storage_path: path, is_programa: false });
+            if (data) updateRamo(ramo.id, r => ({ ...r, archivos: r.archivos.map(f => f.id === localId ? { ...f, id: data.id, storage_path: path } : f) }));
+          }
+        }
+      }
+      setUploading(false);
+    };
+    input.click();
+  };
+  const deleteFile = async (fid) => {
+    const file = archivos.find(f => f.id === fid);
+    updateRamo(ramo.id, r => ({
+      ...r,
+      archivos: r.archivos.filter(f => f.id !== fid),
+      temario: r.temario.map(u => ({ ...u, archivos: u.archivos.filter(x => x !== fid) }))
+    }));
+    if (supabaseClient && !_devMode && file) {
+      if (file.storage_path) await supabaseClient.storage.from('ramo-files').remove([file.storage_path]);
+      dbDelete('ramo_files', { id: fid });
+    }
+    setConfirmDeleteFile(null);
+  };
+
   const FileRow = ({ f }) => {
     const ext = fileExt(f.name);
     const fi = FILE_ICONS[ext] || { bg: 'var(--k4)', label: ext.toUpperCase() };
     return (
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px' }}>
-        <div style={{ width: 24, height: 36, borderRadius: 5, background: fi.bg + '18', border: `1px solid ${fi.bg}33`, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: fi.bg }}>{fi.label}</span>
+      <div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px' }}>
+          <div style={{ width: 24, height: 36, borderRadius: 5, background: fi.bg + '18', border: `1px solid ${fi.bg}33`, display: 'grid', placeItems: 'center', flexShrink: 0 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, color: fi.bg }}>{fi.label}</span>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--k)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</p>
+            <p style={{ fontSize: 11, color: 'var(--k4)', marginTop: 1 }}>{f.date || ''}</p>
+          </div>
+          {f.programa && <span style={{ fontSize: 10, color: 'var(--wn)', fontWeight: 600 }}>★ Programa</span>}
+          {updateRamo && (
+            <button onClick={() => setConfirmDeleteFile(confirmDeleteFile === f.id ? null : f.id)} style={{ width: 36, height: 36, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center', color: 'var(--k4)', flexShrink: 0 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+            </button>
+          )}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--k)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{f.name}</p>
-          <p style={{ fontSize: 11, color: 'var(--k4)', marginTop: 1 }}>{f.date || ''}</p>
-        </div>
-        {f.programa && <span style={{ fontSize: 10, color: 'var(--wn)', fontWeight: 600 }}>★ Programa</span>}
+        {confirmDeleteFile === f.id && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 14px 10px', background: 'rgba(220,38,38,.04)' }}>
+            <span style={{ fontSize: 12, color: 'var(--er)', fontWeight: 500, flex: 1 }}>¿Eliminar?</span>
+            <button onClick={() => deleteFile(f.id)} style={{ padding: '6px 12px', borderRadius: 6, border: 'none', background: 'var(--er)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Confirmar</button>
+            <button onClick={() => setConfirmDeleteFile(null)} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--p)', color: 'var(--k3)', fontSize: 12, cursor: 'pointer' }}>Cancelar</button>
+          </div>
+        )}
       </div>
     );
   };
@@ -4272,11 +4327,19 @@ function BibliotecaRamo({ ramo, updateRamo }) {
           <p style={{ fontSize: 14, fontWeight: 600 }}>{ramo.name}</p>
           <p style={{ fontSize: 11, color: 'var(--k3)' }}>{ramo.codigo} · {archivos.length} archivo{archivos.length !== 1 ? 's' : ''}</p>
         </div>
-        {updateRamo && (
-          <button onClick={() => { setAddingFolder(true); setNewFolderName(''); }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', minHeight: 44, background: 'var(--brand1)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
-            <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Nueva carpeta
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: 6 }}>
+          {updateRamo && (
+            <button onClick={uploadFile} disabled={uploading} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', minHeight: 44, background: 'transparent', color: 'var(--brand1)', border: '1px solid var(--brand1)', borderRadius: 8, fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit', opacity: uploading ? .5 : 1 }}>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              {uploading ? 'Subiendo...' : 'Subir'}
+            </button>
+          )}
+          {updateRamo && (
+            <button onClick={() => { setAddingFolder(true); setNewFolderName(''); }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', minHeight: 44, background: 'var(--brand1)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+              <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Carpeta
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Nueva carpeta — inline form */}
