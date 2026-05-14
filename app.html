@@ -998,6 +998,9 @@ function TabTemario({ramo,updateRamo,user,setRamos}){
   const [dragIdx,setDragIdx]=useState(null);
   const [dragOver,setDragOver]=useState(null);
   const [uploading,setUploading]=useState(null);
+  const [editingUnit,setEditingUnit]=useState(null);
+  const [editName,setEditName]=useState('');
+  const [confirmDelete,setConfirmDelete]=useState(null);
   const fileInputRef=useRef(null);
   const uploadUnitRef=useRef(null);
 
@@ -1026,7 +1029,8 @@ function TabTemario({ramo,updateRamo,user,setRamos}){
   };
 
   const addUnidad=()=>{if(!newTit.trim()) return;const old=[...unidades];const next=[...unidades,{id:`u${Date.now()}`,titulo:newTit.trim(),archivos:[]}];setUnidades(next);setNewTit('');setShowAdd(false);persistUnidades(next,old);};
-  const delUnidad=id=>{const old=[...unidades];const next=unidades.filter(u=>u.id!==id);setUnidades(next);persistUnidades(next,old);};
+  const delUnidad=id=>{const old=[...unidades];const next=unidades.filter(u=>u.id!==id);setUnidades(next);persistUnidades(next,old);setEditingUnit(null);setConfirmDelete(null);};
+  const renameUnit=(uid)=>{if(!editName.trim()) return;const old=[...unidades];const next=unidades.map(u=>u.id===uid?{...u,titulo:editName.trim()}:u);setUnidades(next);persistUnidades(next,old);setEditingUnit(null);};
   const toggleFile=(uid,fid)=>{const old=[...unidades];const next=unidades.map(u=>u.id===uid?{...u,archivos:u.archivos.includes(fid)?u.archivos.filter(x=>x!==fid):[...u.archivos,fid]}:u);setUnidades(next);persistUnidades(next,old);};
 
   const uploadFilesToUnit=async(e,unitId)=>{
@@ -1085,7 +1089,7 @@ function TabTemario({ramo,updateRamo,user,setRamos}){
             <div style={{flex:1,fontSize:13,fontWeight:600}}>{u.titulo}</div>
             <div style={{fontSize:11,color:'var(--k4)'}}>{u.archivos.length} archivo{u.archivos.length!==1?'s':''}</div>
             <button onClick={()=>setExpandedU(expandedU===u.id?null:u.id)} style={{width:24,height:24,borderRadius:6,border:'none',background:'var(--p2)',cursor:'pointer',display:'grid',placeItems:'center',color:'var(--k3)'}}><IcoCh dir={expandedU===u.id?'d':'r'} s={11}/></button>
-            <button onClick={()=>delUnidad(u.id)} style={{width:24,height:24,borderRadius:6,border:'none',background:'transparent',cursor:'pointer',display:'grid',placeItems:'center',color:'var(--er)'}}><IcoTrash s={12}/></button>
+            <button onClick={()=>{setEditingUnit(editingUnit===u.id?null:u.id);setEditName(u.titulo);setConfirmDelete(null);}} title="Editar unidad" style={{width:24,height:24,borderRadius:6,border:'none',background:'transparent',cursor:'pointer',display:'grid',placeItems:'center',color:'var(--k4)'}}><svg width={12} height={12} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
           </div>
           {expandedU===u.id&&(
             <div style={{borderTop:'1px solid var(--ls)',padding:'10px 14px 14px 14px',background:'var(--p)'}}>
@@ -1108,6 +1112,28 @@ function TabTemario({ramo,updateRamo,user,setRamos}){
                     {a.programa&&<span style={{fontSize:10,color:'var(--wn)',fontWeight:600}}>Programa</span>}
                   </label>
                 ))}
+              </div>
+            </div>
+          )}
+          {editingUnit===u.id&&(
+            <div style={{borderTop:'1px solid var(--ls)',padding:'12px 14px',background:'var(--p)'}}>
+              <div style={{fontSize:11,fontWeight:600,color:'var(--k4)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.05em'}}>Editar unidad</div>
+              <div style={{display:'flex',gap:8,marginBottom:10}}>
+                <input autoFocus value={editName} onChange={e=>setEditName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&renameUnit(u.id)}
+                  style={{flex:1,padding:'7px 12px',borderRadius:8,border:'1px solid var(--ln)',fontSize:13,outline:'none',fontFamily:'inherit',background:'var(--w)',color:'var(--k)'}}/>
+                <Btn onClick={()=>renameUnit(u.id)} variant="pri" size="sm">Guardar</Btn>
+                <Btn onClick={()=>{setEditingUnit(null);setConfirmDelete(null);}}>Cancelar</Btn>
+              </div>
+              <div style={{borderTop:'1px solid var(--ls)',paddingTop:10}}>
+                {confirmDelete!==u.id?(
+                  <button onClick={()=>setConfirmDelete(u.id)} style={{padding:'5px 14px',borderRadius:7,border:'none',background:'var(--er)',color:'#fff',fontSize:12,fontWeight:500,cursor:'pointer',opacity:.9}}>Eliminar unidad</button>
+                ):(
+                  <div style={{display:'flex',alignItems:'center',gap:10}}>
+                    <span style={{fontSize:12,color:'var(--er)',fontWeight:500}}>¿Eliminar esta unidad?</span>
+                    <button onClick={()=>delUnidad(u.id)} style={{padding:'5px 14px',borderRadius:7,border:'none',background:'var(--er)',color:'#fff',fontSize:12,fontWeight:600,cursor:'pointer'}}>Confirmar</button>
+                    <Btn onClick={()=>setConfirmDelete(null)}>Cancelar</Btn>
+                  </div>
+                )}
               </div>
             </div>
           )}
