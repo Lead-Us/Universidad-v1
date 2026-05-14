@@ -1499,6 +1499,8 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
   const [streamBuf,setStreamBuf]=useState('');
   const [blockMemory,setBlockMemory]=useState({});
   const [projectMemory,setProjectMemory]=useState({});
+  const [chatImg,setChatImg]=useState(null);
+  const imgRef=useRef(null);
   const fRef=useRef(null);
   const endRef=useRef(null);
   const [nCuad,setNCuad]=useState({nombre:'',rid:''});
@@ -1548,10 +1550,13 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
 
   const send=async()=>{
     const txt=inp.trim();
-    if(!txt||streaming)return;
-    setInp('');
+    if((!txt&&!chatImg)||streaming)return;
+    const imgSnap=chatImg;
+    const fullTxt=imgSnap?`[Imagen adjunta: ${imgSnap.name}]\n${txt}`:txt;
+    setInp('');setChatImg(null);
     const currentMsgs=chatMap[ck]||[];
-    const userMsg={role:'user',text:txt};
+    const imgSrc=imgSnap?[imgSnap.name]:[];
+    const userMsg={role:'user',text:fullTxt};
     const nextMsgs=[...currentMsgs,userMsg];
     setChatMap(prev=>({...prev,[ck]:nextMsgs}));
     setStreaming(true);setStreamBuf('');
@@ -1563,7 +1568,9 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
         }
         return{title:f.name,content:f.content||''};
       }));
-      const sources=[...actSrc.map(s=>({title:s,content:''})),...fileSources];
+      const imgSources=imgSnap?[{title:imgSnap.name,storageUrl:imgSnap.url}]:[];
+      const sources=[...actSrc.map(s=>({title:s,content:''})),...fileSources,...imgSources];
+      const allSrcs=[...actSrc,...imgSrc];
       const resp=await fetch('/api/aprender-chat',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
@@ -1583,7 +1590,7 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
           try{const j=JSON.parse(line.slice(6));
             if(j.chunk){full+=j.chunk;setStreamBuf(full);}
             if(j.done){
-              setChatMap(prev=>({...prev,[ck]:[...nextMsgs,{role:'ai',text:full,srcs:actSrc}]}));
+              setChatMap(prev=>({...prev,[ck]:[...nextMsgs,{role:'ai',text:full,srcs:allSrcs}]}));
               setStreamBuf('');
               if(j.blockMemory)setBlockMemory(prev=>({...prev,[ck]:j.blockMemory}));
               if(j.projectMemory)setProjectMemory(prev=>({...prev,[cid]:j.projectMemory}));
@@ -1593,7 +1600,7 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
         });
       }
     }catch(err){
-      setChatMap(prev=>({...prev,[ck]:[...nextMsgs,{role:'ai',text:'**Error:** '+err.message,srcs:[],isError:true,retryText:txt}]}));
+      setChatMap(prev=>({...prev,[ck]:[...nextMsgs,{role:'ai',text:'**Error:** '+err.message,srcs:[],isError:true,retryText:fullTxt}]}));
     }
     finally{setStreaming(false);}
   };
@@ -1602,6 +1609,22 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
   const addCuad=async()=>{if(!nCuad.nombre||!supabaseClient||!user) return;const ramoId=nCuad.rid||null;const color=ramoId?(ramos.find(r=>r.id===ramoId)?.color||'#1654b0'):'#1654b0';const{data,error}=await supabaseClient.from('learning_models').insert({user_id:user.id,name:nCuad.nombre,color,ramo_id:ramoId}).select('id').single();if(error){console.error('Error creando cuaderno:',error.message);return;}setCuads(prev=>[...prev,{rid:data.id,nombre:nCuad.nombre,color,ramoId,bloques:[]}]);setCid(data.id);setShowAddC(false);setNCuad({nombre:'',rid:''});};
   const addBloque=async()=>{if(!nBloque.t||!supabaseClient||!user||!cid) return;const ord=(cuad?.bloques.length||0)+1;const title=`${String(ord).padStart(2,'0')} · ${nBloque.t}`;const{data,error}=await supabaseClient.from('aprender_blocks').insert({user_id:user.id,project_id:cid,title,order:ord}).select('id').single();if(error){console.error('Error creando bloque:',error.message);return;}const nb={id:data.id,t:title,s:nBloque.s||'Nuevo bloque',msgs:0,ts:'vacío',eid:nBloque.eid||null,color:cuad?.color||'#1654b0'};setCuads(prev=>prev.map(c=>c.rid===cid?{...c,bloques:[...c.bloques,nb]}:c));setBid(data.id);setShowAddB(false);setNBloque({t:'',s:'',eid:''});};
   const addUrl=()=>{if(!urlInp.trim()) return;setActSrc(prev=>[...prev,urlInp.trim()]);setUrlInp('');};
+  const upChatImg=async(e)=>{
+    const file=e.target.files?.[0];
+    if(!file)return;
+    e.target.value='';
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path=`${user.id}/chat-images/${Date.now()}_${safeName}`;
+    const localUrl=URL.createObjectURL(file);
+    setChatImg({name:file.name,url:localUrl,path});
+    if(supabaseClient){
+      const{error}=await supabaseClient.storage.from('ramo-files').upload(path,file,{upsert:true});
+      if(!error){
+        const{data}=supabaseClient.storage.from('ramo-files').getPublicUrl(path);
+        setChatImg({name:file.name,url:data?.publicUrl||localUrl,path});
+      }
+    }
+  };
   const upFile=async(e)=>{
     const files=Array.from(e.target.files||[]);
     if(!files.length||!supabaseClient||!user)return;
@@ -1711,10 +1734,21 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
             {streaming&&!streamBuf&&<div style={{marginTop:14,padding:'10px 14px',borderRadius:12,background:'var(--p2)',display:'inline-flex',gap:6,alignItems:'center',fontSize:12,color:'var(--k4)'}}>Pensando…</div>}
             <div ref={endRef}/>
           </div>
-          <div style={{position:'absolute',bottom:14,left:16,right:16,background:'var(--w)',border:'1px solid var(--ln)',borderRadius:15,padding:'7px 9px',display:'flex',alignItems:'center',gap:7,boxShadow:'0 4px 24px -8px rgba(0,0,0,.12)'}}>
-            <button onClick={()=>{setShowSrc(true);setSrcMode('arch');}} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'grid',placeItems:'center',color:'var(--k3)',flexShrink:0}}><IcoPlus s={13}/></button>
-            <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey)send();}} onFocus={()=>{setColC(true);setColB(true);}} disabled={streaming} placeholder={streaming?'Pensando…':`Pregunta sobre ${bloque.t.split('·')[0].trim()}…`} style={{flex:1,border:'none',outline:'none',fontSize:13,background:'transparent',color:'var(--k)',fontFamily:'inherit'}}/>
-            <button onClick={send} disabled={streaming||!inp.trim()} style={{width:28,height:28,borderRadius:'50%',background:streaming||!inp.trim()?'var(--p2)':'linear-gradient(125deg,#1654b0,#3a26a0)',border:'none',display:'grid',placeItems:'center',cursor:streaming?'default':'pointer',flexShrink:0}}><IcoSend/></button>
+          <div style={{position:'absolute',bottom:14,left:16,right:16,background:'var(--w)',border:'1px solid var(--ln)',borderRadius:15,boxShadow:'0 4px 24px -8px rgba(0,0,0,.12)'}}>
+            {chatImg&&<div style={{display:'flex',alignItems:'center',gap:8,padding:'6px 9px 0'}}>
+              <img src={chatImg.url} alt={chatImg.name} style={{width:40,height:40,borderRadius:6,objectFit:'cover',border:'1px solid var(--ln)'}}/>
+              <span style={{fontSize:11,color:'var(--k3)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{chatImg.name}</span>
+              <button onClick={()=>setChatImg(null)} style={{border:'none',background:'none',cursor:'pointer',color:'var(--k3)',fontSize:16,lineHeight:1,padding:'0 2px'}}>×</button>
+            </div>}
+            <div style={{display:'flex',alignItems:'center',gap:7,padding:'7px 9px'}}>
+              <button onClick={()=>{setShowSrc(true);setSrcMode('arch');}} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'grid',placeItems:'center',color:'var(--k3)',flexShrink:0}}><IcoPlus s={13}/></button>
+              <button onClick={()=>imgRef.current?.click()} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--ln)',background:chatImg?'rgba(22,84,176,.1)':'var(--p)',cursor:'pointer',display:'grid',placeItems:'center',color:chatImg?'#1654b0':'var(--k3)',flexShrink:0}}>
+                <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+              <input ref={imgRef} type="file" accept="image/*" style={{display:'none'}} onChange={upChatImg}/>
+              <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey)send();}} onFocus={()=>{setColC(true);setColB(true);}} disabled={streaming} placeholder={streaming?'Pensando…':`Pregunta sobre ${bloque.t.split('·')[0].trim()}…`} style={{flex:1,border:'none',outline:'none',fontSize:13,background:'transparent',color:'var(--k)',fontFamily:'inherit'}}/>
+              <button onClick={send} disabled={streaming||(!inp.trim()&&!chatImg)} style={{width:28,height:28,borderRadius:'50%',background:streaming||(!inp.trim()&&!chatImg)?'var(--p2)':'linear-gradient(125deg,#1654b0,#3a26a0)',border:'none',display:'grid',placeItems:'center',cursor:streaming?'default':'pointer',flexShrink:0}}><IcoSend/></button>
+            </div>
           </div>
         </>:<div style={{display:'grid',placeItems:'center',height:'100%',color:'var(--k4)',fontSize:13}}>Selecciona un bloque</div>}
       </div>
@@ -1765,6 +1799,8 @@ function SecEjercicios({ramos=[],user}){
   const [srcMode,setSrcMode]=useState('arch');
   const [actSrc,setActSrc]=useState([]);
   const [urlInp,setUrlInp]=useState('');
+  const [chatImg,setChatImg]=useState(null);
+  const imgRef=useRef(null);
   const fRef=useRef(null);
   const msgEndRef=useRef(null);
   const [form,setForm]=useState({titulo:'',ramo:'',tipo:'Prueba',conPauta:false});
@@ -1831,16 +1867,37 @@ function SecEjercicios({ramos=[],user}){
 
   const addUrl=()=>{if(!urlInp.trim())return;setActSrc(prev=>[...prev,{title:urlInp.trim(),storageUrl:urlInp.trim()}]);setUrlInp('');};
 
+  const upChatImg=async(e)=>{
+    const file=e.target.files?.[0];
+    if(!file)return;
+    e.target.value='';
+    const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path=`${user.id}/chat-images/${Date.now()}_${safeName}`;
+    const localUrl=URL.createObjectURL(file);
+    setChatImg({name:file.name,url:localUrl,path});
+    if(supabaseClient){
+      const{error}=await supabaseClient.storage.from('ramo-files').upload(path,file,{upsert:true});
+      if(!error){
+        const{data}=supabaseClient.storage.from('ramo-files').getPublicUrl(path);
+        setChatImg({name:file.name,url:data?.publicUrl||localUrl,path});
+      }
+    }
+  };
+
   const sendMsg=async()=>{
     const text=inp.trim();
-    if(!text||streaming)return;
-    setInp('');
-    const userMsg={role:'user',content:text};
+    if((!text&&!chatImg)||streaming)return;
+    const imgSnap=chatImg;
+    const fullText=imgSnap?`[Imagen adjunta: ${imgSnap.name}]\n${text}`:text;
+    setInp('');setChatImg(null);
+    const userMsg={role:'user',content:fullText};
     const nextMsgs=[...msgs,userMsg];
     setMsgs(nextMsgs);
     setStreaming(true);setStreamBuf('');
     try{
-      const validSources=actSrc.filter(s=>s.base64||s.storageUrl);
+      const imgSrc=imgSnap?[{title:imgSnap.name,storageUrl:imgSnap.url}]:[];
+      const validSources=[...actSrc.filter(s=>s.base64||s.storageUrl),...imgSrc];
+      const allSrcs=[...actSrc.map(s=>s.title),...(imgSnap?[imgSnap.name]:[])];
       const resp=await fetch('/api/ejercicios-chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sources:validSources,messages:nextMsgs,conPauta:bloque?.conPauta||false})});
       if(!resp.ok){const e=await resp.json();throw new Error(e.error||'Error del servidor');}
       const reader=resp.body.getReader();const dec=new TextDecoder();let full='';
@@ -1850,11 +1907,11 @@ function SecEjercicios({ramos=[],user}){
           if(!line.startsWith('data: '))return;
           try{const j=JSON.parse(line.slice(6));
             if(j.chunk){full+=j.chunk;setStreamBuf(full);}
-            if(j.done){setMsgs(p=>[...p,{role:'assistant',content:full,srcs:actSrc.map(s=>s.title)}]);setStreamBuf('');}
+            if(j.done){setMsgs(p=>[...p,{role:'assistant',content:full,srcs:allSrcs}]);setStreamBuf('');}
           }catch{}
         });
       }
-    }catch(err){setMsgs(p=>[...p,{role:'assistant',content:'**Error:** '+err.message,isError:true,retryText:text}]);}
+    }catch(err){setMsgs(p=>[...p,{role:'assistant',content:'**Error:** '+err.message,isError:true,retryText:fullText}]);}
     finally{setStreaming(false);}
   };
 
@@ -1937,10 +1994,21 @@ function SecEjercicios({ramos=[],user}){
             {streaming&&!streamBuf&&<div style={{marginTop:14,padding:'10px 14px',borderRadius:12,background:'var(--p2)',display:'inline-flex',gap:6,alignItems:'center',fontSize:12,color:'var(--k4)'}}>Analizando material y generando ejercicios…</div>}
             <div ref={msgEndRef}/>
           </div>
-          <div style={{position:'absolute',bottom:14,left:16,right:16,background:'var(--w)',border:'1px solid var(--ln)',borderRadius:15,padding:'7px 9px',display:'flex',alignItems:'center',gap:7,boxShadow:'0 4px 24px -8px rgba(0,0,0,.12)'}}>
-            <button onClick={()=>setShowSrc(s=>!s)} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'grid',placeItems:'center',color:'var(--k3)',flexShrink:0}}><IcoPlus s={13}/></button>
-            <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&sendMsg()} placeholder={streaming?'Generando…':'Pide ejercicios, soluciones, pistas…'} disabled={streaming} style={{flex:1,border:'none',outline:'none',fontSize:13,background:'transparent',color:'var(--k)',fontFamily:'inherit'}}/>
-            <button onClick={sendMsg} disabled={streaming||!inp.trim()} style={{width:28,height:28,borderRadius:'50%',background:streaming||!inp.trim()?'var(--p2)':'linear-gradient(125deg,#1654b0,#3a26a0)',border:'none',display:'grid',placeItems:'center',cursor:streaming?'default':'pointer',flexShrink:0}}><IcoSend/></button>
+          <div style={{position:'absolute',bottom:14,left:16,right:16,background:'var(--w)',border:'1px solid var(--ln)',borderRadius:15,boxShadow:'0 4px 24px -8px rgba(0,0,0,.12)'}}>
+            {chatImg&&<div style={{display:'flex',alignItems:'center',gap:8,padding:'6px 9px 0'}}>
+              <img src={chatImg.url} alt={chatImg.name} style={{width:40,height:40,borderRadius:6,objectFit:'cover',border:'1px solid var(--ln)'}}/>
+              <span style={{fontSize:11,color:'var(--k3)',flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{chatImg.name}</span>
+              <button onClick={()=>setChatImg(null)} style={{border:'none',background:'none',cursor:'pointer',color:'var(--k3)',fontSize:16,lineHeight:1,padding:'0 2px'}}>×</button>
+            </div>}
+            <div style={{display:'flex',alignItems:'center',gap:7,padding:'7px 9px'}}>
+              <button onClick={()=>setShowSrc(s=>!s)} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'grid',placeItems:'center',color:'var(--k3)',flexShrink:0}}><IcoPlus s={13}/></button>
+              <button onClick={()=>imgRef.current?.click()} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--ln)',background:chatImg?'rgba(22,84,176,.1)':'var(--p)',cursor:'pointer',display:'grid',placeItems:'center',color:chatImg?'#1654b0':'var(--k3)',flexShrink:0}}>
+                <svg width={13} height={13} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </button>
+              <input ref={imgRef} type="file" accept="image/*" style={{display:'none'}} onChange={upChatImg}/>
+              <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&sendMsg()} placeholder={streaming?'Generando…':'Pide ejercicios, soluciones, pistas…'} disabled={streaming} style={{flex:1,border:'none',outline:'none',fontSize:13,background:'transparent',color:'var(--k)',fontFamily:'inherit'}}/>
+              <button onClick={sendMsg} disabled={streaming||(!inp.trim()&&!chatImg)} style={{width:28,height:28,borderRadius:'50%',background:streaming||(!inp.trim()&&!chatImg)?'var(--p2)':'linear-gradient(125deg,#1654b0,#3a26a0)',border:'none',display:'grid',placeItems:'center',cursor:streaming?'default':'pointer',flexShrink:0}}><IcoSend/></button>
+            </div>
           </div>
         </>}
       </div>
@@ -2927,10 +2995,14 @@ function LoginScreen(){
             </div>
             <div style={{display:'flex',flexDirection:'column',gap:5}}>
               <label style={{fontSize:12,fontWeight:500,color:'var(--k3)'}}>Carrera <span style={{color:'var(--er)'}}>*</span></label>
-              <select value={carrera} onChange={e=>setCarrera(e.target.value)} disabled={!universidad} style={{...selStyle,color:!universidad?'var(--k4)':'var(--k)',cursor:!universidad?'not-allowed':'pointer'}}>
+              <select value={carreras.includes(carrera)?carrera:(carrera&&!carreras.includes(carrera))?'__otra__':''} onChange={e=>{if(e.target.value==='__otra__')setCarrera(' ');else setCarrera(e.target.value);}} disabled={!universidad} style={{...selStyle,color:!universidad?'var(--k4)':'var(--k)',cursor:!universidad?'not-allowed':'pointer'}}>
                 <option value="">{universidad?'— Seleccionar —':'Primero elige una universidad'}</option>
                 {carreras.map(c=><option key={c} value={c}>{c}</option>)}
+                {universidad&&<option value="__otra__">Otra carrera...</option>}
               </select>
+              {universidad&&carrera&&!carreras.includes(carrera)&&(
+                <input autoFocus value={carrera.trim()} onChange={e=>setCarrera(e.target.value)} placeholder="Escribe tu carrera" style={{marginTop:4,padding:'8px 12px',borderRadius:8,border:'1px solid var(--ln)',background:'var(--w)',font:'inherit',fontSize:13,color:'var(--k)',outline:'none'}}/>
+              )}
             </div>
             <div style={{display:'flex',flexDirection:'column',gap:5}}>
               <label style={{fontSize:12,fontWeight:500,color:'var(--k3)'}}>Año de estudio</label>
