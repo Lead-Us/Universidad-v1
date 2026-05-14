@@ -2152,7 +2152,7 @@ function RamoNotas({ ramo, updateRamo }) {
   const totalPeso = (ramo.evaluation_modules || []).reduce((s, m) => s + (m.weight || 0), 0);
 
   const saveGrade = (mid, iid) => {
-    const v = gVal === '' ? null : Math.min(7, Math.max(1, parseFloat(gVal)));
+    const v = gVal === '' ? null : Math.min(7, Math.max(1, parseFloat(String(gVal).replace(',', '.'))));
     updateRamo(ramo.id, r => ({ ...r, evaluation_modules: r.evaluation_modules.map(m => m.id === mid ? { ...m, items: m.items.map(it => it.id === iid ? { ...it, grade: isNaN(v) ? null : v } : it) } : m) }));
     setEditGrade(null);
   };
@@ -2248,7 +2248,7 @@ function RamoNotas({ ramo, updateRamo }) {
                     <span style={{ fontSize: 13, fontWeight: 500, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
                     <span style={{ fontSize: 12, color: 'var(--k4)' }}>{item.date || ''}</span>
                     {isEd ? (
-                      <input autoFocus type="number" min="1" max="7" step="0.1" value={gVal}
+                      <input autoFocus type="text" inputMode="decimal" value={gVal}
                         onClick={e => e.stopPropagation()}
                         onChange={e => setGVal(e.target.value)} onBlur={() => saveGrade(mod.id, item.id)} onKeyDown={e => e.key === 'Enter' && saveGrade(mod.id, item.id)}
                         style={{ padding: '2px 6px', border: `1px solid ${c}`, borderRadius: 5, fontSize: 15, fontWeight: 700, textAlign: 'center', outline: 'none', width: '100%', background: 'var(--w)', color: 'var(--k)', fontFamily: 'inherit' }} />
