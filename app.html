@@ -1203,7 +1203,16 @@ function SecBiblioteca({initRid,ramos=[]}){
   const [newFolderName,setNewFolderName]=useState('');
   const [editingFolder,setEditingFolder]=useState(null);
   const [editFolderName,setEditFolderName]=useState('');
+  const [colWidths,setColWidths]=useState({secciones:180,archivos:180});
+  const resizingRef=useRef(null);
   const bibFileRef=useRef(null);
+
+  // Column resize handlers
+  const startResize=(col,e)=>{e.preventDefault();resizingRef.current={col,startX:e.clientX,startW:colWidths[col]};
+    const onMove=ev=>{if(!resizingRef.current)return;const diff=ev.clientX-resizingRef.current.startX;setColWidths(p=>({...p,[resizingRef.current.col]:Math.max(120,Math.min(400,resizingRef.current.startW+diff))}));};
+    const onUp=()=>{resizingRef.current=null;document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);};
+    document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
+  };
 
   // Load all ramo_files + ramo_file_folders for the user
   useEffect(()=>{
@@ -1301,10 +1310,10 @@ function SecBiblioteca({initRid,ramos=[]}){
 
   return(
     <div style={{display:'flex',flex:1,overflow:'hidden'}}>
-      {/* Col 1: Ramos — colapsable */}
+      {/* Col 1: Carpetas (ramos) — colapsable */}
       {!colRamos&&<div style={{width:224,flexShrink:0,borderRight:'1px solid var(--ln)',background:'var(--w)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
         <div style={{padding:'10px 10px 6px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
-          <div style={{fontSize:11,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--k4)'}}>Ramos</div>
+          <div style={{fontSize:11,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--k4)'}}>Carpetas</div>
           <button onClick={()=>setColRamos(true)} style={{width:20,height:20,border:'none',background:'transparent',cursor:'pointer',color:'var(--k4)',display:'grid',placeItems:'center'}}><IcoCh dir="l" s={10}/></button>
         </div>
         <div style={{overflowY:'auto',flex:1,minHeight:0}}>
@@ -1317,8 +1326,8 @@ function SecBiblioteca({initRid,ramos=[]}){
       </div>}
       {colRamos&&<button onClick={()=>setColRamos(false)} style={{width:24,flexShrink:0,border:'none',borderRight:'1px solid var(--ln)',background:'var(--w)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--k4)'}}><IcoCh s={11}/></button>}
 
-      {/* Col 2: Carpetas — colapsable */}
-      {!colCarpetas&&<div style={{width:224,flexShrink:0,borderRight:'1px solid var(--ln)',background:'var(--p)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      {/* Col 2: Secciones — colapsable + resizable */}
+      {!colCarpetas&&<div style={{width:colWidths.secciones,flexShrink:0,borderRight:'none',background:'var(--p)',display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}}>
         <div style={{padding:'10px 10px 6px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
           <div style={{fontSize:11,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--k4)'}}>Secciones</div>
           <div style={{display:'flex',gap:2}}>
@@ -1362,11 +1371,12 @@ function SecBiblioteca({initRid,ramos=[]}){
             </div>
           );})}
         </div>
+        <div onMouseDown={e=>startResize('secciones',e)} style={{position:'absolute',right:0,top:0,bottom:0,width:5,cursor:'col-resize',borderRight:'1px solid var(--ln)',zIndex:2}}/>
       </div>}
       {colCarpetas&&<button onClick={()=>setColCarpetas(false)} style={{width:24,flexShrink:0,border:'none',borderRight:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--k4)'}}><IcoCh s={11}/></button>}
 
-      {/* Col 3: Archivos */}
-      <div style={{width:224,flexShrink:0,borderRight:'1px solid var(--ln)',background:'var(--w)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      {/* Col 3: Archivos — resizable */}
+      <div style={{width:colWidths.archivos,flexShrink:0,borderRight:'none',background:'var(--w)',display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}}>
         <div style={{padding:'10px 12px 6px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
           <div style={{fontSize:11,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--k4)'}}>Archivos</div>
           {selRamo&&<button onClick={()=>bibFileRef.current?.click()} disabled={uploading} style={{display:'flex',alignItems:'center',gap:3,fontSize:10,fontWeight:500,color:'#1654b0',border:'1px dashed rgba(22,84,176,.3)',background:'transparent',padding:'3px 8px',borderRadius:6,cursor:uploading?'default':'pointer',opacity:uploading?.6:1}}><IcoUp s={9}/>{uploading?'Subiendo…':'Subir'}</button>}
@@ -1386,6 +1396,7 @@ function SecBiblioteca({initRid,ramos=[]}){
             <IcoCh s={10}/>
           </div>))}
         </div>
+        <div onMouseDown={e=>startResize('archivos',e)} style={{position:'absolute',right:0,top:0,bottom:0,width:5,cursor:'col-resize',borderRight:'1px solid var(--ln)',zIndex:2}}/>
       </div>
 
       {/* Col 4: Preview */}
