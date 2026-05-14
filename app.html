@@ -1302,7 +1302,7 @@ function SecBiblioteca({initRid,ramos=[]}){
   return(
     <div style={{display:'flex',flex:1,overflow:'hidden'}}>
       {/* Col 1: Ramos — colapsable */}
-      {!colRamos&&<div style={{width:180,flexShrink:0,borderRight:'1px solid var(--ln)',background:'var(--w)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      {!colRamos&&<div style={{width:224,flexShrink:0,borderRight:'1px solid var(--ln)',background:'var(--w)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
         <div style={{padding:'10px 10px 6px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
           <div style={{fontSize:11,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--k4)'}}>Ramos</div>
           <button onClick={()=>setColRamos(true)} style={{width:20,height:20,border:'none',background:'transparent',cursor:'pointer',color:'var(--k4)',display:'grid',placeItems:'center'}}><IcoCh dir="l" s={10}/></button>
@@ -1315,10 +1315,10 @@ function SecBiblioteca({initRid,ramos=[]}){
           </div>);})}
         </div>
       </div>}
-      {colRamos&&<button onClick={()=>setColRamos(false)} style={{width:22,flexShrink:0,border:'none',borderRight:'1px solid var(--ln)',background:'var(--w)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--k4)'}}><IcoCh s={10}/></button>}
+      {colRamos&&<button onClick={()=>setColRamos(false)} style={{width:24,flexShrink:0,border:'none',borderRight:'1px solid var(--ln)',background:'var(--w)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--k4)'}}><IcoCh s={11}/></button>}
 
       {/* Col 2: Carpetas — colapsable */}
-      {!colCarpetas&&<div style={{width:210,flexShrink:0,borderRight:'1px solid var(--ln)',background:'var(--p)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      {!colCarpetas&&<div style={{width:224,flexShrink:0,borderRight:'1px solid var(--ln)',background:'var(--p)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
         <div style={{padding:'10px 10px 6px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
           <div style={{fontSize:11,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--k4)'}}>Secciones</div>
           <div style={{display:'flex',gap:2}}>
@@ -1363,10 +1363,10 @@ function SecBiblioteca({initRid,ramos=[]}){
           );})}
         </div>
       </div>}
-      {colCarpetas&&<button onClick={()=>setColCarpetas(false)} style={{width:22,flexShrink:0,border:'none',borderRight:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--k4)'}}><IcoCh s={10}/></button>}
+      {colCarpetas&&<button onClick={()=>setColCarpetas(false)} style={{width:24,flexShrink:0,border:'none',borderRight:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--k4)'}}><IcoCh s={11}/></button>}
 
       {/* Col 3: Archivos */}
-      <div style={{width:220,flexShrink:0,borderRight:'1px solid var(--ln)',background:'var(--w)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{width:224,flexShrink:0,borderRight:'1px solid var(--ln)',background:'var(--w)',display:'flex',flexDirection:'column',overflow:'hidden'}}>
         <div style={{padding:'10px 12px 6px',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}}>
           <div style={{fontSize:11,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--k4)'}}>Archivos</div>
           {selRamo&&<button onClick={()=>bibFileRef.current?.click()} disabled={uploading} style={{display:'flex',alignItems:'center',gap:3,fontSize:10,fontWeight:500,color:'#1654b0',border:'1px dashed rgba(22,84,176,.3)',background:'transparent',padding:'3px 8px',borderRadius:6,cursor:uploading?'default':'pointer',opacity:uploading?.6:1}}><IcoUp s={9}/>{uploading?'Subiendo…':'Subir'}</button>}
