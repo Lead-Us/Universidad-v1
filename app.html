@@ -2973,7 +2973,7 @@ function normalizeRamo(r, units, files){
     st:s.status?(s.status==='present'?'presente':s.status==='absent'?'ausente':'tardanza'):(s.st||'ausente'),
   }));
   const allFiles=files?(files||[]).map(f=>({id:f.id,n:f.name,f:(f.created_at||'').slice(0,10),programa:!!f.is_programa,storage_path:f.storage_path})):(r.archivos||[]);
-  const _norm=s=>(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9. _-]/g,'').toLowerCase();
+  const _norm=s=>(s||'').replace(/[^a-zA-Z0-9 ._-]/g,'').toLowerCase().replace(/\s+/g,' ').trim();
   const temario=units?(units||[]).map(u=>{
     let fileIds=u.materias||u.archivos||[];
     // If materias is old format (array of objects with files/name), resolve to file IDs

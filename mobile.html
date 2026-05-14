@@ -1005,7 +1005,7 @@ function normalizeRamo(r, files, units) {
     attendance: attSessions,
     archivos: (files || []).map(f => ({ id: f.id, name: f.name, date: (f.created_at || '').slice(0, 10), programa: !!f.is_programa, storage_path: f.storage_path })),
     temario: (() => {
-      const _norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9. _-]/g, '').toLowerCase();
+      const _norm = s => (s || '').replace(/[^a-zA-Z0-9 ._-]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
       return (units || []).map(u => {
         let fileIds = u.materias || u.archivos || [];
         const allF = (files || []);
