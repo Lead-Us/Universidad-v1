@@ -1030,7 +1030,8 @@ function TabTemario({ramo,updateRamo,user,setRamos}){
         const{data}=await supabaseClient.from('units').insert({user_id:user.id,ramo_id:ramo.id,name:u.titulo,materias:u.archivos||[],"order":idx}).select().single();
         if(data) newUnidades[idx]={...u,id:data.id};
       } else if(oldIds.has(u.id)){
-        supabaseClient.from('units').update({name:u.titulo,materias:u.archivos||[],"order":idx}).eq('id',u.id);
+        const{error:upErr}=await supabaseClient.from('units').update({name:u.titulo,materias:u.archivos||[],"order":idx}).eq('id',u.id);
+        if(upErr) console.error('units update error:',upErr.message);
       }
     }
     // Update both local state and parent with real DB ids
@@ -1045,7 +1046,7 @@ function TabTemario({ramo,updateRamo,user,setRamos}){
   const addUnidad=()=>{if(!newTit.trim()) return;const old=[...unidadesRef.current];const next=[...unidadesRef.current,{id:`u${Date.now()}`,titulo:newTit.trim(),archivos:[]}];setUnidades(next);setNewTit('');setShowAdd(false);persistUnidades(next,old);};
   const delUnidad=id=>{const old=[...unidadesRef.current];const next=unidadesRef.current.filter(u=>u.id!==id);setUnidades(next);persistUnidades(next,old);setEditingUnit(null);setConfirmDelete(null);};
   const renameUnit=(uid)=>{if(!editName.trim()) return;const old=[...unidadesRef.current];const next=unidadesRef.current.map(u=>u.id===uid?{...u,titulo:editName.trim()}:u);setUnidades(next);persistUnidades(next,old);setEditingUnit(null);};
-  const toggleFile=(uid,fid)=>{const old=[...unidadesRef.current];const next=unidadesRef.current.map(u=>u.id===uid?{...u,archivos:u.archivos.includes(fid)?u.archivos.filter(x=>x!==fid):[...u.archivos,fid]}:u);setUnidades(next);persistUnidades(next,old);};
+  const toggleFile=(uid,fid)=>{const old=[...unidadesRef.current];const next=unidadesRef.current.map(u=>u.id===uid?{...u,archivos:u.archivos.includes(fid)?u.archivos.filter(x=>x!==fid):[...u.archivos,fid]}:u);console.log('toggleFile uid=',uid,'fid=',fid,'old archivos=',old.find(u=>u.id===uid)?.archivos,'new archivos=',next.find(u=>u.id===uid)?.archivos);setUnidades(next);persistUnidades(next,old);};
   const deleteFileFromRamo=async(fid)=>{
     const file=(ramo.archivos||[]).find(a=>a.id===fid);
     // Remove from all units
