@@ -1041,7 +1041,7 @@ function TabTemario({ramo,updateRamo,user,setRamos}){
   const addUnidad=()=>{if(!newTit.trim()) return;const old=[...unidades];const next=[...unidades,{id:`u${Date.now()}`,titulo:newTit.trim(),archivos:[]}];setUnidades(next);setNewTit('');setShowAdd(false);persistUnidades(next,old);};
   const delUnidad=id=>{const old=[...unidades];const next=unidades.filter(u=>u.id!==id);setUnidades(next);persistUnidades(next,old);setEditingUnit(null);setConfirmDelete(null);};
   const renameUnit=(uid)=>{if(!editName.trim()) return;const old=[...unidades];const next=unidades.map(u=>u.id===uid?{...u,titulo:editName.trim()}:u);setUnidades(next);persistUnidades(next,old);setEditingUnit(null);};
-  const toggleFile=(uid,fid)=>{const old=[...unidades];const next=unidades.map(u=>u.id===uid?{...u,archivos:u.archivos.includes(fid)?u.archivos.filter(x=>x!==fid):[...u.archivos,fid]}:u);setUnidades(next);persistUnidades(next,old);};
+  const toggleFile=(uid,fid)=>{setUnidades(prev=>{const next=prev.map(u=>u.id===uid?{...u,archivos:u.archivos.includes(fid)?u.archivos.filter(x=>x!==fid):[...u.archivos,fid]}:u);persistUnidades(next,prev);return next;});};
   const deleteFileFromRamo=async(fid)=>{
     const file=(ramo.archivos||[]).find(a=>a.id===fid);
     // Remove from all units
@@ -1064,13 +1064,11 @@ function TabTemario({ramo,updateRamo,user,setRamos}){
     for(const file of files){
       const localId='f'+Date.now()+Math.random().toString(36).slice(2,5);
       const newFile={id:localId,n:file.name,f:new Date().toISOString().slice(0,10),programa:false};
-      // Add file to ramo.archivos and assign to unit
+      // Add file to ramo.archivos (optimistic UI)
       if(setRamos) setRamos(prev=>prev.map(r=>r.id===ramo.id?{...r,archivos:[...r.archivos,newFile]}:r));
-      const old=[...unidades];
-      const next=unidades.map(u=>u.id===unitId?{...u,archivos:[...u.archivos,localId]}:u);
-      setUnidades(next);
-      persistUnidades(next,old);
-      // Upload to Supabase storage + DB
+      // Add localId to unit (optimistic UI only, don't persist yet)
+      setUnidades(prev=>prev.map(u=>u.id===unitId?{...u,archivos:[...u.archivos,localId]}:u));
+      // Upload to Supabase storage + DB, then persist with real id
       if(supabaseClient&&user){
         try{
           const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
@@ -1079,12 +1077,15 @@ function TabTemario({ramo,updateRamo,user,setRamos}){
           if(!upErr){
             const{data}=await supabaseClient.from('ramo_files').insert({user_id:user.id,ramo_id:ramo.id,name:file.name,size:file.size,storage_path:path,is_programa:false}).select('*').single();
             if(data){
-              // Replace local id with real DB id
-              if(setRamos) setRamos(prev=>prev.map(r=>r.id===ramo.id?{...r,archivos:r.archivos.map(f=>f.id===localId?{...f,id:data.id,storage_path:data.storage_path}:f)}:r));
-              const old2=[...unidades];
-              const next2=unidades.map(u=>u.id===unitId?{...u,archivos:u.archivos.map(fid=>fid===localId?data.id:fid)}:u);
-              setUnidades(next2);
-              persistUnidades(next2,old2);
+              const realId=data.id;
+              // Replace localId with realId in ramo.archivos
+              if(setRamos) setRamos(prev=>prev.map(r=>r.id===ramo.id?{...r,archivos:r.archivos.map(f=>f.id===localId?{...f,id:realId,storage_path:data.storage_path}:f)}:r));
+              // Replace localId with realId in unit and persist to DB
+              setUnidades(prev=>{
+                const updated=prev.map(u=>u.id===unitId?{...u,archivos:u.archivos.map(fid=>fid===localId?realId:fid)}:u);
+                persistUnidades(updated,prev);
+                return updated;
+              });
             }
           }
         }catch(err){console.error('Upload failed:',err);}
