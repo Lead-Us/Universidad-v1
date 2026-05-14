@@ -1907,60 +1907,66 @@ function SecInicio({ profile, push, ramos, tasks, setTasks, schedule, setSchedul
         })()}
       </div>
 
-      {/* Horario semanal */}
-      <div className="sec-header" style={{ paddingTop: 12 }}>
-        <h2>Horario · Semana {(() => { const d = new Date(); const start = new Date(d.getFullYear(), 0, 1); return Math.ceil(((d - start) / 86400000 + start.getDay() + 1) / 7); })()}</h2>
+      {/* Horario semanal — prominent section */}
+      <div style={{ padding: '14px 16px 6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--k)' }}>Horario</h2>
+          <p style={{ fontSize: 12, color: 'var(--k4)', marginTop: 2 }}>Semana {(() => { const d = new Date(); const start = new Date(d.getFullYear(), 0, 1); return Math.ceil(((d - start) / 86400000 + start.getDay() + 1) / 7); })()}</p>
+        </div>
         <button onClick={() => setShowEditSchedule(true)}
-          style={{ width: 24, height: 24, borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--w)', cursor: 'pointer', color: 'var(--k3)', display: 'grid', placeItems: 'center', fontSize: 13 }}>
+          style={{ width: 28, height: 28, borderRadius: 8, border: '1px solid var(--ln)', background: 'var(--w)', cursor: 'pointer', color: 'var(--k3)', display: 'grid', placeItems: 'center', fontSize: 14 }}>
           ✎
         </button>
       </div>
 
-      {/* Day selector — each day its own bubble */}
-      <div style={{ display: 'flex', gap: 8, margin: '0 16px' }}>
+      {/* Day selector — taller, more prominent */}
+      <div style={{ display: 'flex', gap: 6, margin: '0 16px', padding: '4px 0' }}>
         {weekDays.map(d => {
           const isToday = d.dow === todayDow;
           const isActive = selectedDay === d.dow;
           return (
             <button key={d.dow} onClick={() => setSelectedDay(d.dow)} className="card"
               style={{
-                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0,
-                padding: '7px 0 7px', cursor: 'pointer', fontFamily: 'inherit',
+                flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2,
+                padding: '10px 0 8px', cursor: 'pointer', fontFamily: 'inherit',
                 background: isActive ? 'var(--brand1)' : 'var(--w)',
                 borderColor: isActive ? 'var(--brand1)' : undefined,
                 transition: 'all .15s', WebkitTapHighlightColor: 'transparent',
               }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: isActive ? 'rgba(255,255,255,.75)' : 'var(--k3)', textTransform: 'uppercase', letterSpacing: '.05em' }}>
-                {d.label} {d.num}
+              <span style={{ fontSize: 10, fontWeight: 500, color: isActive ? 'rgba(255,255,255,.6)' : 'var(--k4)', textTransform: 'uppercase', letterSpacing: '.06em' }}>
+                {d.label}
               </span>
-              {isToday && <span style={{ fontSize: 7, fontWeight: 700, color: isActive ? '#fff' : 'var(--brand1)', marginTop: 1 }}>HOY</span>}
+              <span style={{ fontSize: 17, fontWeight: 700, color: isActive ? '#fff' : 'var(--k)', letterSpacing: '-0.01em' }}>
+                {d.num}
+              </span>
+              {isToday && <div style={{ width: 5, height: 5, borderRadius: '50%', background: isActive ? '#fff' : 'var(--brand1)', marginTop: 1 }} />}
             </button>
           );
         })}
       </div>
 
-      {/* Schedule blocks — with type, time outside on left, bigger */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 8, margin: '10px 16px 0' }}>
+      {/* Schedule blocks — spacious, prominent */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, margin: '12px 16px 0' }}>
         {dayClases.length === 0 ? (
-          <div className="card" style={{ padding: '16px 0', textAlign: 'center', color: 'var(--k3)', fontSize: 13 }}>Sin clases este día</div>
+          <div className="card" style={{ padding: '24px 0', textAlign: 'center', color: 'var(--k3)', fontSize: 14 }}>Sin clases este día</div>
         ) : dayClases.map(clase => {
           const ramo = ramoByIdLocal(clase.ramo_id);
           const c = ramo?.color || '#1654b0';
           const tipoLabel = { catedra: 'cátedra', ayudantia: 'ayudantía', laboratorio: 'laboratorio', taller: 'taller' }[clase.tipo] || clase.tipo || 'cátedra';
           return (
-            <div key={clase.id} onClick={() => setViewClase({ ...clase, ramoName: ramo?.name, ramoColor: c, tipoLabel })} style={{ display: 'flex', gap: 10, alignItems: 'center', cursor: 'pointer' }}>
-              {/* Time outside on left */}
-              <div style={{ width: 38, flexShrink: 0, textAlign: 'right' }}>
-                <p style={{ fontSize: 12, fontWeight: 600, color: 'var(--k3)' }}>{clase.start_time}</p>
-                <p style={{ fontSize: 11, color: 'var(--k4)' }}>{clase.end_time}</p>
+            <div key={clase.id} onClick={() => setViewClase({ ...clase, ramoName: ramo?.name, ramoColor: c, tipoLabel })} style={{ display: 'flex', gap: 12, alignItems: 'center', cursor: 'pointer' }}>
+              {/* Time outside on left — bigger */}
+              <div style={{ width: 44, flexShrink: 0, textAlign: 'right' }}>
+                <p style={{ fontSize: 14, fontWeight: 700, color: 'var(--k2)', letterSpacing: '-0.01em' }}>{clase.start_time}</p>
+                <p style={{ fontSize: 11, color: 'var(--k4)', marginTop: 1 }}>{clase.end_time}</p>
               </div>
-              {/* Block */}
-              <div style={{ flex: 1, borderRadius: 7, background: c + '18', borderLeft: `2.5px solid ${c}`, padding: '10px 12px', lineHeight: 1.3 }}>
-                <p style={{ fontWeight: 600, color: 'var(--k)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 13 }}>
-                  {ramo?.name} · {tipoLabel}
+              {/* Block — taller padding */}
+              <div style={{ flex: 1, borderRadius: 10, background: c + '14', borderLeft: `3px solid ${c}`, padding: '14px 14px', lineHeight: 1.35 }}>
+                <p style={{ fontWeight: 600, color: 'var(--k)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', fontSize: 15 }}>
+                  {ramo?.name}
                 </p>
-                <p style={{ color: 'var(--k3)', marginTop: 2, fontSize: 11 }}>
-                  {clase.sala}
+                <p style={{ color: 'var(--k3)', marginTop: 3, fontSize: 12 }}>
+                  {tipoLabel} · {clase.sala}
                 </p>
               </div>
             </div>
