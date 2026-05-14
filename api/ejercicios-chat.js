@@ -102,22 +102,26 @@ export default async function handler(req, res) {
   const analyses     = [];
 
   for (const src of validSources) {
-    try {
-      const result = await geminiModel.generateContent([
-        {
-          inlineData: {
-            mimeType: src.mediaType || 'application/pdf',
-            data:     src.base64,
+    let analyzed = false;
+    for (let attempt = 0; attempt < 2 && !analyzed; attempt++) {
+      try {
+        const result = await geminiModel.generateContent([
+          {
+            inlineData: {
+              mimeType: src.mediaType || 'application/pdf',
+              data:     src.base64,
+            },
           },
-        },
-        GEMINI_STYLE_PROMPT,
-      ]);
-      const raw  = result.response.text().trim();
-      const json = raw.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1]?.trim() ?? raw;
-      analyses.push({ title: src.title, analysis: JSON.parse(json) });
-    } catch (err) {
-      // If Gemini fails for a source, skip it but don't crash
-      console.warn(`[ejercicios-chat] Gemini analysis failed for "${src.title}":`, err.message);
+          GEMINI_STYLE_PROMPT,
+        ]);
+        const raw  = result.response.text().trim();
+        const json = raw.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1]?.trim() ?? raw;
+        analyses.push({ title: src.title, analysis: JSON.parse(json) });
+        analyzed = true;
+      } catch (err) {
+        console.warn(`[ejercicios-chat] Gemini attempt ${attempt + 1} failed for "${src.title}":`, err.message);
+        if (attempt === 0) await new Promise(r => setTimeout(r, 1000));
+      }
     }
   }
 

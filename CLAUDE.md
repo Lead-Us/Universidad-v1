@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-**Universidad v2 — full-stack platform for Chilean university students.** Backend is a set of Vercel Serverless Functions in `api/`. The frontend prototype lives in `App Universidad v1 final.html` — a single-file React 18 app (UMD + Babel standalone, no build step) used as the design reference and working prototype.
+**Universidad v1 — full-stack platform for Chilean university students.** Backend is a set of Vercel Serverless Functions in `api/`. The frontend prototype lives in `App Universidad v1 final.html` — a single-file React 18 app (UMD + Babel standalone, no build step) used as the design reference and working prototype.
 
 Features: AI tutoring, exam prep tutor, AI exercise generator, AI document generator, course management, scheduling, notes editor, file library, payments.
 

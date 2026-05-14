@@ -1,4 +1,4 @@
-# Universidad v2
+# Universidad v1
 
 Chilean university student platform — AI tutoring, course management, scheduling, payments.
 

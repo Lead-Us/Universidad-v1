@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-<title>Universidad v2</title>
+<title>Universidad v1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
@@ -180,7 +180,7 @@ function Sidebar({active,onNav,collapsed,setCollapsed,profile}){
         <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'2px 4px 18px'}}>
           <div style={{display:'flex',alignItems:'center',gap:8,fontWeight:600,fontSize:13.5,letterSpacing:'-0.022em'}}>
             <div style={{width:18,height:18,borderRadius:'50%',background:'linear-gradient(125deg,#0e6e72,#1654b0,#2638b8,#3a26a0)',flexShrink:0}}></div>
-            Universidad v2
+            Universidad v1
           </div>
           <button onClick={()=>setCollapsed(true)} style={{width:24,height:24,borderRadius:6,border:'none',background:'transparent',cursor:'pointer',color:'var(--k4)',display:'grid',placeItems:'center'}}><IcoSidebar/></button>
         </div>
@@ -1309,7 +1309,7 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
         });
       }
     }catch(err){
-      setChatMap(prev=>({...prev,[ck]:[...nextMsgs,{role:'ai',text:'**Error:** '+err.message,srcs:[]}]}));
+      setChatMap(prev=>({...prev,[ck]:[...nextMsgs,{role:'ai',text:'**Error:** '+err.message,srcs:[],isError:true,retryText:txt}]}));
     }
     finally{setStreaming(false);}
   };
@@ -1417,6 +1417,7 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
                   ?<div style={{maxWidth:'75%',padding:'10px 14px',borderRadius:16,borderBottomRightRadius:5,background:'var(--p2)',color:'var(--k)',marginLeft:'auto',fontSize:13,lineHeight:1.5}}>{m.text}</div>
                   :<div style={{fontSize:13,lineHeight:1.65,color:'var(--k)',paddingBottom:4}}>
                     <ChatMsg text={m.text}/>
+                    {m.isError&&m.retryText&&<button onClick={()=>{setChatMap(prev=>({...prev,[ck]:msgs.slice(0,-1)}));setInp(m.retryText);setTimeout(()=>send(),100);}} style={{marginTop:6,display:'flex',alignItems:'center',gap:5,fontSize:11,fontWeight:500,color:'#1654b0',border:'1px solid rgba(22,84,176,.25)',background:'rgba(22,84,176,.06)',padding:'5px 12px',borderRadius:7,cursor:'pointer'}}>Reintentar</button>}
                     {m.srcs&&m.srcs.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:5,marginTop:8}}>{m.srcs.map((s,j)=>(<div key={j} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 8px',borderRadius:6,background:'var(--p2)',fontSize:10,color:'var(--k3)',fontWeight:500}}><IcoFile s={10}/>{s}</div>))}</div>)}
                   </div>
                 }
@@ -1428,7 +1429,7 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
           </div>
           <div style={{position:'absolute',bottom:14,left:16,right:16,background:'var(--w)',border:'1px solid var(--ln)',borderRadius:15,padding:'7px 9px',display:'flex',alignItems:'center',gap:7,boxShadow:'0 4px 24px -8px rgba(0,0,0,.12)'}}>
             <button onClick={()=>{setShowSrc(true);setSrcMode('arch');}} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'grid',placeItems:'center',color:'var(--k3)',flexShrink:0}}><IcoPlus s={13}/></button>
-            <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey)send();}} disabled={streaming} placeholder={streaming?'Pensando…':`Pregunta sobre ${bloque.t.split('·')[0].trim()}…`} style={{flex:1,border:'none',outline:'none',fontSize:13,background:'transparent',color:'var(--k)',fontFamily:'inherit'}}/>
+            <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey)send();}} onFocus={()=>{setColC(true);setColB(true);}} disabled={streaming} placeholder={streaming?'Pensando…':`Pregunta sobre ${bloque.t.split('·')[0].trim()}…`} style={{flex:1,border:'none',outline:'none',fontSize:13,background:'transparent',color:'var(--k)',fontFamily:'inherit'}}/>
             <button onClick={send} disabled={streaming||!inp.trim()} style={{width:28,height:28,borderRadius:'50%',background:streaming||!inp.trim()?'var(--p2)':'linear-gradient(125deg,#1654b0,#3a26a0)',border:'none',display:'grid',placeItems:'center',cursor:streaming?'default':'pointer',flexShrink:0}}><IcoSend/></button>
           </div>
         </>:<div style={{display:'grid',placeItems:'center',height:'100%',color:'var(--k4)',fontSize:13}}>Selecciona un bloque</div>}
@@ -1493,14 +1494,45 @@ function SecEjercicios({ramos=[],user}){
       .then(({data})=>{if(data) setBloques(data.map(b=>({id:b.id,titulo:b.titulo,ramo:b.ramo_id,tipo:b.tipo,conPauta:b.con_pauta,ts:b.created_at})));});
   },[user]);
 
+  const [blockFiles,setBlockFiles]=useState([]);
+  const [uploadingFile,setUploadingFile]=useState(false);
+
+  // Load persistent files when selecting a block
+  useEffect(()=>{
+    setBlockFiles([]);
+    if(!selB||!supabaseClient||!user) return;
+    supabaseClient.storage.from('ramo-files').list(`${user.id}/ejercicios/${selB}`)
+      .then(async({data})=>{
+        if(!data||!data.length) return;
+        const files=[];
+        for(const f of data){
+          const path=`${user.id}/ejercicios/${selB}/${f.name}`;
+          const{data:urlData}=await supabaseClient.storage.from('ramo-files').createSignedUrl(path,3600);
+          const displayName=f.name.replace(/^\d+_/,'');
+          files.push({title:displayName,storagePath:path,storageUrl:urlData?.signedUrl||null});
+        }
+        setBlockFiles(files);
+        setActSrc(prev=>[...prev,...files]);
+      });
+  },[selB]);
+
   useEffect(()=>{msgEndRef.current?.scrollIntoView({behavior:'smooth'});},[msgs,streamBuf]);
 
   const upFile=e=>{
-    Array.from(e.target.files||[]).forEach(file=>{
+    const files=Array.from(e.target.files||[]);
+    if(!files.length) return;
+    files.forEach(file=>{
       const reader=new FileReader();
-      reader.onload=ev=>{
+      reader.onload=async ev=>{
         const b64=ev.target.result.split(',')[1];
         setActSrc(prev=>prev.find(s=>s.title===file.name)?prev:[...prev,{title:file.name,base64:b64,mediaType:file.type||'application/pdf'}]);
+        // Persist to storage
+        if(supabaseClient&&user&&selB){
+          const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+          const path=`${user.id}/ejercicios/${selB}/${Date.now()}_${safeName}`;
+          await supabaseClient.storage.from('ramo-files').upload(path,file,{upsert:true});
+          setBlockFiles(prev=>[...prev,{title:file.name,storagePath:path}]);
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -1538,8 +1570,23 @@ function SecEjercicios({ramos=[],user}){
           }catch{}
         });
       }
-    }catch(err){setMsgs(p=>[...p,{role:'assistant',content:'**Error:** '+err.message}]);}
+    }catch(err){setMsgs(p=>[...p,{role:'assistant',content:'**Error:** '+err.message,isError:true,retryText:text}]);}
     finally{setStreaming(false);}
+  };
+
+  const retrySend=(text)=>{setMsgs(p=>p.slice(0,-1));setInp(text);setTimeout(()=>sendMsg(),100);};
+
+  const [formFiles,setFormFiles]=useState([]);
+  const formFileRef=useRef(null);
+  const upFormFile=e=>{
+    Array.from(e.target.files||[]).forEach(file=>{
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const b64=ev.target.result.split(',')[1];
+        setFormFiles(prev=>prev.find(f=>f.title===file.name)?prev:[...prev,{title:file.name,base64:b64,mediaType:file.type||'application/pdf'}]);
+      };
+      reader.readAsDataURL(file);
+    });
   };
 
   const createBlock=async()=>{
@@ -1548,7 +1595,19 @@ function SecEjercicios({ramos=[],user}){
     if(error){console.error('Error creando bloque:',error.message);return;}
     setBloques(p=>[...p,{id:data.id,titulo:form.titulo,ramo:form.ramo,tipo:form.tipo,conPauta:form.conPauta,ts:'ahora'}]);
     setSelB(data.id);setMsgs([]);setShowNew(false);
-    setForm({titulo:'',ramo:'',tipo:'Prueba',conPauta:false});
+    if(formFiles.length>0){
+      setActSrc(formFiles);
+      // Persist formFiles to storage
+      for(const f of formFiles){
+        if(f.base64&&supabaseClient){
+          const safeName=f.title.replace(/[^a-zA-Z0-9._-]/g,'_');
+          const path=`${user.id}/ejercicios/${data.id}/${Date.now()}_${safeName}`;
+          const blob=await fetch(`data:${f.mediaType||'application/pdf'};base64,${f.base64}`).then(r=>r.blob());
+          await supabaseClient.storage.from('ramo-files').upload(path,blob,{upsert:true,contentType:f.mediaType||'application/pdf'});
+        }
+      }
+    }
+    setForm({titulo:'',ramo:'',tipo:'Prueba',conPauta:false});setFormFiles([]);
   };
 
   return(
@@ -1560,7 +1619,7 @@ function SecEjercicios({ramos=[],user}){
         </div>
         <div style={{overflowY:'auto',flex:1,minHeight:0}}>
           {bloques.length===0&&<div style={{padding:'20px 16px',textAlign:'center',color:'var(--k4)',fontSize:12}}>Sin bloques aún.<br/>Haz clic en + para crear.</div>}
-          {bloques.map(b=>(<div key={b.id} onClick={()=>{setSelB(b.id);setActSrc([]);setShowSrc(false);setMsgs([]);}} style={{padding:'10px 13px',cursor:'pointer',borderBottom:'1px solid var(--ls)',background:selB===b.id?'var(--p)':'transparent',position:'relative'}}>{selB===b.id&&<div style={{position:'absolute',left:0,top:8,bottom:8,width:3,borderRadius:'0 3px 3px 0',background:'linear-gradient(125deg,#1c6ec8,#3a26a0)'}}></div>}<div style={{fontSize:12,fontWeight:600}}>{b.titulo}</div><div style={{display:'flex',gap:6,marginTop:4,flexWrap:'wrap'}}><span style={{fontSize:10,padding:'2px 7px',borderRadius:999,background:'var(--p2)',color:'var(--k4)',fontWeight:500}}>{b.tipo}</span>{b.conPauta&&<span style={{fontSize:10,padding:'2px 6px',borderRadius:999,background:'rgba(22,84,176,.1)',color:'#1654b0',fontWeight:500}}>+Pauta</span>}</div><div style={{width:8,height:8,borderRadius:2,background:ramos.find(r=>r.id===b.ramo)?.color||'#1654b0',marginTop:4,display:'inline-block'}}></div></div>))}
+          {bloques.map(b=>(<div key={b.id} onClick={()=>{setSelB(b.id);setActSrc([]);setShowSrc(false);setMsgs([]);setBlockFiles([]);}} style={{padding:'10px 13px',cursor:'pointer',borderBottom:'1px solid var(--ls)',background:selB===b.id?'var(--p)':'transparent',position:'relative'}}>{selB===b.id&&<div style={{position:'absolute',left:0,top:8,bottom:8,width:3,borderRadius:'0 3px 3px 0',background:'linear-gradient(125deg,#1c6ec8,#3a26a0)'}}></div>}<div style={{fontSize:12,fontWeight:600}}>{b.titulo}</div><div style={{display:'flex',gap:6,marginTop:4,flexWrap:'wrap'}}><span style={{fontSize:10,padding:'2px 7px',borderRadius:999,background:'var(--p2)',color:'var(--k4)',fontWeight:500}}>{b.tipo}</span>{b.conPauta&&<span style={{fontSize:10,padding:'2px 6px',borderRadius:999,background:'rgba(22,84,176,.1)',color:'#1654b0',fontWeight:500}}>+Pauta</span>}</div><div style={{width:8,height:8,borderRadius:2,background:ramos.find(r=>r.id===b.ramo)?.color||'#1654b0',marginTop:4,display:'inline-block'}}></div></div>))}
         </div>
       </div>
       <div style={{flex:1,minWidth:0,display:'flex',flexDirection:'column',background:'var(--p)',overflow:'hidden',position:'relative'}}>
@@ -1577,7 +1636,7 @@ function SecEjercicios({ramos=[],user}){
           {showSrc&&(<div style={{background:'var(--w)',borderBottom:'1px solid var(--ln)',padding:'12px 20px',flexShrink:0}}>
             <Seg value={srcMode} onChange={setSrcMode} options={[{v:'arch',l:'Archivos del ramo'},{v:'url',l:'URL'},{v:'bib',l:'Biblioteca'}]}/>
             <div style={{marginTop:10}}>
-              {srcMode==='arch'&&(<div><div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:8}}>{archRamo.map((a,i)=>(<button key={i} onClick={()=>togRamoFile(a)} style={{display:'inline-flex',alignItems:'center',gap:5,padding:'4px 9px',borderRadius:7,border:`1px solid ${actSrc.find(s=>s.title===a.n)?'#1654b0':'var(--ln)'}`,background:actSrc.find(s=>s.title===a.n)?'rgba(22,84,176,.09)':'var(--p)',fontSize:11,fontWeight:500,color:actSrc.find(s=>s.title===a.n)?'#1654b0':'var(--k3)',cursor:'pointer'}}><IcoFile s={11}/>{a.n}{actSrc.find(s=>s.title===a.n)&&<IcoOk s={10}/>}</button>))}</div><button onClick={()=>fRef.current?.click()} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,fontWeight:500,color:'#1654b0',border:'1px dashed rgba(22,84,176,.3)',background:'transparent',padding:'5px 10px',borderRadius:7,cursor:'pointer'}}><IcoUp s={11}/>Subir archivo (PDF, DOCX…)</button><input ref={fRef} type="file" multiple accept=".pdf,.docx,.txt" style={{display:'none'}} onChange={upFile}/></div>)}
+              {srcMode==='arch'&&(<div>{blockFiles.length>0&&<div style={{display:'flex',flexDirection:'column',gap:4,marginBottom:8}}>{blockFiles.map((f,i)=>(<div key={i} style={{display:'flex',alignItems:'center',gap:6,padding:'4px 9px',borderRadius:7,border:'1px solid var(--ln)',background:'var(--p2)',fontSize:11,fontWeight:500,color:'var(--k)'}}><IcoFile s={11}/><span style={{flex:1,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{f.title}</span><button onClick={async()=>{if(f.storagePath&&supabaseClient) await supabaseClient.storage.from('ramo-files').remove([f.storagePath]);setBlockFiles(p=>p.filter((_,j)=>j!==i));setActSrc(p=>p.filter(s=>s.title!==f.title));}} style={{border:'none',background:'none',cursor:'pointer',color:'var(--k4)',padding:'0 2px',lineHeight:1,flexShrink:0,fontSize:15}}>×</button></div>))}</div>}<div style={{display:'flex',flexWrap:'wrap',gap:6,marginBottom:8}}>{archRamo.map((a,i)=>(<button key={i} onClick={()=>togRamoFile(a)} style={{display:'inline-flex',alignItems:'center',gap:5,padding:'4px 9px',borderRadius:7,border:`1px solid ${actSrc.find(s=>s.title===a.n)?'#1654b0':'var(--ln)'}`,background:actSrc.find(s=>s.title===a.n)?'rgba(22,84,176,.09)':'var(--p)',fontSize:11,fontWeight:500,color:actSrc.find(s=>s.title===a.n)?'#1654b0':'var(--k3)',cursor:'pointer'}}><IcoFile s={11}/>{a.n}{actSrc.find(s=>s.title===a.n)&&<IcoOk s={10}/>}</button>))}</div><button onClick={()=>fRef.current?.click()} disabled={uploadingFile} style={{display:'flex',alignItems:'center',gap:5,fontSize:11,fontWeight:500,color:'#1654b0',border:'1px dashed rgba(22,84,176,.3)',background:'transparent',padding:'5px 10px',borderRadius:7,cursor:uploadingFile?'default':'pointer',opacity:uploadingFile?.6:1}}><IcoUp s={11}/>{uploadingFile?'Subiendo…':'Subir archivo (PDF, DOCX…)'}</button><input ref={fRef} type="file" multiple accept=".pdf,.docx,.txt" style={{display:'none'}} onChange={upFile}/></div>)}
               {srcMode==='url'&&(<div style={{display:'flex',gap:8}}><input value={urlInp} onChange={e=>setUrlInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&addUrl()} placeholder="https://..." style={{flex:1,padding:'7px 11px',borderRadius:8,border:'1px solid var(--ln)',background:'var(--w)',font:'inherit',fontSize:12,outline:'none'}}/><Btn onClick={addUrl} variant="pri" size="sm">Añadir</Btn></div>)}
               {srcMode==='bib'&&(<div style={{display:'flex',flexDirection:'column',gap:4}}>{RAMOS.flatMap(r=>r.archivos.map(a=>({...a,rn:r.nombre,rk:r.id}))).map((a,i)=>(<button key={i} onClick={()=>togRamoFile(a)} style={{display:'flex',alignItems:'center',gap:8,padding:'6px 10px',borderRadius:7,border:`1px solid ${actSrc.find(s=>s.title===a.n)?'#1654b0':'var(--ln)'}`,background:actSrc.find(s=>s.title===a.n)?'rgba(22,84,176,.09)':'var(--p)',cursor:'pointer',fontSize:11,fontWeight:500,color:actSrc.find(s=>s.title===a.n)?'#1654b0':'var(--k3)'}}><IcoFile s={11}/><span style={{flex:1}}>{a.n}</span><span style={{color:'var(--k4)',fontSize:10}}>{a.rn}</span>{actSrc.find(s=>s.title===a.n)&&<IcoOk s={10}/>}</button>))}</div>)}
             </div>
@@ -1587,7 +1646,7 @@ function SecEjercicios({ramos=[],user}){
             {msgs.map((m,i)=>(
               <div key={i} style={{marginTop:14}}>
                 {m.role==='user'?<div style={{maxWidth:'75%',padding:'10px 14px',borderRadius:16,borderBottomRightRadius:5,background:'var(--p2)',color:'var(--k)',marginLeft:'auto',fontSize:13,lineHeight:1.5}}>{m.content}</div>
-                :<div style={{fontSize:13,lineHeight:1.65,color:'var(--k)',paddingBottom:4}}><ChatMsg text={m.content}/>{m.srcs&&m.srcs.length>0&&<div style={{display:'flex',flexWrap:'wrap',gap:5,marginTop:8}}>{m.srcs.map((s,j)=><div key={j} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 8px',borderRadius:6,background:'var(--p2)',fontSize:10,color:'var(--k3)',fontWeight:500}}><IcoFile s={10}/>{s}</div>)}</div>}</div>}
+                :<div style={{fontSize:13,lineHeight:1.65,color:'var(--k)',paddingBottom:4}}><ChatMsg text={m.content}/>{m.isError&&m.retryText&&<button onClick={()=>retrySend(m.retryText)} style={{marginTop:6,display:'flex',alignItems:'center',gap:5,fontSize:11,fontWeight:500,color:'#1654b0',border:'1px solid rgba(22,84,176,.25)',background:'rgba(22,84,176,.06)',padding:'5px 12px',borderRadius:7,cursor:'pointer'}}>Reintentar</button>}{m.srcs&&m.srcs.length>0&&<div style={{display:'flex',flexWrap:'wrap',gap:5,marginTop:8}}>{m.srcs.map((s,j)=><div key={j} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 8px',borderRadius:6,background:'var(--p2)',fontSize:10,color:'var(--k3)',fontWeight:500}}><IcoFile s={10}/>{s}</div>)}</div>}</div>}
               </div>
             ))}
             {streaming&&streamBuf&&<div style={{marginTop:14,fontSize:13,lineHeight:1.65,color:'var(--k)'}}><ChatMsg text={streamBuf}/><span style={{display:'inline-block',width:8,height:14,background:'var(--k)',borderRadius:2,marginLeft:3,animation:'blink 1s step-end infinite',verticalAlign:'text-bottom'}}/></div>}
@@ -1608,11 +1667,19 @@ function SecEjercicios({ramos=[],user}){
             <Sel label="Ramo" value={form.ramo} onChange={v=>setForm(p=>({...p,ramo:v}))} options={ramos.map(r=>({v:r.id,l:r.nombre||r.name||''}))}/>
             <Sel label="Tipo de evaluación" value={form.tipo} onChange={v=>setForm(p=>({...p,tipo:v}))} options={[{v:'Prueba',l:'Prueba'},{v:'Control',l:'Control'},{v:'Quiz',l:'Quiz'},{v:'Examen',l:'Examen'},{v:'Tarea',l:'Tarea'}]}/>
           </div>
+          <div>
+            <label style={{fontSize:12,fontWeight:500,color:'var(--k3)',display:'block',marginBottom:6}}>Material de referencia (pruebas anteriores, guías, apuntes…)</label>
+            <div onClick={()=>formFileRef.current?.click()} style={{border:'1.5px dashed var(--ln)',borderRadius:10,padding:'16px',cursor:'pointer',textAlign:'center',background:'var(--p)'}} onMouseEnter={e=>e.currentTarget.style.background='var(--p2)'} onMouseLeave={e=>e.currentTarget.style.background='var(--p)'}>
+              <IcoUp s={20}/><div style={{fontSize:12,color:'var(--k4)',marginTop:6}}>Arrastra o haz clic · PDF, DOCX, TXT</div>
+            </div>
+            <input ref={formFileRef} type="file" multiple accept=".pdf,.docx,.txt" style={{display:'none'}} onChange={upFormFile}/>
+            {formFiles.length>0&&<div style={{marginTop:8,display:'flex',flexWrap:'wrap',gap:5}}>{formFiles.map((f,i)=><div key={i} style={{display:'inline-flex',alignItems:'center',gap:5,padding:'3px 9px',borderRadius:6,background:'rgba(22,84,176,.08)',fontSize:11,color:'#1654b0'}}><IcoFile s={10}/>{f.title}<button onClick={e=>{e.stopPropagation();setFormFiles(p=>p.filter((_,j)=>j!==i));}} style={{border:'none',background:'none',cursor:'pointer',color:'var(--k4)',fontSize:13,lineHeight:1,padding:0}}>×</button></div>)}</div>}
+          </div>
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 14px',borderRadius:10,background:'var(--p)',border:'1px solid var(--ln)'}}>
             <div><div style={{fontSize:13,fontWeight:500}}>Incluir pauta con soluciones</div><div style={{fontSize:11,color:'var(--k4)',marginTop:2}}>La IA incluye solución paso a paso de cada ejercicio</div></div>
             <Tog value={form.conPauta} onChange={v=>setForm(p=>({...p,conPauta:v}))}/>
           </div>
-          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}><Btn onClick={()=>setShowNew(false)}>Cancelar</Btn><Btn onClick={createBlock} variant="pri" disabled={!form.titulo}><IcoCpu s={12}/>Crear bloque</Btn></div>
+          <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}><Btn onClick={()=>{setShowNew(false);setFormFiles([]);}}>Cancelar</Btn><Btn onClick={createBlock} variant="pri" disabled={!form.titulo}><IcoCpu s={12}/>Crear bloque</Btn></div>
         </div>
       </Modal>
     </div>
@@ -2469,29 +2536,132 @@ function SecYo({tweaks,setTweak,onNav,user,profile,ramos=[]}){
 
 /* ═══════ LOGIN SCREEN ═══════ */
 function LoginScreen(){
+  const UNIV_CARRERAS={
+    'Pontificia Universidad Católica de Chile':['Administración','Arquitectura','Biología','Ciencia Política','Comunicaciones','Derecho','Economía','Educación','Enfermería','Filosofía','Historia','Ingeniería Civil','Ingeniería Comercial','Letras','Matemáticas','Medicina','Odontología','Psicología','Sociología','Teología'],
+    'Universidad de Chile':['Administración Pública','Arquitectura','Biología','Contador Auditor','Derecho','Educación','Enfermería','Filosofía','Historia','Ingeniería Civil','Ingeniería Comercial','Kinesiología','Medicina','Nutrición','Odontología','Psicología','Química','Sociología','Trabajo Social'],
+    'Universidad de Chile - FEN':['Administración','Contador Auditor','Economía','Ingeniería Comercial'],
+    'Universidad Adolfo Ibáñez':['Administración de Empresas','Arte y Diseño','Comunicaciones','Derecho','Ingeniería Civil Industrial','Ingeniería Comercial','Periodismo','Psicología'],
+    'Universidad de Los Andes':['Administración','Arquitectura','Derecho','Educación','Filosofía','Ingeniería Comercial','Medicina','Odontología','Psicología'],
+    'Universidad Técnica Federico Santa María':['Ingeniería Civil Eléctrica','Ingeniería Civil Electrónica','Ingeniería Civil en Informática','Ingeniería Civil Industrial','Ingeniería Civil Mecánica','Ingeniería Civil Química','Ingeniería Comercial'],
+    'Universidad del Desarrollo':['Arquitectura','Derecho','Diseño','Educación','Enfermería','Fonoaudiología','Ingeniería Civil','Ingeniería Comercial','Medicina','Nutrición','Odontología','Periodismo','Psicología'],
+    'Universidad Finis Terrae':['Arquitectura','Comunicaciones','Derecho','Diseño','Ingeniería Comercial','Medicina','Odontología','Periodismo','Psicología'],
+    'Otra':['Administración','Arquitectura','Comunicaciones','Contador Auditor','Derecho','Diseño','Economía','Educación','Enfermería','Ingeniería Civil','Ingeniería Comercial','Kinesiología','Medicina','Odontología','Periodismo','Psicología','Trabajo Social'],
+  };
+
+  const ERRORES_ES={
+    'Invalid login credentials':'Correo o contraseña incorrectos.',
+    'Email not confirmed':'Debes confirmar tu correo antes de ingresar.',
+    'Too many requests':'Demasiados intentos. Intenta más tarde.',
+    'User already registered':'Ya existe una cuenta con este correo.',
+    'Email address is invalid':'El formato del correo no es válido.',
+  };
+  const tradErr=msg=>ERRORES_ES[msg]||msg;
+
+  const [mode,setMode]=useState('login'); // 'login' | 'register'
   const [email,setEmail]=useState('');
   const [pass,setPass]=useState('');
+  const [pass2,setPass2]=useState('');
+  const [nombre,setNombre]=useState('');
+  const [apellido1,setApellido1]=useState('');
+  const [apellido2,setApellido2]=useState('');
+  const [universidad,setUniversidad]=useState('');
+  const [carrera,setCarrera]=useState('');
+  const [studyYear,setStudyYear]=useState('');
   const [loading,setLoading]=useState(false);
   const [err,setErr]=useState('');
+  const [success,setSuccess]=useState('');
+
   const doLogin=async()=>{
     if(!email||!pass)return;
     setLoading(true);setErr('');
-    const{data,error}=await supabaseClient.auth.signInWithPassword({email,password:pass});
-    if(error){setErr(error.message);setLoading(false);}
+    const{error}=await supabaseClient.auth.signInWithPassword({email,password:pass});
+    if(error){setErr(tradErr(error.message));setLoading(false);}
   };
+
+  const doRegister=async()=>{
+    if(!email||!pass||!nombre||!apellido1||!apellido2)return;
+    if(pass.length<8){setErr('La contraseña debe tener al menos 8 caracteres.');return;}
+    if(pass!==pass2){setErr('Las contraseñas no coinciden.');return;}
+    setLoading(true);setErr('');
+    const{data,error}=await supabaseClient.auth.signUp({
+      email,password:pass,
+      options:{data:{name:nombre,apellido1,apellido2,university:universidad,study_year:studyYear}}
+    });
+    if(error){setErr(tradErr(error.message));setLoading(false);return;}
+    // Update profile with extra fields the trigger doesn't cover
+    if(data?.user){
+      await supabaseClient.from('profiles').update({carrera,subscription_status:'free'}).eq('id',data.user.id);
+    }
+    if(data?.session){
+      // Auto-logged in
+    } else {
+      setSuccess('Cuenta creada. Revisa tu correo para confirmar.');
+      setLoading(false);
+    }
+  };
+
+  const carreras=universidad&&UNIV_CARRERAS[universidad]?UNIV_CARRERAS[universidad]:[];
+  const btnDisabled=mode==='login'
+    ?loading||!email||!pass
+    :loading||!email||!pass||!pass2||!nombre||!apellido1||!apellido2;
+  const btnLabel=mode==='login'?(loading?'Ingresando…':'Ingresar'):(loading?'Creando cuenta…':'Crear cuenta');
+  const selStyle={padding:'8px 12px',borderRadius:8,border:'1px solid var(--ln)',background:'var(--w)',font:'inherit',fontSize:13,color:'var(--k)',outline:'none',cursor:'pointer',width:'100%'};
+
   return(
     <div style={{display:'grid',placeItems:'center',width:'100%',height:'100%',background:'var(--p)'}}>
-      <div style={{width:360,padding:32,background:'var(--w)',borderRadius:16,border:'1px solid var(--ln)',boxShadow:'0 8px 32px -8px rgba(0,0,0,.1)'}}>
-        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:28}}>
+      <div style={{width:mode==='login'?360:440,padding:32,background:'var(--w)',borderRadius:16,border:'1px solid var(--ln)',boxShadow:'0 8px 32px -8px rgba(0,0,0,.1)',maxHeight:'90vh',overflowY:'auto'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:24}}>
           <div style={{width:22,height:22,borderRadius:'50%',background:'linear-gradient(125deg,#0e6e72,#1654b0,#3a26a0)',flexShrink:0}}></div>
-          <div style={{fontSize:18,fontWeight:600,letterSpacing:'-0.022em'}}>Universidad v2</div>
+          <div style={{fontSize:18,fontWeight:600,letterSpacing:'-0.022em'}}>Universidad v1</div>
+        </div>
+        <div style={{display:'flex',gap:0,marginBottom:20,borderRadius:8,overflow:'hidden',border:'1px solid var(--ln)'}}>
+          <button onClick={()=>{setMode('login');setErr('');setSuccess('');}} style={{flex:1,padding:'8px 0',border:'none',fontSize:12,fontWeight:600,cursor:'pointer',background:mode==='login'?'linear-gradient(125deg,#1654b0,#3a26a0)':'var(--p)',color:mode==='login'?'white':'var(--k3)'}}>Iniciar sesión</button>
+          <button onClick={()=>{setMode('register');setErr('');setSuccess('');}} style={{flex:1,padding:'8px 0',border:'none',fontSize:12,fontWeight:600,cursor:'pointer',background:mode==='register'?'linear-gradient(125deg,#1654b0,#3a26a0)':'var(--p)',color:mode==='register'?'white':'var(--k3)'}}>Crear cuenta</button>
         </div>
         {err&&<div style={{padding:'8px 12px',borderRadius:8,background:'rgba(215,0,21,.08)',color:'var(--er)',fontSize:12,marginBottom:12,border:'1px solid rgba(215,0,21,.15)'}}>{err}</div>}
+        {success&&<div style={{padding:'8px 12px',borderRadius:8,background:'rgba(48,209,88,.08)',color:'var(--ok)',fontSize:12,marginBottom:12,border:'1px solid rgba(48,209,88,.15)'}}>{success}</div>}
         <div style={{display:'flex',flexDirection:'column',gap:10}}>
-          <Fld label="Correo" value={email} onChange={setEmail} ph="tu@correo.com" type="email"/>
-          <Fld label="Contraseña" value={pass} onChange={setPass} ph="••••••••" type="password"/>
+          {mode==='register'&&<>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}>
+              <Fld label="Nombre" value={nombre} onChange={setNombre} ph="Ernesto" required/>
+              <Fld label="Apellido paterno" value={apellido1} onChange={setApellido1} ph="Aguirre" required/>
+            </div>
+            <Fld label="Apellido materno" value={apellido2} onChange={setApellido2} ph="Henríquez" required/>
+          </>}
+          <Fld label="Correo" value={email} onChange={setEmail} ph="tu@correo.com" type="email" required/>
+          <Fld label="Contraseña" value={pass} onChange={setPass} ph="Mínimo 8 caracteres" type="password" required/>
+          {mode==='register'&&<>
+            <Fld label="Confirmar contraseña" value={pass2} onChange={setPass2} ph="Repite tu contraseña" type="password" required/>
+            <div style={{display:'flex',flexDirection:'column',gap:5}}>
+              <label style={{fontSize:12,fontWeight:500,color:'var(--k3)'}}>Universidad <span style={{color:'var(--er)'}}>*</span></label>
+              <select value={universidad} onChange={e=>{setUniversidad(e.target.value);setCarrera('');}} style={selStyle}>
+                <option value="">— Seleccionar —</option>
+                {Object.keys(UNIV_CARRERAS).map(u=><option key={u} value={u}>{u}</option>)}
+              </select>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:5}}>
+              <label style={{fontSize:12,fontWeight:500,color:'var(--k3)'}}>Carrera <span style={{color:'var(--er)'}}>*</span></label>
+              <select value={carrera} onChange={e=>setCarrera(e.target.value)} disabled={!universidad} style={{...selStyle,color:!universidad?'var(--k4)':'var(--k)',cursor:!universidad?'not-allowed':'pointer'}}>
+                <option value="">{universidad?'— Seleccionar —':'Primero elige una universidad'}</option>
+                {carreras.map(c=><option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div style={{display:'flex',flexDirection:'column',gap:5}}>
+              <label style={{fontSize:12,fontWeight:500,color:'var(--k3)'}}>Año de estudio</label>
+              <select value={studyYear} onChange={e=>setStudyYear(e.target.value)} style={selStyle}>
+                <option value="">— Seleccionar —</option>
+                <option value="1">1er año</option>
+                <option value="2">2do año</option>
+                <option value="3">3er año</option>
+                <option value="4">4to año</option>
+                <option value="5">5to año</option>
+                <option value="6">6to año</option>
+                <option value="7+">7mo año o más</option>
+              </select>
+            </div>
+          </>}
           <div style={{marginTop:4}}>
-            <button onClick={doLogin} disabled={loading||!email||!pass} style={{width:'100%',padding:'10px 0',borderRadius:10,border:'none',background:loading||!email||!pass?'var(--p2)':'linear-gradient(125deg,#1654b0,#3a26a0)',color:loading||!email||!pass?'var(--k4)':'white',fontSize:13,fontWeight:600,cursor:loading||!email||!pass?'default':'pointer',transition:'background .15s'}}>{loading?'Ingresando…':'Ingresar'}</button>
+            <button onClick={mode==='login'?doLogin:doRegister} disabled={btnDisabled} style={{width:'100%',padding:'10px 0',borderRadius:10,border:'none',background:btnDisabled?'var(--p2)':'linear-gradient(125deg,#1654b0,#3a26a0)',color:btnDisabled?'var(--k4)':'white',fontSize:13,fontWeight:600,cursor:btnDisabled?'default':'pointer',transition:'background .15s'}}>{btnLabel}</button>
           </div>
         </div>
       </div>

@@ -2,6 +2,11 @@
   "buildCommand": null,
   "outputDirectory": ".",
   "framework": null,
+  "functions": {
+    "api/aprender-chat.js": { "maxDuration": 60 },
+    "api/ejercicios-chat.js": { "maxDuration": 60 },
+    "api/trabajos-generate.js": { "maxDuration": 60 }
+  },
   "crons": [
     { "path": "/api/weekly-metrics", "schedule": "0 12 * * 1" }
   ]

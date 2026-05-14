@@ -100,11 +100,13 @@ export default async function handler(req, res) {
   const enrichedSources = [];
 
   for (const src of sources) {
-    // If source has a storageUrl, fetch and process with Gemini
+    // If source has a storageUrl, fetch and process with Gemini (with retry)
     if (src.storageUrl && geminiKey) {
-      try {
-        const resp = await fetch(src.storageUrl);
-        if (resp.ok) {
+      let extracted = false;
+      for (let attempt = 0; attempt < 2 && !extracted; attempt++) {
+        try {
+          const resp = await fetch(src.storageUrl);
+          if (!resp.ok) continue;
           const buf = await resp.arrayBuffer();
           const base64 = Buffer.from(buf).toString('base64');
           const ct = resp.headers.get('content-type') || 'application/pdf';
@@ -116,15 +118,27 @@ export default async function handler(req, res) {
             GEMINI_EXTRACT_PROMPT,
           ]);
           const extractedText = result.response.text().trim();
-          enrichedSources.push({ title: src.title, content: extractedText });
-          continue;
+          if (extractedText) {
+            enrichedSources.push({ title: src.title, content: extractedText });
+            extracted = true;
+          }
+        } catch (err) {
+          console.warn(`[aprender-chat] Gemini attempt ${attempt + 1} failed for "${src.title}":`, err.message);
+          if (attempt === 0) await new Promise(r => setTimeout(r, 1000));
         }
-      } catch (err) {
-        console.warn(`[aprender-chat] Gemini extraction failed for "${src.title}":`, err.message);
       }
+      if (extracted) continue;
+      // If Gemini failed after retries but we have text content, use it
+      if (src.content) {
+        enrichedSources.push({ title: src.title, content: src.content });
+        continue;
+      }
+      // Last resort: note the file was uploaded but couldn't be processed
+      enrichedSources.push({ title: src.title, content: `[Archivo "${src.title}" subido pero no se pudo procesar. El estudiante puede copiar el contenido relevante en el chat.]` });
+      continue;
     }
 
-    // Fallback: use existing text content
+    // Text content sources
     if (src.content) {
       enrichedSources.push({ title: src.title, content: src.content });
     }
