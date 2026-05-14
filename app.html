@@ -1548,8 +1548,8 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
   const allSrc=[...archRamo.map(a=>a.n),...actSrc.filter(s=>!archRamo.find(a=>a.n===s)),...bfNames.filter(n=>!actSrc.includes(n)&&!archRamo.find(a=>a.n===n))];
   const togSrc=s=>setActSrc(prev=>prev.includes(s)?prev.filter(x=>x!==s):[...prev,s]);
 
-  const send=async()=>{
-    const txt=inp.trim();
+  const send=async(overrideTxt)=>{
+    const txt=(overrideTxt||inp).trim();
     if((!txt&&!chatImg)||streaming)return;
     const imgSnap=chatImg;
     const fullTxt=imgSnap?`[Imagen adjunta: ${imgSnap.name}]\n${txt}`:txt;
@@ -1724,7 +1724,7 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
                   ?<div style={{maxWidth:'75%',padding:'10px 14px',borderRadius:16,borderBottomRightRadius:5,background:'var(--p2)',color:'var(--k)',marginLeft:'auto',fontSize:13,lineHeight:1.5}}>{m.text}</div>
                   :<div style={{fontSize:13,lineHeight:1.65,color:'var(--k)',paddingBottom:4}}>
                     <ChatMsg text={m.text}/>
-                    {m.isError&&m.retryText&&<button onClick={()=>{setChatMap(prev=>({...prev,[ck]:msgs.slice(0,-1)}));setInp(m.retryText);setTimeout(()=>send(),100);}} style={{marginTop:6,display:'flex',alignItems:'center',gap:5,fontSize:11,fontWeight:500,color:'#1654b0',border:'1px solid rgba(22,84,176,.25)',background:'rgba(22,84,176,.06)',padding:'5px 12px',borderRadius:7,cursor:'pointer'}}>Reintentar</button>}
+                    {m.isError&&m.retryText&&<button onClick={()=>{setChatMap(prev=>({...prev,[ck]:msgs.slice(0,-1)}));setInp(m.retryText);send(m.retryText);}} style={{marginTop:6,display:'flex',alignItems:'center',gap:5,fontSize:11,fontWeight:500,color:'#1654b0',border:'1px solid rgba(22,84,176,.25)',background:'rgba(22,84,176,.06)',padding:'5px 12px',borderRadius:7,cursor:'pointer'}}>Reintentar</button>}
                     {m.srcs&&m.srcs.length>0&&(<div style={{display:'flex',flexWrap:'wrap',gap:5,marginTop:8}}>{m.srcs.map((s,j)=>(<div key={j} style={{display:'inline-flex',alignItems:'center',gap:4,padding:'3px 8px',borderRadius:6,background:'var(--p2)',fontSize:10,color:'var(--k3)',fontWeight:500}}><IcoFile s={10}/>{s}</div>))}</div>)}
                   </div>
                 }
@@ -1737,7 +1737,7 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
           <div style={{position:'absolute',bottom:14,left:16,right:16,background:'var(--w)',border:'1px solid var(--ln)',borderRadius:15,boxShadow:'0 4px 24px -8px rgba(0,0,0,.12)'}}>
             {(actSrc.length>0||blockFiles.length>0)&&!streaming&&<div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px 2px'}}>
               <div style={{flex:1,display:'flex',flexWrap:'wrap',gap:4}}>{[...actSrc,...blockFiles.map(f=>f.name)].slice(0,3).map((s,i)=>(<span key={i} style={{fontSize:10,padding:'2px 7px',borderRadius:5,background:'rgba(22,84,176,.08)',color:'#1654b0',fontWeight:500,maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',display:'inline-block'}}>{typeof s==='string'?s:s.title}</span>))}{[...actSrc,...blockFiles].length>3&&<span style={{fontSize:10,color:'var(--k4)'}}>+{[...actSrc,...blockFiles].length-3}</span>}</div>
-              <button onClick={()=>{setInp('Analiza las fuentes adjuntas');setTimeout(send,50);}} style={{fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:7,border:'none',background:'linear-gradient(125deg,#1654b0,#3a26a0)',color:'#fff',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>Procesar con IA</button>
+              <button onClick={()=>{const t='Analiza las fuentes adjuntas';setInp(t);send(t);}} style={{fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:7,border:'none',background:'linear-gradient(125deg,#1654b0,#3a26a0)',color:'#fff',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>Procesar con IA</button>
             </div>}
             {chatImg&&<div style={{display:'flex',alignItems:'center',gap:8,padding:'6px 9px 0'}}>
               <img src={chatImg.url} alt={chatImg.name} style={{width:40,height:40,borderRadius:6,objectFit:'cover',border:'1px solid var(--ln)'}}/>
@@ -1888,8 +1888,8 @@ function SecEjercicios({ramos=[],user}){
   const upChatImg=async(e)=>{handleImgFile2(e.target.files?.[0]);if(e.target)e.target.value='';};
   const onPasteImg2=(e)=>{const items=e.clipboardData?.items;if(!items)return;for(let i=0;i<items.length;i++){if(items[i].type.indexOf('image')!==-1){e.preventDefault();handleImgFile2(items[i].getAsFile());return;}}};
 
-  const sendMsg=async()=>{
-    const text=inp.trim();
+  const sendMsg=async(overrideTxt)=>{
+    const text=(overrideTxt||inp).trim();
     if((!text&&!chatImg)||streaming)return;
     const imgSnap=chatImg;
     const fullText=imgSnap?`[Imagen adjunta: ${imgSnap.name}]\n${text}`:text;
@@ -1919,7 +1919,7 @@ function SecEjercicios({ramos=[],user}){
     finally{setStreaming(false);}
   };
 
-  const retrySend=(text)=>{setMsgs(p=>p.slice(0,-1));setInp(text);setTimeout(()=>sendMsg(),100);};
+  const retrySend=(text)=>{setMsgs(p=>p.slice(0,-1));setInp(text);sendMsg(text);};
 
   const [formFiles,setFormFiles]=useState([]);
   const formFileRef=useRef(null);
@@ -2001,7 +2001,7 @@ function SecEjercicios({ramos=[],user}){
           <div style={{position:'absolute',bottom:14,left:16,right:16,background:'var(--w)',border:'1px solid var(--ln)',borderRadius:15,boxShadow:'0 4px 24px -8px rgba(0,0,0,.12)'}}>
             {actSrc.length>0&&!streaming&&<div style={{display:'flex',alignItems:'center',gap:8,padding:'8px 12px 2px'}}>
               <div style={{flex:1,display:'flex',flexWrap:'wrap',gap:4}}>{actSrc.slice(0,3).map((s,i)=>(<span key={i} style={{fontSize:10,padding:'2px 7px',borderRadius:5,background:'rgba(22,84,176,.08)',color:'#1654b0',fontWeight:500,maxWidth:120,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',display:'inline-block'}}>{s.title||s}</span>))}{actSrc.length>3&&<span style={{fontSize:10,color:'var(--k4)'}}>+{actSrc.length-3}</span>}</div>
-              <button onClick={()=>{setInp('Genera ejercicios con las fuentes adjuntas');setTimeout(sendMsg,50);}} style={{fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:7,border:'none',background:'linear-gradient(125deg,#1654b0,#3a26a0)',color:'#fff',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>Procesar con IA</button>
+              <button onClick={()=>{const t='Genera ejercicios con las fuentes adjuntas';setInp(t);sendMsg(t);}} style={{fontSize:11,fontWeight:600,padding:'4px 12px',borderRadius:7,border:'none',background:'linear-gradient(125deg,#1654b0,#3a26a0)',color:'#fff',cursor:'pointer',flexShrink:0,whiteSpace:'nowrap'}}>Procesar con IA</button>
             </div>}
             {chatImg&&<div style={{display:'flex',alignItems:'center',gap:8,padding:'6px 9px 0'}}>
               <img src={chatImg.url} alt={chatImg.name} style={{width:40,height:40,borderRadius:6,objectFit:'cover',border:'1px solid var(--ln)'}}/>
@@ -2965,7 +2965,7 @@ function LoginScreen(){
   const carreras=universidad&&UNIV_CARRERAS[universidad]?UNIV_CARRERAS[universidad]:[];
   const btnDisabled=mode==='login'
     ?loading||!email||!pass
-    :loading||!email||!pass||!pass2||!nombre||!apellido1||!apellido2;
+    :loading||!email||!pass||!pass2||!nombre||!apellido1||!apellido2||!carrera.trim();
   const btnLabel=mode==='login'?(loading?'Ingresando…':'Ingresar'):(loading?'Creando cuenta…':'Crear cuenta');
   const selStyle={padding:'8px 12px',borderRadius:8,border:'1px solid var(--ln)',background:'var(--w)',font:'inherit',fontSize:13,color:'var(--k)',outline:'none',cursor:'pointer',width:'100%'};
 
