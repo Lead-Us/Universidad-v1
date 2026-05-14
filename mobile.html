@@ -3076,22 +3076,22 @@ function BlockChat({ block, cuaderno, ramos }) {
   const [chatImg, setChatImg] = useState(null);
   const imgRef = useRef(null);
 
-  const upChatImg = async (e) => {
-    const file = e.target.files?.[0];
+  const handleImgFile = async (file) => {
     if (!file) return;
-    e.target.value = '';
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const safeName = (file.name || 'captura.png').replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `${_userId}/chat-images/${Date.now()}_${safeName}`;
     const localUrl = URL.createObjectURL(file);
-    setChatImg({ name: file.name, url: localUrl, path });
+    setChatImg({ name: file.name || 'captura.png', url: localUrl, path });
     if (supabaseClient && !_devMode) {
       const { error } = await supabaseClient.storage.from('ramo-files').upload(path, file, { upsert: true });
       if (!error) {
         const { data } = supabaseClient.storage.from('ramo-files').getPublicUrl(path);
-        setChatImg({ name: file.name, url: data?.publicUrl || localUrl, path });
+        setChatImg({ name: file.name || 'captura.png', url: data?.publicUrl || localUrl, path });
       }
     }
   };
+  const upChatImg = async (e) => { handleImgFile(e.target.files?.[0]); if (e.target) e.target.value = ''; };
+  const onPasteImg = (e) => { const items = e.clipboardData?.items; if (!items) return; for (let i = 0; i < items.length; i++) { if (items[i].type.indexOf('image') !== -1) { e.preventDefault(); handleImgFile(items[i].getAsFile()); return; } } };
 
   const send = () => {
     const imgSnap = chatImg;
@@ -3293,7 +3293,7 @@ function BlockChat({ block, cuaderno, ramos }) {
             <span style={{ background: c, color: '#fff', borderRadius: '50%', width: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{actSrc.length}</span>
           )}
           <input value={inp} onChange={e => setInp(e.target.value)} placeholder="Escribe tu pregunta..."
-            onKeyDown={e => e.key === 'Enter' && send()}
+            onKeyDown={e => e.key === 'Enter' && send()} onPaste={onPasteImg}
             style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, background: 'transparent', color: 'var(--k)', fontFamily: 'inherit' }} />
           <button onClick={send} disabled={streaming || (!inp.trim() && !chatImg)}
             style={{ width: 26, height: 26, borderRadius: '50%', background: streaming || (!inp.trim() && !chatImg) ? 'var(--p2)' : 'linear-gradient(125deg,#1654b0,#3a26a0)', border: 'none', display: 'grid', placeItems: 'center', cursor: streaming ? 'default' : 'pointer', flexShrink: 0 }}>
@@ -3913,22 +3913,22 @@ function EjercicioChat({ block, ramos, cuaderno }) {
   const [chatImg, setChatImg] = useState(null);
   const imgRef = useRef(null);
 
-  const upChatImg = async (e) => {
-    const file = e.target.files?.[0];
+  const handleImgFile = async (file) => {
     if (!file) return;
-    e.target.value = '';
-    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+    const safeName = (file.name || 'captura.png').replace(/[^a-zA-Z0-9._-]/g, '_');
     const path = `${_userId}/chat-images/${Date.now()}_${safeName}`;
     const localUrl = URL.createObjectURL(file);
-    setChatImg({ name: file.name, url: localUrl, path });
+    setChatImg({ name: file.name || 'captura.png', url: localUrl, path });
     if (supabaseClient && !_devMode) {
       const { error } = await supabaseClient.storage.from('ramo-files').upload(path, file, { upsert: true });
       if (!error) {
         const { data } = supabaseClient.storage.from('ramo-files').getPublicUrl(path);
-        setChatImg({ name: file.name, url: data?.publicUrl || localUrl, path });
+        setChatImg({ name: file.name || 'captura.png', url: data?.publicUrl || localUrl, path });
       }
     }
   };
+  const upChatImg = async (e) => { handleImgFile(e.target.files?.[0]); if (e.target) e.target.value = ''; };
+  const onPasteImg = (e) => { const items = e.clipboardData?.items; if (!items) return; for (let i = 0; i < items.length; i++) { if (items[i].type.indexOf('image') !== -1) { e.preventDefault(); handleImgFile(items[i].getAsFile()); return; } } };
 
   const send = () => {
     const imgSnap = chatImg;
@@ -4060,7 +4060,7 @@ function EjercicioChat({ block, ramos, cuaderno }) {
           </button>
           <input ref={imgRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={upChatImg} />
           {actSrc.length > 0 && <span style={{ background: c, color: '#fff', borderRadius: '50%', width: 16, height: 16, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{actSrc.length}</span>}
-          <input value={inp} onChange={e => setInp(e.target.value)} placeholder="Pide ejercicios..." onKeyDown={e => e.key === 'Enter' && send()} style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, background: 'transparent', color: 'var(--k)', fontFamily: 'inherit' }} />
+          <input value={inp} onChange={e => setInp(e.target.value)} placeholder="Pide ejercicios..." onKeyDown={e => e.key === 'Enter' && send()} onPaste={onPasteImg} style={{ flex: 1, border: 'none', outline: 'none', fontSize: 14, background: 'transparent', color: 'var(--k)', fontFamily: 'inherit' }} />
           <button onClick={send} disabled={streaming || (!inp.trim() && !chatImg)} style={{ width: 26, height: 26, borderRadius: '50%', background: streaming || (!inp.trim() && !chatImg) ? 'var(--p2)' : 'linear-gradient(125deg,#1654b0,#3a26a0)', border: 'none', display: 'grid', placeItems: 'center', cursor: streaming ? 'default' : 'pointer', flexShrink: 0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" style={{ width: 14, height: 14 }}><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4z"/></svg>
           </button>
