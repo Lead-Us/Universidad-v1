@@ -581,7 +581,7 @@ function SecRamos({ramos,setRamos,colC,setColC,user}){
         evaluation_modules:[],attendance_sessions:[]
       }).select().single();
       if(!error&&data){
-        setRamos(p=>[...p,normalizeRamo(data)]);setRid(data.id);
+        setRamos(p=>[...p,normalizeRamo(data,[])]);setRid(data.id);
       }
     } else {
       const id='r'+Date.now();
@@ -646,7 +646,7 @@ function SecRamos({ramos,setRamos,colC,setColC,user}){
           {tab==='notas'&&<TabNotas ramo={ramo} updateRamo={updateRamo}/>}
           {tab==='asistencia'&&<TabAsist ramo={ramo} updateRamo={updateRamo}/>}
           {tab==='archivos'&&<TabArch ramo={ramo}/>}
-          {tab==='temario'&&<TabTemario ramo={ramo}/>}
+          {tab==='temario'&&<TabTemario ramo={ramo} updateRamo={updateRamo} user={user}/>}
         </div>
         </>)}
       </div>
@@ -943,7 +943,7 @@ function TabArch({ramo}){
     </div>
   );
 }
-function TabTemario({ramo}){
+function TabTemario({ramo,updateRamo,user}){
   const [unidades,setUnidades]=useState(ramo.temario||[]);
   const [showAdd,setShowAdd]=useState(false);
   const [newTit,setNewTit]=useState('');
@@ -951,16 +951,40 @@ function TabTemario({ramo}){
   const [dragIdx,setDragIdx]=useState(null);
   const [dragOver,setDragOver]=useState(null);
 
-  const addUnidad=()=>{if(!newTit.trim()) return;setUnidades(prev=>[...prev,{id:`u${Date.now()}`,titulo:newTit.trim(),archivos:[]}]);setNewTit('');setShowAdd(false);};
-  const delUnidad=id=>setUnidades(prev=>prev.filter(u=>u.id!==id));
-  const toggleFile=(uid,fid)=>setUnidades(prev=>prev.map(u=>u.id===uid?{...u,archivos:u.archivos.includes(fid)?u.archivos.filter(x=>x!==fid):[...u.archivos,fid]}:u));
+  // Sync local state when ramo.temario changes from outside
+  useEffect(()=>{setUnidades(ramo.temario||[]);},[ramo.temario]);
+
+  // Persist helper: sync units to DB and update parent ramo state
+  const persistUnidades=async(newUnidades,oldUnidades)=>{
+    // Update parent ramo state
+    if(updateRamo) updateRamo(ramo.id,{temario:newUnidades});
+    if(!supabaseClient||!user) return;
+    const oldIds=new Set((oldUnidades||[]).map(u=>u.id));
+    const newIds=new Set(newUnidades.map(u=>u.id));
+    // Delete removed units
+    for(const u of (oldUnidades||[])){if(!newIds.has(u.id)) supabaseClient.from('units').delete().eq('id',u.id);}
+    // Upsert units
+    for(let idx=0;idx<newUnidades.length;idx++){
+      const u=newUnidades[idx];
+      if(String(u.id).startsWith('u')){
+        const{data}=await supabaseClient.from('units').insert({user_id:user.id,ramo_id:ramo.id,name:u.titulo,materias:u.archivos||[],"order":idx}).select().single();
+        if(data){newUnidades[idx]={...u,id:data.id};setUnidades([...newUnidades]);}
+      } else if(oldIds.has(u.id)){
+        supabaseClient.from('units').update({name:u.titulo,materias:u.archivos||[],"order":idx}).eq('id',u.id);
+      }
+    }
+  };
+
+  const addUnidad=()=>{if(!newTit.trim()) return;const old=[...unidades];const next=[...unidades,{id:`u${Date.now()}`,titulo:newTit.trim(),archivos:[]}];setUnidades(next);setNewTit('');setShowAdd(false);persistUnidades(next,old);};
+  const delUnidad=id=>{const old=[...unidades];const next=unidades.filter(u=>u.id!==id);setUnidades(next);persistUnidades(next,old);};
+  const toggleFile=(uid,fid)=>{const old=[...unidades];const next=unidades.map(u=>u.id===uid?{...u,archivos:u.archivos.includes(fid)?u.archivos.filter(x=>x!==fid):[...u.archivos,fid]}:u);setUnidades(next);persistUnidades(next,old);};
 
   const onDragStart=i=>{setDragIdx(i);};
   const onDragOver=(e,i)=>{e.preventDefault();setDragOver(i);};
   const onDrop=()=>{
     if(dragIdx===null||dragOver===null||dragIdx===dragOver) return;
-    const arr=[...unidades];const [item]=arr.splice(dragIdx,1);arr.splice(dragOver,0,item);
-    setUnidades(arr);setDragIdx(null);setDragOver(null);
+    const old=[...unidades];const arr=[...unidades];const [item]=arr.splice(dragIdx,1);arr.splice(dragOver,0,item);
+    setUnidades(arr);setDragIdx(null);setDragOver(null);persistUnidades(arr,old);
   };
 
   return(
@@ -2537,15 +2561,17 @@ function SecYo({tweaks,setTweak,onNav,user,profile,ramos=[]}){
 /* ═══════ LOGIN SCREEN ═══════ */
 function LoginScreen(){
   const UNIV_CARRERAS={
-    'Pontificia Universidad Católica de Chile':['Administración','Arquitectura','Biología','Ciencia Política','Comunicaciones','Derecho','Economía','Educación','Enfermería','Filosofía','Historia','Ingeniería Civil','Ingeniería Comercial','Letras','Matemáticas','Medicina','Odontología','Psicología','Sociología','Teología'],
-    'Universidad de Chile':['Administración Pública','Arquitectura','Biología','Contador Auditor','Derecho','Educación','Enfermería','Filosofía','Historia','Ingeniería Civil','Ingeniería Comercial','Kinesiología','Medicina','Nutrición','Odontología','Psicología','Química','Sociología','Trabajo Social'],
-    'Universidad de Chile - FEN':['Administración','Contador Auditor','Economía','Ingeniería Comercial'],
-    'Universidad Adolfo Ibáñez':['Administración de Empresas','Arte y Diseño','Comunicaciones','Derecho','Ingeniería Civil Industrial','Ingeniería Comercial','Periodismo','Psicología'],
-    'Universidad de Los Andes':['Administración','Arquitectura','Derecho','Educación','Filosofía','Ingeniería Comercial','Medicina','Odontología','Psicología'],
-    'Universidad Técnica Federico Santa María':['Ingeniería Civil Eléctrica','Ingeniería Civil Electrónica','Ingeniería Civil en Informática','Ingeniería Civil Industrial','Ingeniería Civil Mecánica','Ingeniería Civil Química','Ingeniería Comercial'],
-    'Universidad del Desarrollo':['Arquitectura','Derecho','Diseño','Educación','Enfermería','Fonoaudiología','Ingeniería Civil','Ingeniería Comercial','Medicina','Nutrición','Odontología','Periodismo','Psicología'],
-    'Universidad Finis Terrae':['Arquitectura','Comunicaciones','Derecho','Diseño','Ingeniería Comercial','Medicina','Odontología','Periodismo','Psicología'],
-    'Otra':['Administración','Arquitectura','Comunicaciones','Contador Auditor','Derecho','Diseño','Economía','Educación','Enfermería','Ingeniería Civil','Ingeniería Comercial','Kinesiología','Medicina','Odontología','Periodismo','Psicología','Trabajo Social'],
+    'Pontificia Universidad Católica de Chile':['Ingeniería Civil','Ingeniería Comercial','Derecho','Medicina','Psicología','Arquitectura','Comunicaciones'],
+    'Universidad de Chile':['Ingeniería Civil','Ingeniería Comercial','Derecho','Medicina','Psicología','Arquitectura','Enfermería'],
+    'Universidad de Chile - FEN':['Ingeniería Comercial','Contador Auditor','Economía','Administración','Ingeniería en Información y Control de Gestión','Sistemas de Información','Auditoría'],
+    'Universidad Adolfo Ibáñez':['Ingeniería Comercial','Ingeniería Civil Industrial','Derecho','Psicología','Periodismo','Administración de Empresas','Ingeniería Civil en Bioingeniería'],
+    'Universidad de Los Andes':['Ingeniería Comercial','Derecho','Medicina','Psicología','Odontología','Enfermería','Administración'],
+    'Universidad Técnica Federico Santa María':['Ingeniería Civil Industrial','Ingeniería Civil en Informática','Ingeniería Civil Mecánica','Ingeniería Civil Eléctrica','Ingeniería Civil Electrónica','Ingeniería Civil Química','Ingeniería Comercial'],
+    'Universidad del Desarrollo':['Ingeniería Comercial','Derecho','Medicina','Psicología','Arquitectura','Ingeniería Civil Industrial','Odontología'],
+    'Universidad Diego Portales':['Derecho','Psicología','Ingeniería Comercial','Periodismo','Publicidad','Sociología','Ingeniería Civil Industrial'],
+    'Universidad Andrés Bello':['Ingeniería Comercial','Derecho','Enfermería','Psicología','Medicina','Odontología','Kinesiología'],
+    'Universidad Finis Terrae':['Derecho','Ingeniería Comercial','Psicología','Medicina','Arquitectura','Diseño','Odontología'],
+    'Otra':['Ingeniería Civil','Ingeniería Comercial','Derecho','Medicina','Psicología','Arquitectura','Enfermería'],
   };
 
   const ERRORES_ES={
@@ -2663,6 +2689,15 @@ function LoginScreen(){
           <div style={{marginTop:4}}>
             <button onClick={mode==='login'?doLogin:doRegister} disabled={btnDisabled} style={{width:'100%',padding:'10px 0',borderRadius:10,border:'none',background:btnDisabled?'var(--p2)':'linear-gradient(125deg,#1654b0,#3a26a0)',color:btnDisabled?'var(--k4)':'white',fontSize:13,fontWeight:600,cursor:btnDisabled?'default':'pointer',transition:'background .15s'}}>{btnLabel}</button>
           </div>
+          {mode==='login'&&<button onClick={()=>{
+            if(!email.trim()){setErr('Ingresa tu correo primero.');return;}
+            setLoading(true);setErr('');
+            supabaseClient.auth.resetPasswordForEmail(email.trim()).then(({error})=>{
+              setLoading(false);
+              if(error)setErr(error.message);
+              else{setErr('');alert('Se envió un correo para restablecer tu contraseña.');}
+            });
+          }} style={{background:'none',border:'none',color:'#1654b0',fontSize:12,cursor:'pointer',fontFamily:'inherit',marginTop:8,textAlign:'center',width:'100%'}}>¿Olvidaste tu contraseña?</button>}
         </div>
       </div>
     </div>
@@ -2687,7 +2722,7 @@ function computeNota(evMods){
   return den>0?parseFloat((num/den).toFixed(1)):0;
 }
 // Helper: normalize a raw ramo row from Supabase
-function normalizeRamo(r){
+function normalizeRamo(r, units){
   const evMods=r.evaluation_modules||r.evals||[];
   const attSessions=r.attendance_sessions||r.asist_reg||[];
   const present=attSessions.filter(s=>s.status==='present'||s.st==='presente').length;
@@ -2698,6 +2733,7 @@ function normalizeRamo(r){
     t:s.type||s.t||'Clase',
     st:s.status?(s.status==='present'?'presente':s.status==='absent'?'ausente':'tardanza'):(s.st||'ausente'),
   }));
+  const temario=units?(units||[]).map(u=>({id:u.id,titulo:u.name||u.titulo||'',archivos:u.materias||u.archivos||[]})):(r.temario||[]);
   return {
     ...r,
     nombre:r.nombre||r.name||'',
@@ -2709,7 +2745,7 @@ function normalizeRamo(r){
     asist,
     asist_reg,
     archivos:r.archivos||[],
-    temario:r.temario||[],
+    temario,
   };
 }
 
@@ -2751,9 +2787,12 @@ function App(){
     if(!user||!supabaseClient){setProfile(null);setRamos([]);setCuads([]);return;}
     supabaseClient.from('profiles').select('name,apellido1,apellido2,carrera,study_year,university,subscription_status,username').eq('id',user.id).single()
       .then(({data})=>setProfile(data));
-    supabaseClient.from('ramos').select('*').eq('user_id',user.id).order('created_at')
-      .then(({data})=>{
-        const normalized=(data||[]).map(normalizeRamo);
+    Promise.all([
+      supabaseClient.from('ramos').select('*').eq('user_id',user.id).order('created_at'),
+      supabaseClient.from('units').select('*').eq('user_id',user.id).order('"order"'),
+    ]).then(([{data},{data:unitsData}])=>{
+        const allUnits=unitsData||[];
+        const normalized=(data||[]).map(r=>normalizeRamo(r,allUnits.filter(u=>u.ramo_id===r.id)));
         setRamos(normalized);RAMOS.length=0;RAMOS.push(...normalized);
         // Load cuads AFTER ramos so RAMOS[] is populated for color lookup
         return Promise.all([
