@@ -3272,6 +3272,12 @@ function BlockChat({ block, cuaderno, ramos }) {
 
       {/* Input bar */}
       <div style={{ position: 'absolute', bottom: 10, left: 13, right: 13, background: 'var(--w)', border: '1px solid var(--ln)', borderRadius: 14, boxShadow: '0 4px 20px -6px rgba(0,0,0,.12)' }}>
+        {(actSrc.length > 0 || blockFiles.length > 0) && !streaming && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px 2px' }}>
+            <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: 4 }}>{[...actSrc, ...blockFiles.map(f => f.name)].slice(0, 2).map((s, i) => (<span key={i} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 5, background: 'rgba(22,84,176,.08)', color: '#1654b0', fontWeight: 500, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block' }}>{typeof s === 'string' ? s : s.title}</span>))}{[...actSrc, ...blockFiles].length > 2 && <span style={{ fontSize: 10, color: 'var(--k4)' }}>+{[...actSrc, ...blockFiles].length - 2}</span>}</div>
+            <button onClick={() => { setInp('Analiza las fuentes adjuntas'); setTimeout(send, 50); }} style={{ fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 7, border: 'none', background: 'linear-gradient(125deg,#1654b0,#3a26a0)', color: '#fff', cursor: 'pointer', flexShrink: 0 }}>Procesar</button>
+          </div>
+        )}
         {chatImg && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px 0' }}>
             <img src={chatImg.url} alt={chatImg.name} style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover', border: '1px solid var(--ln)' }} />
@@ -4042,6 +4048,12 @@ function EjercicioChat({ block, ramos, cuaderno }) {
         )}
       </div>
       <div style={{ position: 'absolute', bottom: 10, left: 13, right: 13, background: 'var(--w)', border: '1px solid var(--ln)', borderRadius: 14, boxShadow: '0 4px 20px -6px rgba(0,0,0,.12)' }}>
+        {(actSrc.length > 0 || blockFiles.length > 0) && !streaming && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 10px 2px' }}>
+            <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: 4 }}>{[...actSrc.map(s => s.title || s), ...blockFiles.map(f => f.name)].slice(0, 2).map((s, i) => (<span key={i} style={{ fontSize: 10, padding: '2px 7px', borderRadius: 5, background: 'rgba(22,84,176,.08)', color: '#1654b0', fontWeight: 500, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'inline-block' }}>{s}</span>))}{[...actSrc, ...blockFiles].length > 2 && <span style={{ fontSize: 10, color: 'var(--k4)' }}>+{[...actSrc, ...blockFiles].length - 2}</span>}</div>
+            <button onClick={() => { setInp('Genera ejercicios con las fuentes adjuntas'); setTimeout(send, 50); }} style={{ fontSize: 11, fontWeight: 600, padding: '5px 12px', borderRadius: 7, border: 'none', background: 'linear-gradient(125deg,#1654b0,#3a26a0)', color: '#fff', cursor: 'pointer', flexShrink: 0 }}>Procesar</button>
+          </div>
+        )}
         {chatImg && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 10px 0' }}>
             <img src={chatImg.url} alt={chatImg.name} style={{ width: 40, height: 40, borderRadius: 6, objectFit: 'cover', border: '1px solid var(--ln)' }} />
