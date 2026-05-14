@@ -1010,23 +1010,31 @@ function TabTemario({ramo,updateRamo,user,setRamos}){
 
   // Persist helper: sync units to DB and update parent ramo state
   const persistUnidades=async(newUnidades,oldUnidades)=>{
-    // Update parent ramo state
-    if(updateRamo) updateRamo(ramo.id,{temario:newUnidades});
-    if(!supabaseClient||!user) return;
+    if(!supabaseClient||!user){
+      if(updateRamo) updateRamo(ramo.id,{temario:newUnidades});
+      return;
+    }
     const oldIds=new Set((oldUnidades||[]).map(u=>u.id));
     const newIds=new Set(newUnidades.map(u=>u.id));
     // Delete removed units
-    for(const u of (oldUnidades||[])){if(!newIds.has(u.id)) supabaseClient.from('units').delete().eq('id',u.id);}
+    for(const u of (oldUnidades||[])){
+      if(!newIds.has(u.id)&&!String(u.id).startsWith('u')){
+        await supabaseClient.from('units').delete().eq('id',u.id);
+      }
+    }
     // Upsert units
     for(let idx=0;idx<newUnidades.length;idx++){
       const u=newUnidades[idx];
       if(String(u.id).startsWith('u')){
         const{data}=await supabaseClient.from('units').insert({user_id:user.id,ramo_id:ramo.id,name:u.titulo,materias:u.archivos||[],"order":idx}).select().single();
-        if(data){newUnidades[idx]={...u,id:data.id};setUnidades([...newUnidades]);}
+        if(data) newUnidades[idx]={...u,id:data.id};
       } else if(oldIds.has(u.id)){
         supabaseClient.from('units').update({name:u.titulo,materias:u.archivos||[],"order":idx}).eq('id',u.id);
       }
     }
+    // Update both local state and parent with real DB ids
+    setUnidades([...newUnidades]);
+    if(updateRamo) updateRamo(ramo.id,{temario:[...newUnidades]});
   };
 
   const addUnidad=()=>{if(!newTit.trim()) return;const old=[...unidades];const next=[...unidades,{id:`u${Date.now()}`,titulo:newTit.trim(),archivos:[]}];setUnidades(next);setNewTit('');setShowAdd(false);persistUnidades(next,old);};

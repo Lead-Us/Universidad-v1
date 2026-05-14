@@ -4585,10 +4585,10 @@ function MainApp({ profile, user, devMode, onLogout }) {
     if (!supabaseClient || _devMode) return;
     const oldIds = new Set((oldTemario || []).map(u => u.id));
     const newIds = new Set((newTemario || []).map(u => u.id));
-    // Deleted units
+    // Deleted units — only delete from DB if it has a real (non-temporary) id
     for (const u of (oldTemario || [])) {
-      if (!newIds.has(u.id)) {
-        dbDelete('units', { id: u.id });
+      if (!newIds.has(u.id) && !String(u.id).startsWith('u')) {
+        await dbDelete('units', { id: u.id });
       }
     }
     // Upsert units
