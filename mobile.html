@@ -2532,11 +2532,27 @@ function RamoTemario({ ramo, updateRamo }) {
   const [editingUnit, setEditingUnit] = useState(null);
   const [editName, setEditName] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [confirmDeleteFile, setConfirmDeleteFile] = useState(null);
   const temario = ramo.temario || [];
   const addUnit = () => { if (!unitName.trim()) return; updateRamo(ramo.id, r => ({ ...r, temario: [...r.temario, { id: 'u' + Date.now(), titulo: unitName.trim(), archivos: [] }] })); setUnitName(''); setAdding(false); };
   const delUnit = (uid) => { updateRamo(ramo.id, r => ({ ...r, temario: r.temario.filter(u => u.id !== uid) })); setEditingUnit(null); setConfirmDelete(null); };
   const renameUnit = (uid) => { if (!editName.trim()) return; updateRamo(ramo.id, r => ({ ...r, temario: r.temario.map(u => u.id === uid ? { ...u, titulo: editName.trim() } : u) })); setEditingUnit(null); };
   const toggleFile = (uid, fid) => updateRamo(ramo.id, r => ({ ...r, temario: r.temario.map(u => u.id === uid ? { ...u, archivos: u.archivos.includes(fid) ? u.archivos.filter(f => f !== fid) : [...u.archivos, fid] } : u) }));
+  const deleteFileFromRamo = async (fid) => {
+    const file = (ramo.archivos || []).find(f => f.id === fid);
+    // Remove file from all units + from ramo.archivos
+    updateRamo(ramo.id, r => ({
+      ...r,
+      archivos: r.archivos.filter(f => f.id !== fid),
+      temario: r.temario.map(u => ({ ...u, archivos: u.archivos.filter(x => x !== fid) }))
+    }));
+    // Remove from storage + DB
+    if (supabaseClient && !_devMode && file) {
+      if (file.storage_path) await supabaseClient.storage.from('ramo-files').remove([file.storage_path]);
+      dbDelete('ramo_files', { id: fid });
+    }
+    setConfirmDeleteFile(null);
+  };
 
   return (
     <div style={{ padding: '16px 16px 20px' }}>
@@ -2568,11 +2584,25 @@ function RamoTemario({ ramo, updateRamo }) {
                   ) : (ramo.archivos || []).map(file => {
                     const on = unit.archivos.includes(file.id);
                     return (
-                      <button key={file.id} onClick={() => toggleFile(unit.id, file.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 7, background: on ? 'rgba(22,84,176,.07)' : 'var(--w)', border: `1px solid ${on ? 'rgba(22,84,176,.25)' : 'var(--ln)'}`, cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', textAlign: 'left', width: '100%' }}>
-                        <input type="checkbox" checked={on} readOnly style={{ width: 13, height: 13, accentColor: '#1654b0', flexShrink: 0, pointerEvents: 'none' }} />
-                        <span style={{ flex: 1, fontWeight: 500, color: 'var(--k)' }}>{file.name}</span>
-                        {file.programa && <span style={{ fontSize: 11, color: 'var(--wn)', fontWeight: 600 }}>(Programa)</span>}
-                      </button>
+                      <div key={file.id}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                          <button onClick={() => toggleFile(unit.id, file.id)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 7, background: on ? 'rgba(22,84,176,.07)' : 'var(--w)', border: `1px solid ${on ? 'rgba(22,84,176,.25)' : 'var(--ln)'}`, cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', textAlign: 'left' }}>
+                            <input type="checkbox" checked={on} readOnly style={{ width: 13, height: 13, accentColor: '#1654b0', flexShrink: 0, pointerEvents: 'none' }} />
+                            <span style={{ flex: 1, fontWeight: 500, color: 'var(--k)' }}>{file.name}</span>
+                            {file.programa && <span style={{ fontSize: 11, color: 'var(--wn)', fontWeight: 600 }}>(Programa)</span>}
+                          </button>
+                          <button onClick={() => setConfirmDeleteFile(confirmDeleteFile === file.id ? null : file.id)} style={{ width: 32, height: 32, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center', color: 'var(--k4)', flexShrink: 0 }}>
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+                          </button>
+                        </div>
+                        {confirmDeleteFile === file.id && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', marginTop: 4, borderRadius: 7, background: 'rgba(220,38,38,.05)', border: '1px solid rgba(220,38,38,.15)' }}>
+                            <span style={{ fontSize: 12, color: 'var(--er)', fontWeight: 500, flex: 1 }}>¿Eliminar?</span>
+                            <button onClick={() => deleteFileFromRamo(file.id)} style={{ padding: '6px 12px', borderRadius: 6, border: 'none', background: 'var(--er)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Confirmar</button>
+                            <button onClick={() => setConfirmDeleteFile(null)} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--p)', color: 'var(--k3)', fontSize: 12, cursor: 'pointer' }}>Cancelar</button>
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
