@@ -4,9 +4,41 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-**Universidad v1 — full-stack platform for Chilean university students.** Backend is a set of Vercel Serverless Functions in `api/`. The frontend prototype lives in `App Universidad v1 final.html` — a single-file React 18 app (UMD + Babel standalone, no build step) used as the design reference and working prototype.
+**Universidad v1 — full-stack platform for Chilean university students.** Two frontends (desktop + mobile) share the same Vercel deployment, Supabase backend, and API endpoints.
+
+**Production URL:** `https://universidadv1.vercel.app`
+- `index.html` → auto-routes by device (mobile → `/mobile.html`, desktop → `/app.html`)
+- `app.html` → desktop app (226KB, single-file React 18)
+- `mobile.html` → mobile app (254KB, single-file React 18, source at `/universidad-movil/`)
 
 Features: AI tutoring, exam prep tutor, AI exercise generator, AI document generator, course management, scheduling, notes editor, file library, payments.
+
+## File structure
+
+```
+universidadv1/
+├── index.html              ← Router: detects device, redirects
+├── app.html                ← Desktop frontend (React 18 + Babel + Supabase)
+├── mobile.html             ← Mobile frontend (React 18 + Babel + Supabase)
+├── vercel.json             ← Deployment config (3 functions with 60s timeout, 1 cron)
+├── package.json            ← Dependencies (Anthropic, Google AI, Supabase, html-to-docx, pptxgenjs)
+├── api/                    ← 20 Vercel Serverless Functions
+├── supabase/               ← Schema + migrations (schema.sql → migrations_v9.sql)
+├── Aprender modelos/       ← AI tutor prompts (regular study mode)
+├── Cerebro Aprender/       ← AI tutor prompts (exam mode)
+└── .env.local              ← Secrets (not committed)
+```
+
+## Mobile app (`mobile.html`)
+
+Source lives at `/Users/ernestoah/Documents/Antigravity/universidad-movil/index.html`. To deploy:
+```bash
+cp /path/to/universidad-movil/index.html mobile.html
+sed -i '' "s|const API_BASE = '.*';|const API_BASE = '';|" mobile.html
+git add mobile.html && git commit -m "Update mobile" && vercel --prod --yes
+```
+
+Sized to Spotify iOS standards. Shares same Supabase session — changes on mobile reflect on desktop and vice versa.
 
 ## Frontend prototype (`App Universidad v1 final.html`)
 
