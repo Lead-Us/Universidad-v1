@@ -2533,6 +2533,7 @@ function RamoTemario({ ramo, updateRamo }) {
   const [editName, setEditName] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [confirmDeleteFile, setConfirmDeleteFile] = useState(null);
+  const [showAssign, setShowAssign] = useState(null);
   const temario = ramo.temario || [];
   const addUnit = () => { if (!unitName.trim()) return; updateRamo(ramo.id, r => ({ ...r, temario: [...r.temario, { id: 'u' + Date.now(), titulo: unitName.trim(), archivos: [] }] })); setUnitName(''); setAdding(false); };
   const delUnit = (uid) => { updateRamo(ramo.id, r => ({ ...r, temario: r.temario.filter(u => u.id !== uid) })); setEditingUnit(null); setConfirmDelete(null); };
@@ -2578,33 +2579,48 @@ function RamoTemario({ ramo, updateRamo }) {
             {isOpen && (
               <div style={{ borderTop: '1px solid var(--ls)', padding: '10px 14px 14px', background: 'var(--p)' }}>
                 <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--k4)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Archivos de esta unidad</p>
+                {(() => { const unitFiles = (unit.archivos || []).map(fid => (ramo.archivos || []).find(f => f.id === fid)).filter(Boolean); const unassigned = (ramo.archivos || []).filter(f => !unit.archivos.includes(f.id)); return (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                  {(ramo.archivos || []).length === 0 ? (
-                    <p style={{ fontSize: 12, color: 'var(--k4)' }}>No hay archivos en este ramo</p>
-                  ) : (ramo.archivos || []).map(file => {
-                    const on = unit.archivos.includes(file.id);
-                    return (
-                      <div key={file.id}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                          <button onClick={() => toggleFile(unit.id, file.id)} style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 7, background: on ? 'rgba(22,84,176,.07)' : 'var(--w)', border: `1px solid ${on ? 'rgba(22,84,176,.25)' : 'var(--ln)'}`, cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', textAlign: 'left' }}>
-                            <input type="checkbox" checked={on} readOnly style={{ width: 13, height: 13, accentColor: '#1654b0', flexShrink: 0, pointerEvents: 'none' }} />
-                            <span style={{ flex: 1, fontWeight: 500, color: 'var(--k)' }}>{file.name}</span>
-                            {file.programa && <span style={{ fontSize: 11, color: 'var(--wn)', fontWeight: 600 }}>(Programa)</span>}
-                          </button>
-                          <button onClick={() => setConfirmDeleteFile(confirmDeleteFile === file.id ? null : file.id)} style={{ width: 32, height: 32, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center', color: 'var(--k4)', flexShrink: 0 }}>
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
-                          </button>
+                  {unitFiles.length === 0 && <p style={{ fontSize: 12, color: 'var(--k4)', textAlign: 'center', padding: '8px 0' }}>Sin archivos en esta unidad</p>}
+                  {unitFiles.map(file => (
+                    <div key={file.id}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 10, padding: '8px 12px', borderRadius: 7, background: 'rgba(22,84,176,.07)', border: '1px solid rgba(22,84,176,.25)', fontSize: 13 }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                          <span style={{ flex: 1, fontWeight: 500, color: 'var(--k)' }}>{file.name}</span>
+                          {file.programa && <span style={{ fontSize: 11, color: 'var(--wn)', fontWeight: 600 }}>(Programa)</span>}
                         </div>
-                        {confirmDeleteFile === file.id && (
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', marginTop: 4, borderRadius: 7, background: 'rgba(220,38,38,.05)', border: '1px solid rgba(220,38,38,.15)' }}>
-                            <span style={{ fontSize: 12, color: 'var(--er)', fontWeight: 500, flex: 1 }}>¿Eliminar?</span>
-                            <button onClick={() => deleteFileFromRamo(file.id)} style={{ padding: '6px 12px', borderRadius: 6, border: 'none', background: 'var(--er)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Confirmar</button>
-                            <button onClick={() => setConfirmDeleteFile(null)} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--p)', color: 'var(--k3)', fontSize: 12, cursor: 'pointer' }}>Cancelar</button>
-                          </div>
-                        )}
+                        <button onClick={() => toggleFile(unit.id, file.id)} title="Quitar de unidad" style={{ width: 32, height: 32, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center', color: 'var(--k4)', flexShrink: 0, fontSize: 14 }}>✕</button>
+                        <button onClick={() => setConfirmDeleteFile(confirmDeleteFile === file.id ? null : file.id)} style={{ width: 32, height: 32, borderRadius: 7, border: 'none', background: 'transparent', cursor: 'pointer', display: 'grid', placeItems: 'center', color: 'var(--k4)', flexShrink: 0 }}>
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6M9 6V4h6v2"/></svg>
+                        </button>
                       </div>
-                    );
-                  })}
+                      {confirmDeleteFile === file.id && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', marginTop: 4, borderRadius: 7, background: 'rgba(220,38,38,.05)', border: '1px solid rgba(220,38,38,.15)' }}>
+                          <span style={{ fontSize: 12, color: 'var(--er)', fontWeight: 500, flex: 1 }}>¿Eliminar?</span>
+                          <button onClick={() => deleteFileFromRamo(file.id)} style={{ padding: '6px 12px', borderRadius: 6, border: 'none', background: 'var(--er)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>Confirmar</button>
+                          <button onClick={() => setConfirmDeleteFile(null)} style={{ padding: '6px 12px', borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--p)', color: 'var(--k3)', fontSize: 12, cursor: 'pointer' }}>Cancelar</button>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  {unassigned.length > 0 && (showAssign === unit.id ? (
+                    <div style={{ marginTop: 6, padding: 10, borderRadius: 8, border: '1px dashed rgba(22,84,176,.3)', background: 'rgba(22,84,176,.03)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--k4)' }}>Archivos del ramo</span>
+                        <button onClick={() => setShowAssign(null)} style={{ fontSize: 14, border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--k3)', padding: 0 }}>✕</button>
+                      </div>
+                      {unassigned.map(f => (
+                        <button key={f.id} onClick={() => toggleFile(unit.id, f.id)} style={{ display: 'flex', alignItems: 'center', gap: 8, width: '100%', padding: '8px 12px', borderRadius: 7, border: '1px solid var(--ln)', background: 'var(--w)', cursor: 'pointer', fontSize: 13, fontFamily: 'inherit', textAlign: 'left', marginBottom: 4 }}>
+                          <span style={{ fontSize: 14, color: 'var(--brand1)' }}>+</span>
+                          <span style={{ flex: 1, fontWeight: 500, color: 'var(--k)' }}>{f.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <button onClick={() => setShowAssign(unit.id)} style={{ marginTop: 4, padding: '8px 14px', borderRadius: 7, border: '1px dashed rgba(22,84,176,.3)', background: 'transparent', color: 'var(--brand1)', fontSize: 12, fontWeight: 500, cursor: 'pointer', fontFamily: 'inherit' }}>+ Asignar archivo existente</button>
+                  ))}
+                </div>); })()}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 10 }}>
                     <button onClick={() => { const input = document.createElement('input'); input.type = 'file'; input.accept = '.pdf,.docx,.pptx,.xlsx,.txt,.png,.jpg'; input.multiple = true; input.onchange = async (ev) => { const files = Array.from(ev.target.files || []); for (const file of files) { const localId = 'f' + Date.now() + Math.random().toString(36).slice(2, 5); const newFile = { id: localId, name: file.name, date: new Date().toISOString().slice(0, 10), programa: false }; updateRamo(ramo.id, r => ({ ...r, archivos: [...r.archivos, newFile], temario: r.temario.map(u => u.id === unit.id ? { ...u, archivos: [...u.archivos, localId] } : u) })); if (supabaseClient && !_devMode && _userId) { const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_'); const path = `${_userId}/${ramo.id}/${Date.now()}_${safeName}`; const { error } = await supabaseClient.storage.from('ramo-files').upload(path, file, { upsert: true }); if (!error) { const { data } = await dbInsert('ramo_files', { ramo_id: ramo.id, name: file.name, size: file.size, storage_path: path, is_programa: false }); if (data) updateRamo(ramo.id, r => ({ ...r, archivos: r.archivos.map(f => f.id === localId ? { ...f, id: data.id, storage_path: path } : f), temario: r.temario.map(u => u.id === unit.id ? { ...u, archivos: u.archivos.map(fid => fid === localId ? data.id : fid) } : u) })); } } } }; input.click(); }}
                       style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--brand1)', background: 'transparent', color: 'var(--brand1)', fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
