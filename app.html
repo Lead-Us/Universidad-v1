@@ -2972,8 +2972,17 @@ function normalizeRamo(r, units, files){
     t:s.type||s.t||'Clase',
     st:s.status?(s.status==='present'?'presente':s.status==='absent'?'ausente':'tardanza'):(s.st||'ausente'),
   }));
-  const temario=units?(units||[]).map(u=>({id:u.id,titulo:u.name||u.titulo||'',archivos:u.materias||u.archivos||[]})):(r.temario||[]);
-  const archivos=files?(files||[]).map(f=>({id:f.id,n:f.name,f:(f.created_at||'').slice(0,10),programa:!!f.is_programa,storage_path:f.storage_path})):(r.archivos||[]);
+  const allFiles=files?(files||[]).map(f=>({id:f.id,n:f.name,f:(f.created_at||'').slice(0,10),programa:!!f.is_programa,storage_path:f.storage_path})):(r.archivos||[]);
+  const temario=units?(units||[]).map(u=>{
+    let fileIds=u.materias||u.archivos||[];
+    // If materias is old format (array of objects with files/name), resolve to file IDs
+    if(fileIds.length>0&&typeof fileIds[0]==='object'&&fileIds[0]!==null){
+      const names=fileIds.flatMap(m=>(m.files||[]));
+      fileIds=allFiles.filter(f=>names.some(n=>f.n&&f.n.includes(n)||n&&n.includes(f.n))).map(f=>f.id);
+    }
+    return {id:u.id,titulo:u.name||u.titulo||'',archivos:fileIds};
+  }):(r.temario||[]);
+  const archivos=allFiles;
   return {
     ...r,
     nombre:r.nombre||r.name||'',

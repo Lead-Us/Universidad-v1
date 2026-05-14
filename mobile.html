@@ -1004,7 +1004,15 @@ function normalizeRamo(r, files, units) {
     evaluation_modules: evMods,
     attendance: attSessions,
     archivos: (files || []).map(f => ({ id: f.id, name: f.name, date: (f.created_at || '').slice(0, 10), programa: !!f.is_programa, storage_path: f.storage_path })),
-    temario: (units || []).map(u => ({ id: u.id, titulo: u.name || u.titulo || '', archivos: u.materias || u.archivos || [] })),
+    temario: (units || []).map(u => {
+      let fileIds = u.materias || u.archivos || [];
+      const allF = (files || []);
+      if (fileIds.length > 0 && typeof fileIds[0] === 'object' && fileIds[0] !== null) {
+        const names = fileIds.flatMap(m => (m.files || []));
+        fileIds = allF.filter(f => names.some(n => f.name && f.name.includes(n) || n && n.includes(f.name))).map(f => f.id);
+      }
+      return { id: u.id, titulo: u.name || u.titulo || '', archivos: fileIds };
+    }),
   };
 }
 
