@@ -667,7 +667,7 @@ const { useState, useEffect, useRef, useCallback } = React;
 const SUPABASE_URL = 'https://kxstenolowfaubyoxovx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt4c3Rlbm9sb3dmYXVieW94b3Z4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ4OTI4NjMsImV4cCI6MjA5MDQ2ODg2M30.CdvHeAyxDUmhJsjL3IzfDps-nkTV2Tjqn7V7zVSMpbU';
 const supabaseClient = window.supabase ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-const API_BASE = ''; // relative paths on same origin
+const API_BASE = '';
 
 /* ─────────────────────────────────────────────
    DB HELPERS — write to Supabase (no-op in dev mode)
@@ -2529,9 +2529,13 @@ function RamoTemario({ ramo, updateRamo }) {
   const [expanded, setExpanded] = useState(null);
   const [adding, setAdding] = useState(false);
   const [unitName, setUnitName] = useState('');
+  const [editingUnit, setEditingUnit] = useState(null);
+  const [editName, setEditName] = useState('');
+  const [confirmDelete, setConfirmDelete] = useState(null);
   const temario = ramo.temario || [];
   const addUnit = () => { if (!unitName.trim()) return; updateRamo(ramo.id, r => ({ ...r, temario: [...r.temario, { id: 'u' + Date.now(), titulo: unitName.trim(), archivos: [] }] })); setUnitName(''); setAdding(false); };
-  const delUnit = (uid) => updateRamo(ramo.id, r => ({ ...r, temario: r.temario.filter(u => u.id !== uid) }));
+  const delUnit = (uid) => { updateRamo(ramo.id, r => ({ ...r, temario: r.temario.filter(u => u.id !== uid) })); setEditingUnit(null); setConfirmDelete(null); };
+  const renameUnit = (uid) => { if (!editName.trim()) return; updateRamo(ramo.id, r => ({ ...r, temario: r.temario.map(u => u.id === uid ? { ...u, titulo: editName.trim() } : u) })); setEditingUnit(null); };
   const toggleFile = (uid, fid) => updateRamo(ramo.id, r => ({ ...r, temario: r.temario.map(u => u.id === uid ? { ...u, archivos: u.archivos.includes(fid) ? u.archivos.filter(f => f !== fid) : [...u.archivos, fid] } : u) }));
 
   return (
@@ -2577,13 +2581,46 @@ function RamoTemario({ ramo, updateRamo }) {
                       <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                       Subir archivo
                     </button>
-                    <button onClick={() => delUnit(unit.id)}
-                      style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: 'var(--er)', color: '#fff', fontSize: 12, fontWeight: 500, cursor: 'pointer', opacity: .9 }}>
-                      Eliminar unidad
+                    <button onClick={() => { setEditingUnit(unit.id); setEditName(unit.titulo); setConfirmDelete(null); }}
+                      style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--k4)', background: 'transparent', color: 'var(--k3)', fontSize: 12, fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      Editar unidad
                     </button>
                   </div>
+                  {editingUnit === unit.id && (
+                    <div style={{ marginTop: 12, padding: 12, borderRadius: 8, border: '1.5px solid var(--ln)', background: 'var(--w)' }}>
+                      <p style={{ fontSize: 11, fontWeight: 600, color: 'var(--k4)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.05em' }}>Editar unidad</p>
+                      <div style={{ display: 'flex', gap: 8, marginBottom: 10 }}>
+                        <input autoFocus value={editName} onChange={e => setEditName(e.target.value)} onKeyDown={e => e.key === 'Enter' && renameUnit(unit.id)}
+                          style={{ flex: 1, padding: '8px 12px', borderRadius: 7, border: '1px solid var(--ln)', fontSize: 13, outline: 'none', fontFamily: 'inherit', background: 'var(--w)', color: 'var(--k)' }} />
+                        <button onClick={() => renameUnit(unit.id)} style={{ padding: '8px 14px', borderRadius: 7, border: 'none', background: 'var(--brand1)', color: '#fff', fontSize: 12, fontWeight: 500, cursor: 'pointer' }}>Guardar</button>
+                        <button onClick={() => { setEditingUnit(null); setConfirmDelete(null); }} style={{ padding: '8px 12px', borderRadius: 7, border: '1px solid var(--ln)', background: 'var(--p)', color: 'var(--k3)', fontSize: 12, cursor: 'pointer' }}>Cancelar</button>
+                      </div>
+                      <div style={{ borderTop: '1px solid var(--ls)', paddingTop: 10 }}>
+                        {confirmDelete !== unit.id ? (
+                          <button onClick={() => setConfirmDelete(unit.id)}
+                            style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: 'var(--er)', color: '#fff', fontSize: 12, fontWeight: 500, cursor: 'pointer', opacity: .9 }}>
+                            Eliminar unidad
+                          </button>
+                        ) : (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                            <span style={{ fontSize: 12, color: 'var(--er)', fontWeight: 500 }}>Eliminar esta unidad?</span>
+                            <button onClick={() => delUnit(unit.id)}
+                              style={{ padding: '6px 14px', borderRadius: 6, border: 'none', background: 'var(--er)', color: '#fff', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}>
+                              Confirmar
+                            </button>
+                            <button onClick={() => setConfirmDelete(null)}
+                              style={{ padding: '6px 14px', borderRadius: 6, border: '1px solid var(--ln)', background: 'var(--p)', color: 'var(--k3)', fontSize: 12, cursor: 'pointer' }}>
+                              Cancelar
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
             )}
           </div>
         );
@@ -4135,8 +4172,13 @@ function ToolBiblioteca({ push, ramos }) {
 }
 
 /* Biblioteca inside a ramo — file list with collapsable folders */
-function BibliotecaRamo({ ramo }) {
+function BibliotecaRamo({ ramo, updateRamo }) {
   const [openFolders, setOpenFolders] = useState({});
+  const [editingFolder, setEditingFolder] = useState(null);
+  const [editFolderName, setEditFolderName] = useState('');
+  const [addingFolder, setAddingFolder] = useState(false);
+  const [newFolderName, setNewFolderName] = useState('');
+  const [confirmDeleteFolder, setConfirmDeleteFolder] = useState(null);
   const archivos = ramo.archivos || [];
   const c = ramo.color || '#1654b0';
   const temario = ramo.temario || [];
@@ -4147,6 +4189,33 @@ function BibliotecaRamo({ ramo }) {
   const looseFiles = archivos.filter(f => !f.programa && !folderFileIds.has(f.id));
 
   const toggleFolder = (id) => setOpenFolders(p => ({ ...p, [id]: !p[id] }));
+
+  const startEditFolder = (e, unit) => {
+    e.stopPropagation();
+    setEditingFolder(unit.id);
+    setEditFolderName(unit.titulo);
+    setConfirmDeleteFolder(null);
+  };
+  const saveEditFolder = (uid) => {
+    if (!editFolderName.trim()) return;
+    updateRamo(ramo.id, r => ({ ...r, temario: r.temario.map(u => u.id === uid ? { ...u, titulo: editFolderName.trim() } : u) }));
+    setEditingFolder(null);
+  };
+  const startDeleteFolder = (e, uid) => {
+    e.stopPropagation();
+    setConfirmDeleteFolder(uid);
+    setEditingFolder(null);
+  };
+  const confirmDelete = (uid) => {
+    updateRamo(ramo.id, r => ({ ...r, temario: r.temario.filter(u => u.id !== uid) }));
+    setConfirmDeleteFolder(null);
+  };
+  const submitNewFolder = () => {
+    if (!newFolderName.trim()) return;
+    updateRamo(ramo.id, r => ({ ...r, temario: [...(r.temario || []), { id: 'u' + Date.now(), titulo: newFolderName.trim(), archivos: [] }] }));
+    setNewFolderName('');
+    setAddingFolder(false);
+  };
 
   const FileRow = ({ f }) => {
     const ext = fileExt(f.name);
@@ -4169,11 +4238,33 @@ function BibliotecaRamo({ ramo }) {
     <div style={{ padding: '0 0 20px' }}>
       <div style={{ padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 10, borderBottom: '1px solid var(--ls)' }}>
         <div style={{ width: 18, height: 24, borderRadius: 5, background: ramoGrad(c), flexShrink: 0 }} />
-        <div>
+        <div style={{ flex: 1 }}>
           <p style={{ fontSize: 14, fontWeight: 600 }}>{ramo.name}</p>
           <p style={{ fontSize: 11, color: 'var(--k3)' }}>{ramo.codigo} · {archivos.length} archivo{archivos.length !== 1 ? 's' : ''}</p>
         </div>
+        {updateRamo && (
+          <button onClick={() => { setAddingFolder(true); setNewFolderName(''); }} style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '8px 12px', minHeight: 44, background: 'var(--brand1)', color: '#fff', border: 'none', borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>
+            <span style={{ fontSize: 16, lineHeight: 1 }}>+</span> Nueva carpeta
+          </button>
+        )}
       </div>
+
+      {/* Nueva carpeta — inline form */}
+      {addingFolder && (
+        <div style={{ margin: '12px 16px', padding: '12px 14px', background: 'var(--p)', border: '1px solid var(--ls)', borderRadius: 10, display: 'flex', gap: 8, alignItems: 'center' }}>
+          <span style={{ fontSize: 16 }}>📁</span>
+          <input
+            autoFocus
+            value={newFolderName}
+            onChange={e => setNewFolderName(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter') submitNewFolder(); if (e.key === 'Escape') setAddingFolder(false); }}
+            placeholder="Nombre de la carpeta"
+            style={{ flex: 1, border: 'none', outline: 'none', fontSize: 13, fontWeight: 500, background: 'transparent', color: 'var(--k)', fontFamily: 'inherit' }}
+          />
+          <button onClick={submitNewFolder} style={{ padding: '6px 12px', minHeight: 36, background: 'var(--brand1)', color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Crear</button>
+          <button onClick={() => setAddingFolder(false)} style={{ padding: '6px 10px', minHeight: 36, background: 'var(--k4)22', color: 'var(--k3)', border: 'none', borderRadius: 7, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>✕</button>
+        </div>
+      )}
 
       {/* Programa files */}
       {programaFiles.length > 0 && (
@@ -4201,12 +4292,41 @@ function BibliotecaRamo({ ramo }) {
               return (
                 <div key={unit.id}>
                   {i > 0 && <div style={{ height: 1, background: 'var(--ls)', margin: '0 14px' }} />}
-                  <button onClick={() => toggleFolder(unit.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
-                    <span style={{ fontSize: 16, flexShrink: 0 }}>📁</span>
-                    <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--k)' }}>{unit.titulo}</span>
-                    <span style={{ fontSize: 11, color: 'var(--k4)' }}>{unitFiles.length}</span>
-                    <span style={{ fontSize: 12, color: 'var(--k4)', transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }}>›</span>
-                  </button>
+                  {confirmDeleteFolder === unit.id ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px', flexWrap: 'wrap' }}>
+                      <span style={{ fontSize: 12, color: 'var(--k3)', flex: 1 }}>¿Eliminar carpeta "{unit.titulo}"?</span>
+                      <button onClick={() => confirmDelete(unit.id)} style={{ padding: '6px 12px', minHeight: 36, background: 'var(--er)', color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Confirmar</button>
+                      <button onClick={() => setConfirmDeleteFolder(null)} style={{ padding: '6px 10px', minHeight: 36, background: 'var(--k4)22', color: 'var(--k3)', border: 'none', borderRadius: 7, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>Cancelar</button>
+                    </div>
+                  ) : editingFolder === unit.id ? (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 14px' }}>
+                      <span style={{ fontSize: 16 }}>📁</span>
+                      <input
+                        autoFocus
+                        value={editFolderName}
+                        onChange={e => setEditFolderName(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') saveEditFolder(unit.id); if (e.key === 'Escape') setEditingFolder(null); }}
+                        style={{ flex: 1, border: 'none', borderBottom: '1px solid var(--brand1)', outline: 'none', fontSize: 13, fontWeight: 600, background: 'transparent', color: 'var(--k)', fontFamily: 'inherit', padding: '2px 0' }}
+                      />
+                      <button onClick={() => saveEditFolder(unit.id)} style={{ padding: '6px 12px', minHeight: 36, background: 'var(--brand1)', color: '#fff', border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' }}>Guardar</button>
+                      <button onClick={() => setEditingFolder(null)} style={{ padding: '6px 10px', minHeight: 36, background: 'var(--k4)22', color: 'var(--k3)', border: 'none', borderRadius: 7, fontSize: 12, cursor: 'pointer', fontFamily: 'inherit' }}>✕</button>
+                    </div>
+                  ) : (
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <button onClick={() => toggleFolder(unit.id)} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 14px', flex: 1, background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left' }}>
+                      <span style={{ fontSize: 16, flexShrink: 0 }}>📁</span>
+                      <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: 'var(--k)' }}>{unit.titulo}</span>
+                      <span style={{ fontSize: 11, color: 'var(--k4)' }}>{unitFiles.length}</span>
+                      <span style={{ fontSize: 12, color: 'var(--k4)', transform: isOpen ? 'rotate(90deg)' : 'none', transition: 'transform .15s' }}>›</span>
+                    </button>
+                    {updateRamo && (
+                      <div style={{ display: 'flex', gap: 0, paddingRight: 6 }}>
+                        <button onClick={e => startEditFolder(e, unit)} style={{ width: 44, height: 44, display: 'grid', placeItems: 'center', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--k3)', borderRadius: 8 }} title="Renombrar">✏️</button>
+                        <button onClick={e => startDeleteFolder(e, unit.id)} style={{ width: 44, height: 44, display: 'grid', placeItems: 'center', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, color: 'var(--er)', borderRadius: 8 }} title="Eliminar">🗑</button>
+                      </div>
+                    )}
+                  </div>
+                  )}
                   {isOpen && unitFiles.length > 0 && (
                     <div style={{ background: 'var(--p)', borderTop: '1px solid var(--ls)', animation: 'fadeIn .15s ease' }}>
                       {unitFiles.map((f, j) => (
@@ -4545,7 +4665,7 @@ function MainApp({ profile, user, devMode, onLogout }) {
       if (current.screen === 'tool-trabajos') return <ToolTrabajos items={trabajos} setItems={setTrabajos} ramos={ramos} push={push} />;
       if (current.screen === 'tool-apuntes') return <ToolApuntes items={apuntes} setItems={setApuntes} ramos={ramos} push={push} />;
       if (current.screen === 'biblioteca') return <ToolBiblioteca push={push} ramos={ramos} />;
-      if (current.screen === 'biblioteca-ramo') { const r = findRamo(current.params.ramoId); if (r) return <BibliotecaRamo ramo={r} />; }
+      if (current.screen === 'biblioteca-ramo') { const r = findRamo(current.params.ramoId); if (r) return <BibliotecaRamo ramo={r} updateRamo={updateRamo} />; }
       if (current.screen === 'ej-detail') { const b = ejercicios.find(x => x.id === current.params.blockId); if (b) return <EjercicioChat block={b} ramos={ramos} cuaderno={{ ramo_id: b.ramo_id }} />; }
       if (current.screen === 'tr-detail') { const b = trabajos.find(x => x.id === current.params.blockId); if (b) return <TrabajoDetail block={b} ramos={ramos} cuaderno={{ ramo_id: b.ramo_id }} />; }
       if (current.screen === 'ap-detail') { const b = apuntes.find(x => x.id === current.params.blockId); if (b) return <ApunteDetail block={b} ramos={ramos} cuaderno={{ ramo_id: b.ramo_id }} />; }

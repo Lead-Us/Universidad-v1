@@ -581,7 +581,7 @@ function SecRamos({ramos,setRamos,colC,setColC,user}){
         evaluation_modules:[],attendance_sessions:[]
       }).select().single();
       if(!error&&data){
-        setRamos(p=>[...p,normalizeRamo(data,[])]);setRid(data.id);
+        setRamos(p=>[...p,normalizeRamo(data,[],[])]);setRid(data.id);
       }
     } else {
       const id='r'+Date.now();
@@ -645,8 +645,8 @@ function SecRamos({ramos,setRamos,colC,setColC,user}){
         <div style={{padding:'24px 28px',flex:1}}>
           {tab==='notas'&&<TabNotas ramo={ramo} updateRamo={updateRamo}/>}
           {tab==='asistencia'&&<TabAsist ramo={ramo} updateRamo={updateRamo}/>}
-          {tab==='archivos'&&<TabArch ramo={ramo}/>}
-          {tab==='temario'&&<TabTemario ramo={ramo} updateRamo={updateRamo} user={user}/>}
+          {tab==='archivos'&&<TabArch ramo={ramo} user={user} setRamos={setRamos}/>}
+          {tab==='temario'&&<TabTemario ramo={ramo} updateRamo={updateRamo} user={user} setRamos={setRamos}/>}
         </div>
         </>)}
       </div>
@@ -905,19 +905,66 @@ function TabAsist({ramo,updateRamo}){
     </div>
   );
 }
-function TabArch({ramo}){
-  const [archs,setArchs]=useState(ramo.archivos||[]);
+function TabArch({ramo,user,setRamos}){
+  const archs=ramo.archivos||[];
   const fRef=useRef(null);
-  const up=e=>{const files=Array.from(e.target.files||[]);setArchs(prev=>[...prev,...files.map(f=>({id:Date.now()+f.name,n:f.name,f:'hoy',programa:false}))]);};
-  const setProg=id=>setArchs(prev=>prev.map(a=>({...a,programa:a.id===id?!a.programa:false})));
+  const [uploading,setUploading]=useState(false);
+
+  const up=async(e)=>{
+    const files=Array.from(e.target.files||[]);
+    if(!files.length) return;
+    e.target.value='';
+    setUploading(true);
+    for(const file of files){
+      const localId='f'+Date.now()+Math.random().toString(36).slice(2,5);
+      const newFile={id:localId,n:file.name,f:new Date().toISOString().slice(0,10),programa:false};
+      if(setRamos) setRamos(prev=>prev.map(r=>r.id===ramo.id?{...r,archivos:[...r.archivos,newFile]}:r));
+      if(supabaseClient&&user){
+        try{
+          const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+          const path=`${user.id}/${ramo.id}/${Date.now()}_${safeName}`;
+          const{error:upErr}=await supabaseClient.storage.from('ramo-files').upload(path,file,{upsert:true});
+          if(!upErr){
+            const{data}=await supabaseClient.from('ramo_files').insert({user_id:user.id,ramo_id:ramo.id,name:file.name,size:file.size,storage_path:path,is_programa:false}).select('*').single();
+            if(data&&setRamos) setRamos(prev=>prev.map(r=>r.id===ramo.id?{...r,archivos:r.archivos.map(f=>f.id===localId?{...f,id:data.id,storage_path:data.storage_path}:f)}:r));
+          }
+        }catch(err){console.error('Upload failed:',err);}
+      }
+    }
+    setUploading(false);
+  };
+
+  const setProg=async(id)=>{
+    if(setRamos) setRamos(prev=>prev.map(r=>r.id===ramo.id?{...r,archivos:r.archivos.map(a=>({...a,programa:a.id===id?!a.programa:false}))}:r));
+    if(supabaseClient){
+      // Set all to false first, then toggle the selected one
+      const file=archs.find(a=>a.id===id);
+      const newVal=file?!file.programa:true;
+      for(const a of archs){
+        if(a.id===id) await supabaseClient.from('ramo_files').update({is_programa:newVal}).eq('id',a.id);
+        else if(a.programa) await supabaseClient.from('ramo_files').update({is_programa:false}).eq('id',a.id);
+      }
+    }
+  };
+
+  const delFile=async(id)=>{
+    if(!confirm('¿Eliminar este archivo?')) return;
+    const file=archs.find(a=>a.id===id);
+    if(setRamos) setRamos(prev=>prev.map(r=>r.id===ramo.id?{...r,archivos:r.archivos.filter(a=>a.id!==id)}:r));
+    if(supabaseClient&&file){
+      if(file.storage_path) await supabaseClient.storage.from('ramo-files').remove([file.storage_path]);
+      await supabaseClient.from('ramo_files').delete().eq('id',id);
+    }
+  };
+
   const prog=archs.filter(a=>a.programa);
   const rest=archs.filter(a=>!a.programa);
   return(
     <div>
       <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
         <div style={{fontSize:11,fontWeight:600,letterSpacing:'.06em',textTransform:'uppercase',color:'var(--k4)'}}>Archivos del ramo</div>
-        <Btn onClick={()=>fRef.current?.click()} variant="pri" size="sm"><IcoUp s={12}/>Importar material</Btn>
-        <input ref={fRef} type="file" multiple accept=".pdf,.docx,.pptx" style={{display:'none'}} onChange={up}/>
+        <Btn onClick={()=>fRef.current?.click()} variant="pri" size="sm" disabled={uploading}><IcoUp s={12}/>{uploading?'Subiendo...':'Importar material'}</Btn>
+        <input ref={fRef} type="file" multiple accept=".pdf,.docx,.pptx,.xlsx,.txt,.png,.jpg" style={{display:'none'}} onChange={up}/>
       </div>
       {prog.length>0&&(
         <div style={{marginBottom:16}}>
@@ -936,20 +983,23 @@ function TabArch({ramo}){
           <div style={{width:28,height:32,borderRadius:6,background:'var(--p2)',border:'1px solid var(--ln)',display:'grid',placeItems:'center',flexShrink:0,color:'var(--k3)'}}><IcoFile/></div>
           <div style={{flex:1}}><div style={{fontSize:13,fontWeight:500}}>{a.n}</div><div style={{fontSize:11,color:'var(--k4)',marginTop:1}}>{a.f}</div></div>
           <button onClick={()=>setProg(a.id)} title="Marcar como programa" style={{fontSize:11,color:'var(--k4)',background:'transparent',border:'none',cursor:'pointer',padding:'3px 8px',borderRadius:6,opacity:.7}}>☆ Destacar</button>
-          <button onClick={()=>setArchs(prev=>prev.filter(x=>x.id!==a.id))} style={{width:24,height:24,borderRadius:6,border:'none',background:'transparent',cursor:'pointer',color:'var(--er)',display:'grid',placeItems:'center'}}><IcoTrash/></button>
+          <button onClick={()=>delFile(a.id)} style={{width:24,height:24,borderRadius:6,border:'none',background:'transparent',cursor:'pointer',color:'var(--er)',display:'grid',placeItems:'center'}}><IcoTrash/></button>
         </div>
       ))}
       {archs.length===0&&<div style={{textAlign:'center',padding:'32px 0',color:'var(--k4)',fontSize:13}}>Sin archivos.</div>}
     </div>
   );
 }
-function TabTemario({ramo,updateRamo,user}){
+function TabTemario({ramo,updateRamo,user,setRamos}){
   const [unidades,setUnidades]=useState(ramo.temario||[]);
   const [showAdd,setShowAdd]=useState(false);
   const [newTit,setNewTit]=useState('');
   const [expandedU,setExpandedU]=useState(null);
   const [dragIdx,setDragIdx]=useState(null);
   const [dragOver,setDragOver]=useState(null);
+  const [uploading,setUploading]=useState(null);
+  const fileInputRef=useRef(null);
+  const uploadUnitRef=useRef(null);
 
   // Sync local state when ramo.temario changes from outside
   useEffect(()=>{setUnidades(ramo.temario||[]);},[ramo.temario]);
@@ -979,6 +1029,43 @@ function TabTemario({ramo,updateRamo,user}){
   const delUnidad=id=>{const old=[...unidades];const next=unidades.filter(u=>u.id!==id);setUnidades(next);persistUnidades(next,old);};
   const toggleFile=(uid,fid)=>{const old=[...unidades];const next=unidades.map(u=>u.id===uid?{...u,archivos:u.archivos.includes(fid)?u.archivos.filter(x=>x!==fid):[...u.archivos,fid]}:u);setUnidades(next);persistUnidades(next,old);};
 
+  const uploadFilesToUnit=async(e,unitId)=>{
+    const files=Array.from(e.target.files||[]);
+    if(!files.length) return;
+    e.target.value='';
+    setUploading(unitId);
+    for(const file of files){
+      const localId='f'+Date.now()+Math.random().toString(36).slice(2,5);
+      const newFile={id:localId,n:file.name,f:new Date().toISOString().slice(0,10),programa:false};
+      // Add file to ramo.archivos and assign to unit
+      if(setRamos) setRamos(prev=>prev.map(r=>r.id===ramo.id?{...r,archivos:[...r.archivos,newFile]}:r));
+      const old=[...unidades];
+      const next=unidades.map(u=>u.id===unitId?{...u,archivos:[...u.archivos,localId]}:u);
+      setUnidades(next);
+      persistUnidades(next,old);
+      // Upload to Supabase storage + DB
+      if(supabaseClient&&user){
+        try{
+          const safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+          const path=`${user.id}/${ramo.id}/${Date.now()}_${safeName}`;
+          const{error:upErr}=await supabaseClient.storage.from('ramo-files').upload(path,file,{upsert:true});
+          if(!upErr){
+            const{data}=await supabaseClient.from('ramo_files').insert({user_id:user.id,ramo_id:ramo.id,name:file.name,size:file.size,storage_path:path,is_programa:false}).select('*').single();
+            if(data){
+              // Replace local id with real DB id
+              if(setRamos) setRamos(prev=>prev.map(r=>r.id===ramo.id?{...r,archivos:r.archivos.map(f=>f.id===localId?{...f,id:data.id,storage_path:data.storage_path}:f)}:r));
+              const old2=[...unidades];
+              const next2=unidades.map(u=>u.id===unitId?{...u,archivos:u.archivos.map(fid=>fid===localId?data.id:fid)}:u);
+              setUnidades(next2);
+              persistUnidades(next2,old2);
+            }
+          }
+        }catch(err){console.error('Upload failed:',err);}
+      }
+    }
+    setUploading(null);
+  };
+
   const onDragStart=i=>{setDragIdx(i);};
   const onDragOver=(e,i)=>{e.preventDefault();setDragOver(i);};
   const onDrop=()=>{
@@ -1002,9 +1089,18 @@ function TabTemario({ramo,updateRamo,user}){
           </div>
           {expandedU===u.id&&(
             <div style={{borderTop:'1px solid var(--ls)',padding:'10px 14px 14px 14px',background:'var(--p)'}}>
-              <div style={{fontSize:11,fontWeight:600,color:'var(--k4)',marginBottom:8,textTransform:'uppercase',letterSpacing:'.05em'}}>Archivos de esta unidad</div>
+              <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:8}}>
+                <div style={{fontSize:11,fontWeight:600,color:'var(--k4)',textTransform:'uppercase',letterSpacing:'.05em'}}>Archivos de esta unidad</div>
+                <button onClick={()=>{uploadUnitRef.current=u.id;fileInputRef.current?.click();}} disabled={uploading===u.id}
+                  style={{display:'flex',alignItems:'center',gap:5,padding:'5px 12px',borderRadius:7,border:'1px solid var(--brand1,#1654b0)',background:'transparent',color:'var(--brand1,#1654b0)',fontSize:11,fontWeight:500,cursor:'pointer',opacity:uploading===u.id?.5:1}}>
+                  <IcoUp s={11}/>{uploading===u.id?'Subiendo...':'Subir archivo'}
+                </button>
+              </div>
+              <input ref={fileInputRef} type="file" multiple accept=".pdf,.docx,.pptx,.xlsx,.txt,.png,.jpg" style={{display:'none'}} onChange={(e)=>uploadFilesToUnit(e,uploadUnitRef.current)}/>
               <div style={{display:'flex',flexDirection:'column',gap:5}}>
-                {ramo.archivos.map(a=>(
+                {(ramo.archivos||[]).length===0?(
+                  <div style={{textAlign:'center',padding:'16px 0',color:'var(--k4)',fontSize:12}}>No hay archivos en este ramo. Sube uno con el botón de arriba.</div>
+                ):(ramo.archivos||[]).map(a=>(
                   <label key={a.id} style={{display:'flex',alignItems:'center',gap:9,padding:'7px 10px',borderRadius:8,background:u.archivos.includes(a.id)?'rgba(22,84,176,.07)':'var(--w)',border:`1px solid ${u.archivos.includes(a.id)?'rgba(22,84,176,.25)':'var(--ln)'}`,cursor:'pointer',fontSize:12}}>
                     <input type="checkbox" checked={u.archivos.includes(a.id)} onChange={()=>toggleFile(u.id,a.id)} style={{width:14,height:14,accentColor:'#1654b0',flexShrink:0}}/>
                     <IcoFile s={12}/>
@@ -1045,6 +1141,8 @@ function SecBiblioteca({initRid,ramos=[]}){
   const [uploading,setUploading]=useState(false);
   const [showNewFolder,setShowNewFolder]=useState(false);
   const [newFolderName,setNewFolderName]=useState('');
+  const [editingFolder,setEditingFolder]=useState(null);
+  const [editFolderName,setEditFolderName]=useState('');
   const bibFileRef=useRef(null);
 
   // Load all ramo_files + ramo_file_folders for the user
@@ -1088,6 +1186,23 @@ function SecBiblioteca({initRid,ramos=[]}){
     const{data}=await supabaseClient.from('ramo_file_folders').insert({ramo_id:selRamo,key,label:newFolderName.trim()}).select('*').single();
     if(data) setAllFolders(prev=>[...prev,data]);
     setNewFolderName('');setShowNewFolder(false);
+  };
+
+  const renameFolder=async(folderId)=>{
+    if(!editFolderName.trim()||!supabaseClient) return;
+    const newLabel=editFolderName.trim();
+    await supabaseClient.from('ramo_file_folders').update({label:newLabel}).eq('id',folderId);
+    setAllFolders(prev=>prev.map(f=>f.id===folderId?{...f,label:newLabel}:f));
+    setEditingFolder(null);setEditFolderName('');
+  };
+
+  const deleteFolder=async(folder)=>{
+    if(!confirm(`¿Eliminar la carpeta "${folder.label}"? Los archivos no se borrarán.`)) return;
+    await supabaseClient.from('ramo_files').update({folder:null}).eq('folder',folder.key);
+    await supabaseClient.from('ramo_file_folders').delete().eq('id',folder.id);
+    setAllFolders(prev=>prev.filter(f=>f.id!==folder.id));
+    setAllFiles(prev=>prev.map(f=>f.folder===folder.key?{...f,folder:null}:f));
+    if(selCarpeta===folder.key) setSelCarpeta('todos');
   };
 
   // Files for selected ramo
@@ -1157,13 +1272,35 @@ function SecBiblioteca({initRid,ramos=[]}){
         </div>}
         <div style={{overflowY:'auto',flex:1,minHeight:0}}>
           {!selRamo&&<div style={{padding:'12px',fontSize:12,color:'var(--k4)'}}>Selecciona un ramo</div>}
-          {folders.map(c=>(
-            <div key={c.id} onClick={()=>{setSelCarpeta(c.id);setSelFile(null);}} style={{padding:'9px 12px',cursor:'pointer',background:selCarpeta===c.id?'rgba(22,84,176,.1)':'transparent',borderRight:selCarpeta===c.id?'2px solid #1654b0':'2px solid transparent',display:'flex',alignItems:'center',gap:6,transition:'background .1s'}}>
-              <span style={{flex:1,fontSize:12.5,fontWeight:500}}>{c.label}</span>
-              <span style={{fontSize:10,color:'var(--k4)',flexShrink:0}}>{getFilesForFolder(c.id).length}</span>
-              <IcoCh s={10}/>
+          {folders.map(c=>{
+            const cf=customFolders.find(f=>f.key===c.id);
+            const isCustom=!!cf;
+            const isEditing=editingFolder===cf?.id;
+            return(
+            <div key={c.id} style={{borderRight:selCarpeta===c.id?'2px solid #1654b0':'2px solid transparent',background:selCarpeta===c.id?'rgba(22,84,176,.1)':'transparent',transition:'background .1s'}}>
+              {isEditing?(
+                <div style={{padding:'6px 8px',display:'flex',gap:4,alignItems:'center'}}>
+                  <input autoFocus value={editFolderName} onChange={e=>setEditFolderName(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')renameFolder(cf.id);if(e.key==='Escape'){setEditingFolder(null);setEditFolderName('');}}} style={{flex:1,fontSize:11,padding:'3px 6px',borderRadius:5,border:'1px solid var(--ln)',background:'var(--w)',outline:'none',fontFamily:'inherit'}}/>
+                  <button onClick={()=>renameFolder(cf.id)} style={{fontSize:10,padding:'2px 6px',border:'none',borderRadius:5,background:'#1654b0',color:'#fff',cursor:'pointer',fontFamily:'inherit',fontWeight:500}}>OK</button>
+                  <button onClick={()=>{setEditingFolder(null);setEditFolderName('');}} style={{fontSize:10,padding:'2px 5px',border:'1px solid var(--ln)',borderRadius:5,background:'transparent',cursor:'pointer',fontFamily:'inherit',color:'var(--k3)'}}>✕</button>
+                </div>
+              ):(
+                <div onClick={()=>{setSelCarpeta(c.id);setSelFile(null);}} style={{padding:'9px 12px',cursor:'pointer',display:'flex',alignItems:'center',gap:6}}>
+                  <span style={{flex:1,fontSize:12.5,fontWeight:500}}>{c.label}</span>
+                  <span style={{fontSize:10,color:'var(--k4)',flexShrink:0}}>{getFilesForFolder(c.id).length}</span>
+                  {isCustom&&<>
+                    <button title="Renombrar" onClick={e=>{e.stopPropagation();setEditingFolder(cf.id);setEditFolderName(cf.label);}} style={{width:18,height:18,border:'none',background:'transparent',cursor:'pointer',color:'var(--k4)',display:'grid',placeItems:'center',flexShrink:0,padding:0,borderRadius:3}}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                    </button>
+                    <button title="Eliminar carpeta" onClick={e=>{e.stopPropagation();deleteFolder(cf);}} style={{width:18,height:18,border:'none',background:'transparent',cursor:'pointer',color:'var(--k4)',display:'grid',placeItems:'center',flexShrink:0,padding:0,borderRadius:3}}>
+                      <IcoTrash s={10}/>
+                    </button>
+                  </>}
+                  {!isCustom&&<IcoCh s={10}/>}
+                </div>
+              )}
             </div>
-          ))}
+          );})}
         </div>
       </div>}
       {colCarpetas&&<button onClick={()=>setColCarpetas(false)} style={{width:22,flexShrink:0,border:'none',borderRight:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',color:'var(--k4)'}}><IcoCh s={10}/></button>}
@@ -2722,7 +2859,7 @@ function computeNota(evMods){
   return den>0?parseFloat((num/den).toFixed(1)):0;
 }
 // Helper: normalize a raw ramo row from Supabase
-function normalizeRamo(r, units){
+function normalizeRamo(r, units, files){
   const evMods=r.evaluation_modules||r.evals||[];
   const attSessions=r.attendance_sessions||r.asist_reg||[];
   const present=attSessions.filter(s=>s.status==='present'||s.st==='presente').length;
@@ -2734,6 +2871,7 @@ function normalizeRamo(r, units){
     st:s.status?(s.status==='present'?'presente':s.status==='absent'?'ausente':'tardanza'):(s.st||'ausente'),
   }));
   const temario=units?(units||[]).map(u=>({id:u.id,titulo:u.name||u.titulo||'',archivos:u.materias||u.archivos||[]})):(r.temario||[]);
+  const archivos=files?(files||[]).map(f=>({id:f.id,n:f.name,f:(f.created_at||'').slice(0,10),programa:!!f.is_programa,storage_path:f.storage_path})):(r.archivos||[]);
   return {
     ...r,
     nombre:r.nombre||r.name||'',
@@ -2744,7 +2882,7 @@ function normalizeRamo(r, units){
     nota:computeNota(evMods),
     asist,
     asist_reg,
-    archivos:r.archivos||[],
+    archivos,
     temario,
   };
 }
@@ -2790,9 +2928,11 @@ function App(){
     Promise.all([
       supabaseClient.from('ramos').select('*').eq('user_id',user.id).order('created_at'),
       supabaseClient.from('units').select('*').eq('user_id',user.id).order('"order"'),
-    ]).then(([{data},{data:unitsData}])=>{
+      supabaseClient.from('ramo_files').select('*').eq('user_id',user.id),
+    ]).then(([{data},{data:unitsData},{data:filesData}])=>{
         const allUnits=unitsData||[];
-        const normalized=(data||[]).map(r=>normalizeRamo(r,allUnits.filter(u=>u.ramo_id===r.id)));
+        const allFiles=filesData||[];
+        const normalized=(data||[]).map(r=>normalizeRamo(r,allUnits.filter(u=>u.ramo_id===r.id),allFiles.filter(f=>f.ramo_id===r.id)));
         setRamos(normalized);RAMOS.length=0;RAMOS.push(...normalized);
         // Load cuads AFTER ramos so RAMOS[] is populated for color lookup
         return Promise.all([
