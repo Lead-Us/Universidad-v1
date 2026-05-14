@@ -24,8 +24,7 @@ universidadv1/
 ├── package.json            ← Dependencies (Anthropic, Google AI, Supabase, html-to-docx, pptxgenjs)
 ├── api/                    ← 20 Vercel Serverless Functions
 ├── supabase/               ← Schema + migrations (schema.sql → migrations_v9.sql)
-├── Aprender modelos/       ← AI tutor prompts (regular study mode)
-├── Cerebro Aprender/       ← AI tutor prompts (exam mode)
+├── Cerebro Aprender/       ← AI tutor prompts (all learning modes)
 └── .env.local              ← Secrets (not committed)
 ```
 
@@ -72,16 +71,10 @@ All `api/` files are **Vercel Serverless Functions** — each exports a default 
 
 ### `aprender-chat.js` — AI tutor
 
-Uses `_prompts.js` to compose system prompts from markdown files in `Aprender modelos/` and `Cerebro Aprender/`.
+Uses `_prompts.js` to compose system prompts from markdown files in `Cerebro Aprender/`.
 
-**Regular study mode:**
-- `buildConductorPrompt()` = `00_BASE_PROMPT.md` + `06_CONDUCTOR.md` + methods `01`–`05`
-- `buildPlanPrompt()` = `00_BASE_PROMPT.md` + `07_PLAN_GENERATOR.md` (first message — generates study roadmap)
-
-**Exam mode (auto-detected):**
-- `detectExamContext()` scores signals in uploaded sources (exam structure, points, duration) and last user message (urgency). Score ≥ 2 triggers exam mode.
-- `buildExamConductorPrompt()` = `00_BASE_EXAMEN.md` + `06_CONDUCTOR_EXAMEN.md` + discipline methods `02`–`05` + `01_DETECTOR_EXAMEN.md`
-- `buildExamPlanPrompt()` = `00_BASE_EXAMEN.md` + `07_PLAN_EXAMEN.md`
+- `buildPlanPrompt()` = `00_BASE_EXAMEN.md` + `06_CONDUCTOR_PLAN.md` + discipline methods `02`–`05` (first message — detects discipline, generates plan, starts teaching)
+- `buildConductorPrompt()` = `00_BASE_EXAMEN.md` + discipline methods `02`–`05` (subsequent messages)
 
 Streams SSE chunks. On completion updates `blockMemory` (per-block summary, Haiku) and `projectMemory` (per-notebook summary, Haiku).
 
@@ -136,13 +129,11 @@ Streams SSE chunks. On completion updates `blockMemory` (per-block summary, Haik
 
 ## Prompt files
 
-`Aprender modelos/` — regular study mode:
-- `00_BASE_PROMPT.md`, `06_CONDUCTOR.md`, `07_PLAN_GENERATOR.md`
-- Teaching methods: `01_HERRERA_COMPLETO.md`, `02_MATEMATICO.md`, `03_TECNICO_MEMORIZACION.md`, `04_HISTORIA_HUMANIDADES.md`, `05_IDIOMAS.md`
-
-`Cerebro Aprender/` — exam tutor mode:
-- `00_BASE_EXAMEN.md`, `06_CONDUCTOR_EXAMEN.md`, `07_PLAN_EXAMEN.md`, `01_DETECTOR_EXAMEN.md`
+`Cerebro Aprender/`:
+- `00_BASE_EXAMEN.md` — base rules, role, format, communication protocols
+- `06_CONDUCTOR_PLAN.md` — discipline detection + plan generation + starts teaching (first message)
 - Discipline methods: `02_METODO_INGENIERIAS.md`, `03_METODO_DERECHO_SOCIAL.md`, `04_METODO_MEDICINA_SALUD.md`, `05_METODO_NEGOCIOS_ECONOMIA.md`
+- `01_DETECTOR_EXAMEN.md` — exam signal detection (currently unused, kept for reference)
 
 ## Database schema
 

@@ -10,8 +10,7 @@ Chilean university student platform — AI tutoring, course management, scheduli
 - `app.html` — Desktop frontend (single-file React 18 app)
 - `mobile.html` — Mobile frontend (single-file React 18 app, source at `/universidad-movil/`)
 - `api/` — 20 Vercel Serverless Functions (backend)
-- `Aprender modelos/` — Prompt files for regular AI tutor
-- `Cerebro Aprender/` — Prompt files for exam tutor mode
+- `Cerebro Aprender/` — AI tutor prompt files (all learning modes)
 - `supabase/` — Schema + migrations (v3 → v9)
 
 ## Architecture

@@ -2,10 +2,11 @@
 // Body: { sources, messages, blockMemory, projectMemory, planMode? }
 // Returns: SSE stream → { chunk } events, then final { done, blockMemory, projectMemory }
 // Pipeline: Gemini extracts content from uploaded files → Claude generates response
+// All prompts sourced from "Cerebro Aprender/" — planMode uses conductor+plan, regular uses conductor only
 
 import Anthropic from '@anthropic-ai/sdk';
 import { GoogleGenerativeAI } from '@google/generative-ai';
-import { buildConductorPrompt, buildPlanPrompt, buildExamConductorPrompt, buildExamPlanPrompt } from './_prompts.js';
+import { buildConductorPrompt, buildPlanPrompt } from './_prompts.js';
 
 const GEMINI_EXTRACT_PROMPT = `Extrae TODO el contenido de texto de este documento académico, preservando:
 - Estructura de secciones y subsecciones
@@ -29,51 +30,6 @@ const PROJECT_MEMORY_PROMPT = `Eres un sistema de memoria pedagógica. Basándot
 - Progreso global
 
 Responde SOLO con el párrafo de resumen, sin títulos. Si no hay suficiente información, responde con una cadena vacía.`;
-
-/**
- * Scans uploaded sources and the last user message for exam context signals.
- * Returns true if the confidence score reaches threshold (≥ 2).
- */
-function detectExamContext(sources, messages) {
-  let score = 0;
-
-  const examTitleRe = /\b(control|examen|prueba|certamen|pauta|evaluaci[oó]n|midterm|quiz|final)\b/i;
-  const pointsRe    = /\(\s*\d+\s*(puntos?|pts?|ptos?)\s*\)|\[\s*\d+\s*(pts?|ptos?)\s*\]|puntaje\s*:/i;
-  const durationRe  = /\b(tiempo\s*:?\s*\d+\s*min|duraci[oó]n\s*:|tiempo\s+disponible)/i;
-  const rubricRe    = /tabla\s+de\s+puntajes?|r[uú]brica\s+de\s+evaluaci[oó]n/i;
-  const altRe       = /\b(alternativas?|opciones?)\s*[\:\n]?\s*\n?\s*(a[\.\)]\s|b[\.\)]\s|i\.\s|ii\.\s)/i;
-
-  const guideTitleRe = /\b(gu[íi]a\s+de\s+(ejercicios?|problemas?)|taller|hoja\s+de\s+trabajo|problemario)\b/i;
-  const devRe        = /muestre\s+su\s+desarrollo|desarrolle|justifique\s+su\s+respuesta/i;
-  const enunciadoRe  = /un[ao]?\s+\w+\s+(tiene|debe|realiza|posee|decide)\b.*\?/i;
-
-  for (const source of sources) {
-    const text  = (source.content || '').substring(0, 8000);
-    const title = (source.title   || '').toLowerCase();
-
-    if (examTitleRe.test(title) || examTitleRe.test(text.substring(0, 300))) score += 1;
-    if (pointsRe.test(text))  score += 1;
-    if (durationRe.test(text)) score += 1;
-    if (rubricRe.test(text))  score += 1;
-    if (altRe.test(text))     score += 1;
-
-    if (guideTitleRe.test(title) || guideTitleRe.test(text.substring(0, 300))) score += 1;
-    if (devRe.test(text))      score += 1;
-    if (enunciadoRe.test(text)) score += 1;
-
-    const numberedCount = (text.match(/^\s*\d+[\.\)]\s+/mg) || []).length;
-    const formulaRe = /[∫∑∏√∂∆αβγλμσ]|\\frac|\\int|\\sum|\bN[°º]\s*\d|\bArt[°º\.]?\s*\d|\bArt[íi]culo\s+\d/i;
-    if (numberedCount >= 3 && formulaRe.test(text)) score += 1;
-  }
-
-  const lastUserMsg = [...messages].reverse().find(m => m.role === 'user');
-  if (lastUserMsg) {
-    const urgencyRe = /tengo\s+un[ao]?\s+(prueba|control|certamen|examen)|es\s+para\s+(ma[nñ]ana|hoy)|en\s+\d+\s+(horas?|minutos?)|no\s+entiendo\s+nada|parto\s+de\s+cero|nunca\s+estudi[eé]/i;
-    if (urgencyRe.test(lastUserMsg.content)) score += 2;
-  }
-
-  return score >= 2;
-}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -144,14 +100,9 @@ export default async function handler(req, res) {
     }
   }
 
-  // Auto-detect exam context from sources and message urgency signals.
-  const isExamContext = detectExamContext(enrichedSources, messages);
-
   let systemBase;
-  if (isExamContext && planMode)  systemBase = buildExamPlanPrompt();
-  else if (isExamContext)          systemBase = buildExamConductorPrompt();
-  else if (planMode)               systemBase = buildPlanPrompt();
-  else                             systemBase = buildConductorPrompt();
+  if (planMode) systemBase = buildPlanPrompt();
+  else          systemBase = buildConductorPrompt();
 
   // Append student material as context
   const sourcesText = enrichedSources
