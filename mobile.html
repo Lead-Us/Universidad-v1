@@ -1483,7 +1483,8 @@ function SecSettings({ profile, ramos, onLogout }) {
   const changeTheme = (v) => { setTheme(v); document.documentElement.setAttribute('data-theme', v); };
   const saveProfile = async () => {
     if (!_devMode) {
-      await dbUpdate('profiles', { name: nombre, apellido1: apellido, apellido2, carrera, university: univ }, { id: _userId });
+      const res = await dbUpdate('profiles', { name: nombre, apellido1: apellido, apellido2, carrera, university: univ }, { id: _userId });
+      if (res?.error) { console.error('Error guardando perfil:', res.error); return; }
     }
     setSaved(true); setTimeout(() => setSaved(false), 2000);
   };
@@ -2441,7 +2442,14 @@ function RamoArchivos({ ramo, updateRamo }) {
         const { error } = await supabaseClient.storage.from('ramo-files').upload(path, file, { upsert: true });
         if (!error) {
           const { data } = await dbInsert('ramo_files', { ramo_id: ramo.id, name: file.name, size: file.size, storage_path: path, is_programa: false });
-          if (data) updateRamo(ramo.id, r => ({ ...r, archivos: r.archivos.map(f => f.id === localId ? { ...f, id: data.id, storage_path: path } : f) }));
+          if (data) {
+            updateRamo(ramo.id, r => ({ ...r, archivos: r.archivos.map(f => f.id === localId ? { ...f, id: data.id, storage_path: path } : f) }));
+          } else {
+            updateRamo(ramo.id, r => ({ ...r, archivos: r.archivos.filter(f => f.id !== localId) }));
+            await supabaseClient.storage.from('ramo-files').remove([path]);
+          }
+        } else {
+          updateRamo(ramo.id, r => ({ ...r, archivos: r.archivos.filter(f => f.id !== localId) }));
         }
       }
     }
@@ -2588,7 +2596,7 @@ function RamoTemario({ ramo, updateRamo }) {
     // Remove from storage + DB
     if (supabaseClient && !_devMode && file) {
       if (file.storage_path) await supabaseClient.storage.from('ramo-files').remove([file.storage_path]);
-      dbDelete('ramo_files', { id: fid });
+      await dbDelete('ramo_files', { id: fid });
     }
     setConfirmDeleteFile(null);
   };
@@ -2732,10 +2740,11 @@ function RamoDetail({ ramo, updateRamo, setRamos, pop }) {
   const c = ramo.color || '#1654b0';
   const tabs = ['notas', 'asistencia', 'archivos', 'temario'];
 
-  const saveEdit = () => {
+  const saveEdit = async () => {
     const updated = { name: editForm.name.trim(), codigo: editForm.code.trim(), seccion: editForm.section.trim(), profesor: editForm.professor.trim(), credits: parseInt(editForm.credits) || 0, color: editForm.color };
     updateRamo(ramo.id, r => ({ ...r, ...updated }));
-    dbUpdate('ramos', { name: updated.name, code: updated.codigo, section: updated.seccion, professor: updated.profesor, credits: updated.credits, color: updated.color }, { id: ramo.id });
+    const res = await dbUpdate('ramos', { name: updated.name, codigo: updated.codigo, seccion: updated.seccion, profesor: updated.profesor, credits: updated.credits, color: updated.color }, { id: ramo.id });
+    if (res?.error) console.error('Error guardando ramo:', res.error);
     setShowEdit(false);
   };
 
@@ -3031,16 +3040,6 @@ function BlockChat({ block, cuaderno, ramos }) {
         }
       });
   }, [block.id]);
-
-  // Load block sources from DB so cross-device file selections are restored
-  useEffect(() => {
-    setBlockFiles([]);
-    if (!block?.id || !supabaseClient || _devMode) return;
-    supabaseClient.from('aprender_block_sources')
-      .select('id,name,content,file_path,type').eq('block_id', block.id)
-      .then(({ data }) => setBlockFiles((data || []).filter(s => s.type === 'file')));
-  }, [block.id]);
-
   const [streaming, setStreaming] = useState(false);
   const [showSrc, setShowSrc] = useState(false);
   const [srcMode, setSrcMode] = useState('arch');
@@ -3063,15 +3062,11 @@ function BlockChat({ block, cuaderno, ramos }) {
     if (actSrc.length === 0 && blockFiles.length === 0) return;
     setProcessingFiles(true);
     setShowSrc(false);
-    // Build source list: ramo files with storage URLs + block-uploaded files with content
-    const blockFileNames = new Set(blockFiles.map(f => f.name));
-    const srcList = [
-      ...actSrc.filter(s => !blockFileNames.has(s)).map(s => {
-        const file = archRamo.find(f => f.name === s);
-        return { title: s, storageUrl: file?.storage_path ? `${SUPABASE_URL}/storage/v1/object/authenticated/ramo-files/${file.storage_path}` : undefined };
-      }),
-      ...blockFiles.map(f => ({ title: f.name, content: f.content || '' })),
-    ];
+    // Build source list with storage URLs
+    const srcList = actSrc.map(s => {
+      const file = archRamo.find(f => f.name === s);
+      return { title: s, storageUrl: file?.storage_path ? `${SUPABASE_URL}/storage/v1/object/authenticated/ramo-files/${file.storage_path}` : undefined };
+    });
     try {
       const resp = await fetch(API_BASE + '/api/process-sources', {
         method: 'POST',
@@ -3119,13 +3114,10 @@ function BlockChat({ block, cuaderno, ramos }) {
       if (supabaseClient && !_devMode && _userId) {
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
         const path = `${_userId}/aprender/${block.id}/${Date.now()}_${safeName}`;
-        const { error } = await supabaseClient.storage.from('ramo-files').upload(path, file, { upsert: true });
+        const { error } = await supabaseClient.storage.from('aprender-files').upload(path, file, { upsert: true });
         if (!error) {
           const content = await new Promise(res => { const r = new FileReader(); r.onload = ev => res(ev.target.result || ''); r.onerror = () => res(''); r.readAsText(file); });
-          const { data: srcRow } = await supabaseClient.from('aprender_block_sources')
-            .insert({ block_id: block.id, type: 'file', name: file.name, content: content.slice(0, 50000), file_path: path })
-            .select('id').single();
-          setBlockFiles(prev => prev.map(f => f.id === localId ? { ...f, id: srcRow?.id || localId, file_path: path, content: content.slice(0, 50000) } : f));
+          dbInsert('aprender_block_sources', { block_id: block.id, type: 'file', name: file.name, content: content.slice(0, 50000), file_path: path });
         }
       }
     }
@@ -3159,33 +3151,24 @@ function BlockChat({ block, cuaderno, ramos }) {
   const upChatImg = async (e) => { handleImgFile(e.target.files?.[0]); if (e.target) e.target.value = ''; };
   const onPasteImg = (e) => { const items = e.clipboardData?.items; if (!items) return; for (let i = 0; i < items.length; i++) { if (items[i].type.indexOf('image') !== -1) { e.preventDefault(); handleImgFile(items[i].getAsFile()); return; } } };
 
-  const send = async (overrideTxt) => {
+  const send = (overrideTxt) => {
     const imgSnap = chatImg;
     const txt = (overrideTxt || inp).trim();
     if ((!txt && !imgSnap) || streaming) return;
     const fullTxt = imgSnap ? `[Imagen adjunta: ${imgSnap.name}]\n${txt}` : txt;
-    const blockFileNames = new Set(blockFiles.map(f => f.name));
-    const srcs = [...(actSrc.length > 0 ? actSrc : []), ...blockFiles.filter(f => !actSrc.includes(f.name)).map(f => f.name), ...(imgSnap ? [imgSnap.name] : [])];
+    const srcs = [...(actSrc.length > 0 ? actSrc : []), ...(imgSnap ? [imgSnap.name] : [])];
     setMsgs(prev => [...prev, { role: 'user', text: fullTxt }]);
     setInp(''); setChatImg(null); setStreaming(true); setStreamBuf('');
 
     // Build messages array for API
     const apiMsgs = [...msgs, { role: 'user', text: fullTxt }].map(m => ({ role: m.role === 'ai' ? 'assistant' : m.role, content: m.text }));
 
-    // Build sources for API: block-uploaded files with signed URLs, ramo files with storage URLs
+    // Build sources for API
     const imgApiSrc = imgSnap ? [{ title: imgSnap.name, content: '', storageUrl: imgSnap.url }] : [];
-    const fileSources = await Promise.all(blockFiles.map(async f => {
-      if (f.file_path && supabaseClient) {
-        const { data } = await supabaseClient.storage.from('ramo-files').createSignedUrl(f.file_path, 3600);
-        return { title: f.name, content: f.content || '', storageUrl: data?.signedUrl || null };
-      }
-      return { title: f.name, content: f.content || '' };
-    }));
-    const archSources = srcs.filter(s => s !== imgSnap?.name && !blockFileNames.has(s)).map(s => {
+    const apiSources = [...(srcs.filter(s => s !== (imgSnap?.name)).map(s => {
       const file = archRamo.find(f => f.name === s);
       return { title: s, content: '', storageUrl: file?.storage_path ? `${SUPABASE_URL}/storage/v1/object/authenticated/ramo-files/${file.storage_path}` : undefined };
-    });
-    const apiSources = [...archSources, ...fileSources, ...imgApiSrc];
+    })), ...imgApiSrc];
 
     if (_devMode) {
       // Dev mode: simulate
@@ -3517,7 +3500,7 @@ function CuadernoBlocks({ cuaderno, push, ramos, setCuadernos, pop }) {
     const newRamoId = editRamoId && editRamoId.length > 0 ? editRamoId : null;
     setCuadernos(prev => prev.map(c => c.id === cuaderno.id ? { ...c, name: editName.trim(), ramo_id: newRamoId } : c));
     const res = await dbUpdate('learning_models', { name: editName.trim(), ramo_id: newRamoId }, { id: cuaderno.id });
-    if (res?.error) console.error('Save cuaderno error:', res.error);
+    if (res?.error) { console.error('Save cuaderno error:', res.error); return; }
     setShowEditCuad(false);
   };
 
@@ -3985,10 +3968,16 @@ function ToolTrabajos({ items, setItems, ramos, push }) {
 
 /* Apuntes tool — list + create (direct, no modal) */
 function ToolApuntes({ items, setItems, ramos, push }) {
-  const create = () => {
-    const nw = { id: 'ap' + Date.now(), t: 'Nueva nota', s: '', ramo_id: ramos[0]?.id || '', f: 'ahora', blocks: [{ id: 1, type: 'h1', text: 'Nueva nota', color: 'var(--k)' }] };
+  const create = async () => {
+    const localId = 'ap' + Date.now();
+    const initBlocks = [{ id: 1, type: 'h1', text: 'Nueva nota', color: 'var(--k)' }];
+    const nw = { id: localId, t: 'Nueva nota', s: '', ramo_id: ramos[0]?.id || '', f: 'ahora', blocks: initBlocks };
     setItems(prev => [nw, ...prev]);
-    push('ap-detail', { blockId: nw.id, title: nw.t });
+    push('ap-detail', { blockId: localId, title: nw.t });
+    if (supabaseClient && !_devMode && _userId) {
+      const { data } = await dbInsert('apuntes', { user_id: _userId, ramo_id: ramos[0]?.id || null, titulo: 'Nueva nota', blocks: initBlocks });
+      if (data) setItems(prev => prev.map(x => x.id === localId ? { ...x, id: data.id } : x));
+    }
   };
   return (
     <div style={{ padding: '0 0 20px' }}>
@@ -4599,7 +4588,14 @@ function BibliotecaRamo({ ramo, updateRamo }) {
           const { error } = await supabaseClient.storage.from('ramo-files').upload(path, file, { upsert: true });
           if (!error) {
             const { data } = await dbInsert('ramo_files', { ramo_id: ramo.id, name: file.name, size: file.size, storage_path: path, is_programa: false });
-            if (data) updateRamo(ramo.id, r => ({ ...r, archivos: r.archivos.map(f => f.id === localId ? { ...f, id: data.id, storage_path: path } : f) }));
+            if (data) {
+              updateRamo(ramo.id, r => ({ ...r, archivos: r.archivos.map(f => f.id === localId ? { ...f, id: data.id, storage_path: path } : f) }));
+            } else {
+              updateRamo(ramo.id, r => ({ ...r, archivos: r.archivos.filter(f => f.id !== localId) }));
+              await supabaseClient.storage.from('ramo-files').remove([path]);
+            }
+          } else {
+            updateRamo(ramo.id, r => ({ ...r, archivos: r.archivos.filter(f => f.id !== localId) }));
           }
         }
       }
@@ -4616,7 +4612,7 @@ function BibliotecaRamo({ ramo, updateRamo }) {
     }));
     if (supabaseClient && !_devMode && file) {
       if (file.storage_path) await supabaseClient.storage.from('ramo-files').remove([file.storage_path]);
-      dbDelete('ramo_files', { id: fid });
+      await dbDelete('ramo_files', { id: fid });
     }
     setConfirmDeleteFile(null);
   };

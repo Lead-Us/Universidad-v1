@@ -379,7 +379,7 @@ function HorarioModal({open,onClose,semana,horStart,horEnd,horHeight,onViewChang
       groups[key].dbIds.push(s.id);
     });
     setBloques(Object.entries(groups).map(([key,g])=>({id:key,...g})));
-  },[open]);
+  },[open,schedule]);
 
   const saveBloque=async()=>{
     if(form.dias.length===0) return;
@@ -1701,14 +1701,17 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
       const{error}=await supabaseClient.from('learning_models')
         .update({name:editC.nombre,ramo_id:newRamoId,color:newColor})
         .eq('id',editC.rid);
-      if(error) console.error('Error guardando cuaderno:',error.message);
+      if(error){console.error('Error guardando cuaderno:',error.message);return;}
     }
     setShowEditC(false);
   };
   const saveEditBloque=async()=>{
     if(!editB.t.trim())return;
     setCuads(prev=>prev.map(c=>c.rid===cid?{...c,bloques:c.bloques.map(b=>b.id===editB.id?{...b,t:editB.t,s:editB.s}:b)}:c));
-    if(supabaseClient) await supabaseClient.from('aprender_blocks').update({title:editB.t,summary:editB.s}).eq('id',editB.id);
+    if(supabaseClient){
+      const{error}=await supabaseClient.from('aprender_blocks').update({title:editB.t,summary:editB.s}).eq('id',editB.id);
+      if(error){console.error('Error guardando bloque:',error.message);return;}
+    }
     setShowEditB(false);
   };
   return(
@@ -2377,7 +2380,10 @@ function SecTrabajos({ramos=[],user}){
               if(form.tipo==='pptx'){try{const raw=full.match(/```(?:json)?\s*([\s\S]*?)```/)?.[1]?.trim()??full;slidesJson=JSON.parse(raw);}catch{finalContent=mdToHtml(full);}}
               else{finalContent=mdToHtml(full);}
               setTrabajos(prev=>prev.map(t=>t.id===newId?{...t,estado:'editor',prog:100,content:finalContent,slidesJson}:t));
-              supabaseClient.from('trabajos').update({estado:'editor',content_html:finalContent,slides_json:slidesJson}).eq('id',newId);
+              if(finalContent||slidesJson){
+                supabaseClient.from('trabajos').update({estado:'editor',content_html:finalContent,slides_json:slidesJson}).eq('id',newId)
+                  .then(({error})=>{if(error)console.error('Error guardando trabajo:',error.message);});
+              }
             }
           }catch{}
         });
@@ -2536,7 +2542,10 @@ function SecCalendario({user,ramos=[],sbCol=false}){
     const ev=evs.find(e=>e.id===id);
     if(!ev) return;
     setEvs(p=>p.map(e=>e.id===id?{...e,done:!e.done}:e));
-    if(supabaseClient) await supabaseClient.from('tasks').update({completed:!ev.done}).eq('id',id);
+    if(supabaseClient){
+      const{error}=await supabaseClient.from('tasks').update({completed:!ev.done}).eq('id',id);
+      if(error){console.error('Error toggling task:',error.message);setEvs(p=>p.map(e=>e.id===id?{...e,done:ev.done}:e));}
+    }
   };
 
   const delEv=async(id)=>{
@@ -2722,9 +2731,10 @@ function SecYo({tweaks,setTweak,onNav,user,profile,ramos=[]}){
     if(!supabaseClient||!user) return;
     setSavingProfile(true);
     const username=generateUsername(nombre,apellido,apellido2);
-    await supabaseClient.from('profiles').update({name:nombre,apellido1:apellido,apellido2,carrera,university:univ,username:username||null}).eq('id',user.id);
-    setSavingProfile(false);setProfileSaved(true);
-    setTimeout(()=>setProfileSaved(false),2500);
+    const{error:profErr}=await supabaseClient.from('profiles').update({name:nombre,apellido1:apellido,apellido2,carrera,university:univ,username:username||null}).eq('id',user.id);
+    setSavingProfile(false);
+    if(!profErr){setProfileSaved(true);setTimeout(()=>setProfileSaved(false),2500);}
+    else{console.error('Error guardando perfil:',profErr.message);}
   };
   const [notif,setNotif]=useState({ev:true,cl:false});
   const [open,setOpen]=useState({perfil:false,ramos:false,plan:false,ia:false,app:false,notif:false,univlink:false});
@@ -3234,7 +3244,7 @@ function App(){
             }))
           };
         }));
-      });
+      }).catch(err=>console.error('Error cargando datos:',err.message));
   },[user]);
 
   // Sync cuad colors to ramo colors when ramos load (handles race condition)

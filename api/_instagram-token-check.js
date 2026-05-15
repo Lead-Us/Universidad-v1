@@ -20,9 +20,17 @@ module.exports = async (req, res) => {
 
     if (!appId || !appSecret) {
       // Can't verify without app credentials — just ping the API to see if token works
-      const pingRes = await fetch(
-        `https://graph.instagram.com/me?fields=id,username&access_token=${token}`
-      );
+      const pingCtrl = new AbortController();
+      const pingTimeout = setTimeout(() => pingCtrl.abort(), 8000);
+      let pingRes;
+      try {
+        pingRes = await fetch(
+          `https://graph.instagram.com/me?fields=id,username&access_token=${token}`,
+          { signal: pingCtrl.signal }
+        );
+      } finally {
+        clearTimeout(pingTimeout);
+      }
       const pingData = await pingRes.json();
 
       if (pingData.error) {
@@ -34,9 +42,17 @@ module.exports = async (req, res) => {
     }
 
     // Full debug check with app credentials
-    const debugRes = await fetch(
-      `https://graph.facebook.com/debug_token?input_token=${token}&access_token=${appId}|${appSecret}`
-    );
+    const debugCtrl = new AbortController();
+    const debugTimeout = setTimeout(() => debugCtrl.abort(), 8000);
+    let debugRes;
+    try {
+      debugRes = await fetch(
+        `https://graph.facebook.com/debug_token?input_token=${token}&access_token=${appId}|${appSecret}`,
+        { signal: debugCtrl.signal }
+      );
+    } finally {
+      clearTimeout(debugTimeout);
+    }
     const debug = await debugRes.json();
     const info = debug.data;
 

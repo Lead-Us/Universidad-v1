@@ -34,15 +34,21 @@ export default async function handler(req, res) {
   try {
     const payment = await flowGet('/payment/getStatus', { token });
 
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
     if (payment.status === 2) {
       const userId     = payment.commerceOrder;
       const customerId = payment.customerId ?? null;
-      await supabaseAdmin.auth.admin.updateUserById(userId, {
-        app_metadata: { subscription_status: 'active', flow_customer_id: customerId },
-      });
+      if (!userId || !UUID_RE.test(userId)) {
+        console.error('Flow webhook: invalid userId from commerceOrder:', userId);
+      } else {
+        await supabaseAdmin.auth.admin.updateUserById(userId, {
+          app_metadata: { subscription_status: 'active', flow_customer_id: customerId },
+        });
+      }
     } else if (payment.status === 5 || payment.status === 12) {
       const userId = payment.commerceOrder;
-      if (userId) {
+      if (userId && UUID_RE.test(userId)) {
         await supabaseAdmin.auth.admin.updateUserById(userId, {
           app_metadata: { subscription_status: 'cancelled' },
         });

@@ -131,7 +131,13 @@ Responde con exactamente este JSON (sin texto adicional, sin bloques de código)
     const jsonMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)```/) ?? rawText.match(/(\{[\s\S]*\})/);
     const jsonStr   = jsonMatch ? jsonMatch[1].trim() : rawText;
 
-    const parsed = JSON.parse(jsonStr);
+    let parsed;
+    try {
+      parsed = JSON.parse(jsonStr);
+    } catch (parseErr) {
+      console.error('[process-folder] JSON parse failed. Raw:', jsonStr.slice(0, 300));
+      return res.status(500).json({ error: 'La IA devolvió un formato inválido. Intenta de nuevo.' });
+    }
     return res.status(200).json(parsed);
   } catch (err) {
     console.error('[process-folder] Anthropic error:', err);

@@ -42,15 +42,22 @@ export default async function handler(req, res) {
     const userId     = payment.commerceOrder;
     const customerId = payment.customerId ?? null;
 
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!userId || !UUID_RE.test(userId)) {
+      console.error('Flow confirm: invalid userId from commerceOrder:', userId);
+      return res.status(400).json({ error: 'Invalid commerceOrder' });
+    }
+
     await supabaseAdmin.auth.admin.updateUserById(userId, {
       app_metadata: { subscription_status: 'active', flow_customer_id: customerId },
     });
 
-    // Also try profiles table (works after schema migration)
-    supabaseAdmin.from('profiles').update({
+    // Also update profiles table
+    const { error: profileErr } = await supabaseAdmin.from('profiles').update({
       subscription_status: 'active',
       updated_at:          new Date().toISOString(),
-    }).eq('id', userId).then(() => {}).catch(() => {});
+    }).eq('id', userId);
+    if (profileErr) console.error('Flow confirm: profiles update failed:', profileErr.message);
 
     return res.status(200).json({ status: 'active' });
   } catch (err) {
