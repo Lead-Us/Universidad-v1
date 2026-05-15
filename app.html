@@ -1784,7 +1784,7 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
             </div>}
             <div style={{display:'flex',alignItems:'center',gap:7,padding:'7px 9px'}}>
               <button onClick={()=>{setShowSrc(true);setSrcMode('arch');}} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'grid',placeItems:'center',color:'var(--k3)',flexShrink:0}}><IcoPlus s={13}/></button>
-              <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey)send();}} onPaste={onPasteImg} onFocus={()=>{setColC(true);setColB(true);}} disabled={streaming} placeholder={streaming?'Pensando…':`Pregunta sobre ${bloque.t.split('·')[0].trim()}…`} style={{flex:1,border:'none',outline:'none',fontSize:13,background:'transparent',color:'var(--k)',fontFamily:'inherit'}}/>
+              <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey)send();}} onPaste={onPasteImg} onFocus={()=>{setColC(true);setColB(true);}} placeholder={`Pregunta sobre ${bloque.t.split('·')[0].trim()}…`} style={{flex:1,border:'none',outline:'none',fontSize:13,background:'transparent',color:'var(--k)',fontFamily:'inherit'}}/>
               <button onClick={send} disabled={streaming||(!inp.trim()&&!chatImg)} style={{width:28,height:28,borderRadius:'50%',background:streaming||(!inp.trim()&&!chatImg)?'var(--p2)':'linear-gradient(125deg,#1654b0,#3a26a0)',border:'none',display:'grid',placeItems:'center',cursor:streaming?'default':'pointer',flexShrink:0}}><IcoSend/></button>
             </div>
           </div>
@@ -2076,7 +2076,7 @@ function SecEjercicios({ramos=[],user}){
             </div>}
             <div style={{display:'flex',alignItems:'center',gap:7,padding:'7px 9px'}}>
               <button onClick={()=>setShowSrc(s=>!s)} style={{width:28,height:28,borderRadius:8,border:'1px solid var(--ln)',background:'var(--p)',cursor:'pointer',display:'grid',placeItems:'center',color:'var(--k3)',flexShrink:0}}><IcoPlus s={13}/></button>
-              <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&sendMsg()} onPaste={onPasteImg2} placeholder={streaming?'Generando…':'Pide ejercicios, soluciones, pistas…'} disabled={streaming} style={{flex:1,border:'none',outline:'none',fontSize:13,background:'transparent',color:'var(--k)',fontFamily:'inherit'}}/>
+              <input value={inp} onChange={e=>setInp(e.target.value)} onKeyDown={e=>e.key==='Enter'&&!e.shiftKey&&sendMsg()} onPaste={onPasteImg2} placeholder={'Pide ejercicios, soluciones, pistas…'} style={{flex:1,border:'none',outline:'none',fontSize:13,background:'transparent',color:'var(--k)',fontFamily:'inherit'}}/>
               <button onClick={sendMsg} disabled={streaming||(!inp.trim()&&!chatImg)} style={{width:28,height:28,borderRadius:'50%',background:streaming||(!inp.trim()&&!chatImg)?'var(--p2)':'linear-gradient(125deg,#1654b0,#3a26a0)',border:'none',display:'grid',placeItems:'center',cursor:streaming?'default':'pointer',flexShrink:0}}><IcoSend/></button>
             </div>
           </div>
