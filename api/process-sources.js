@@ -15,7 +15,7 @@ const GEMINI_EXTRACT_PROMPT = `Extrae TODO el contenido de texto de este documen
 
 Responde con el contenido extraído de forma organizada. No resumas, extrae el texto completo.`;
 
-const MAX_RETRIES = 3;
+const MAX_RETRIES = 4;
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -61,7 +61,7 @@ export default async function handler(req, res) {
         }
         const resp = await fetch(src.storageUrl, { headers: fetchHeaders });
         if (!resp.ok) {
-          if (attempt < MAX_RETRIES - 1) { await new Promise(r => setTimeout(r, 1000 * (attempt + 1))); continue; }
+          if (attempt < MAX_RETRIES - 1) { await new Promise(r => setTimeout(r, (attempt + 1) * 5000)); continue; }
           failed.push({ title: src.title, error: `HTTP ${resp.status}` });
           continue;
         }
@@ -80,12 +80,14 @@ export default async function handler(req, res) {
           processed.push({ title: src.title, content: extractedText });
           extracted = true;
         } else if (attempt < MAX_RETRIES - 1) {
-          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          await new Promise(r => setTimeout(r, (attempt + 1) * 5000));
         }
       } catch (err) {
-        console.warn(`[process-sources] Attempt ${attempt + 1}/${MAX_RETRIES} failed for "${src.title}":`, err.message);
+        const is429 = err.message && err.message.includes('429');
+        const waitTime = is429 ? 20000 : (attempt + 1) * 5000;
+        console.warn(`[process-sources] Attempt ${attempt + 1}/${MAX_RETRIES} failed for "${src.title}": ${err.message}${is429 ? ' (rate limit, waiting 20s)' : ''}`);
         if (attempt < MAX_RETRIES - 1) {
-          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          await new Promise(r => setTimeout(r, waitTime));
         }
       }
     }
