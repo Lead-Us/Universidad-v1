@@ -3031,6 +3031,16 @@ function BlockChat({ block, cuaderno, ramos }) {
         }
       });
   }, [block.id]);
+
+  // Load block sources from DB so cross-device file selections are restored
+  useEffect(() => {
+    setBlockFiles([]);
+    if (!block?.id || !supabaseClient || _devMode) return;
+    supabaseClient.from('aprender_block_sources')
+      .select('id,name,content,file_path,type').eq('block_id', block.id)
+      .then(({ data }) => setBlockFiles((data || []).filter(s => s.type === 'file')));
+  }, [block.id]);
+
   const [streaming, setStreaming] = useState(false);
   const [showSrc, setShowSrc] = useState(false);
   const [srcMode, setSrcMode] = useState('arch');
@@ -3053,11 +3063,15 @@ function BlockChat({ block, cuaderno, ramos }) {
     if (actSrc.length === 0 && blockFiles.length === 0) return;
     setProcessingFiles(true);
     setShowSrc(false);
-    // Build source list with storage URLs
-    const srcList = actSrc.map(s => {
-      const file = archRamo.find(f => f.name === s);
-      return { title: s, storageUrl: file?.storage_path ? `${SUPABASE_URL}/storage/v1/object/authenticated/ramo-files/${file.storage_path}` : undefined };
-    });
+    // Build source list: ramo files with storage URLs + block-uploaded files with content
+    const blockFileNames = new Set(blockFiles.map(f => f.name));
+    const srcList = [
+      ...actSrc.filter(s => !blockFileNames.has(s)).map(s => {
+        const file = archRamo.find(f => f.name === s);
+        return { title: s, storageUrl: file?.storage_path ? `${SUPABASE_URL}/storage/v1/object/authenticated/ramo-files/${file.storage_path}` : undefined };
+      }),
+      ...blockFiles.map(f => ({ title: f.name, content: f.content || '' })),
+    ];
     try {
       const resp = await fetch(API_BASE + '/api/process-sources', {
         method: 'POST',
@@ -3105,10 +3119,13 @@ function BlockChat({ block, cuaderno, ramos }) {
       if (supabaseClient && !_devMode && _userId) {
         const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
         const path = `${_userId}/aprender/${block.id}/${Date.now()}_${safeName}`;
-        const { error } = await supabaseClient.storage.from('aprender-files').upload(path, file, { upsert: true });
+        const { error } = await supabaseClient.storage.from('ramo-files').upload(path, file, { upsert: true });
         if (!error) {
           const content = await new Promise(res => { const r = new FileReader(); r.onload = ev => res(ev.target.result || ''); r.onerror = () => res(''); r.readAsText(file); });
-          dbInsert('aprender_block_sources', { block_id: block.id, type: 'file', name: file.name, content: content.slice(0, 50000), file_path: path });
+          const { data: srcRow } = await supabaseClient.from('aprender_block_sources')
+            .insert({ block_id: block.id, type: 'file', name: file.name, content: content.slice(0, 50000), file_path: path })
+            .select('id').single();
+          setBlockFiles(prev => prev.map(f => f.id === localId ? { ...f, id: srcRow?.id || localId, file_path: path, content: content.slice(0, 50000) } : f));
         }
       }
     }
@@ -3142,24 +3159,33 @@ function BlockChat({ block, cuaderno, ramos }) {
   const upChatImg = async (e) => { handleImgFile(e.target.files?.[0]); if (e.target) e.target.value = ''; };
   const onPasteImg = (e) => { const items = e.clipboardData?.items; if (!items) return; for (let i = 0; i < items.length; i++) { if (items[i].type.indexOf('image') !== -1) { e.preventDefault(); handleImgFile(items[i].getAsFile()); return; } } };
 
-  const send = (overrideTxt) => {
+  const send = async (overrideTxt) => {
     const imgSnap = chatImg;
     const txt = (overrideTxt || inp).trim();
     if ((!txt && !imgSnap) || streaming) return;
     const fullTxt = imgSnap ? `[Imagen adjunta: ${imgSnap.name}]\n${txt}` : txt;
-    const srcs = [...(actSrc.length > 0 ? actSrc : []), ...(imgSnap ? [imgSnap.name] : [])];
+    const blockFileNames = new Set(blockFiles.map(f => f.name));
+    const srcs = [...(actSrc.length > 0 ? actSrc : []), ...blockFiles.filter(f => !actSrc.includes(f.name)).map(f => f.name), ...(imgSnap ? [imgSnap.name] : [])];
     setMsgs(prev => [...prev, { role: 'user', text: fullTxt }]);
     setInp(''); setChatImg(null); setStreaming(true); setStreamBuf('');
 
     // Build messages array for API
     const apiMsgs = [...msgs, { role: 'user', text: fullTxt }].map(m => ({ role: m.role === 'ai' ? 'assistant' : m.role, content: m.text }));
 
-    // Build sources for API
+    // Build sources for API: block-uploaded files with signed URLs, ramo files with storage URLs
     const imgApiSrc = imgSnap ? [{ title: imgSnap.name, content: '', storageUrl: imgSnap.url }] : [];
-    const apiSources = [...(srcs.filter(s => s !== (imgSnap?.name)).map(s => {
+    const fileSources = await Promise.all(blockFiles.map(async f => {
+      if (f.file_path && supabaseClient) {
+        const { data } = await supabaseClient.storage.from('ramo-files').createSignedUrl(f.file_path, 3600);
+        return { title: f.name, content: f.content || '', storageUrl: data?.signedUrl || null };
+      }
+      return { title: f.name, content: f.content || '' };
+    }));
+    const archSources = srcs.filter(s => s !== imgSnap?.name && !blockFileNames.has(s)).map(s => {
       const file = archRamo.find(f => f.name === s);
       return { title: s, content: '', storageUrl: file?.storage_path ? `${SUPABASE_URL}/storage/v1/object/authenticated/ramo-files/${file.storage_path}` : undefined };
-    })), ...imgApiSrc];
+    });
+    const apiSources = [...archSources, ...fileSources, ...imgApiSrc];
 
     if (_devMode) {
       // Dev mode: simulate
