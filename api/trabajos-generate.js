@@ -187,7 +187,7 @@ export default async function handler(req, res) {
   let requirements = null;
   if (validFiles.length > 0) {
     const genAI = new GoogleGenerativeAI(geminiKey);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
 
     // Analyze instruction file (most important) — plus content key info from material
     const targetFile = validFiles[0];

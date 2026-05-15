@@ -104,7 +104,7 @@ export default async function handler(req, res) {
 
   // ── Step 2: Analyze each file with Gemini Flash ───────────────────────────
   const genAI        = new GoogleGenerativeAI(geminiKey);
-  const geminiModel  = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+  const geminiModel  = genAI.getGenerativeModel({ model: 'gemini-2.5-flash-lite' });
   const analyses     = [];
 
   for (const src of validSources) {
