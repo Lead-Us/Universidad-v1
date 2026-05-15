@@ -24,6 +24,7 @@ export default async function handler(req, res) {
 
   const { sources = [] } = req.body ?? {};
   const geminiKey = process.env.GEMINI_API_KEY;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!geminiKey) {
     return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
@@ -53,7 +54,12 @@ export default async function handler(req, res) {
     let extracted = false;
     for (let attempt = 0; attempt < MAX_RETRIES && !extracted; attempt++) {
       try {
-        const resp = await fetch(src.storageUrl);
+        const fetchHeaders = {};
+        if (supabaseKey && src.storageUrl.includes('supabase')) {
+          fetchHeaders['Authorization'] = `Bearer ${supabaseKey}`;
+          fetchHeaders['apikey'] = supabaseKey;
+        }
+        const resp = await fetch(src.storageUrl, { headers: fetchHeaders });
         if (!resp.ok) {
           if (attempt < MAX_RETRIES - 1) { await new Promise(r => setTimeout(r, 1000 * (attempt + 1))); continue; }
           failed.push({ title: src.title, error: `HTTP ${resp.status}` });

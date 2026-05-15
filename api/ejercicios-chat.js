@@ -72,6 +72,7 @@ export default async function handler(req, res) {
 
   const anthropicKey = process.env.ANTHROPIC_API_KEY;
   const geminiKey    = process.env.GEMINI_API_KEY;
+  const supabaseKey  = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!anthropicKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY no configurada' });
   if (!geminiKey)    return res.status(500).json({ error: 'GEMINI_API_KEY no configurada' });
@@ -82,7 +83,12 @@ export default async function handler(req, res) {
       if (src.base64) return src;
       if (src.storageUrl) {
         try {
-          const resp = await fetch(src.storageUrl);
+          const fetchHeaders = {};
+          if (supabaseKey && src.storageUrl.includes('supabase')) {
+            fetchHeaders['Authorization'] = `Bearer ${supabaseKey}`;
+            fetchHeaders['apikey'] = supabaseKey;
+          }
+          const resp = await fetch(src.storageUrl, { headers: fetchHeaders });
           if (!resp.ok) return null;
           const buf    = await resp.arrayBuffer();
           const base64 = Buffer.from(buf).toString('base64');

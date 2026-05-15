@@ -51,6 +51,7 @@ export default async function handler(req, res) {
 
   const client = new Anthropic({ apiKey });
   const geminiKey = process.env.GEMINI_API_KEY;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   // ── Step 1: Process file sources with Gemini ──────────────────────
   const enrichedSources = [];
@@ -61,7 +62,12 @@ export default async function handler(req, res) {
       let extracted = false;
       for (let attempt = 0; attempt < 2 && !extracted; attempt++) {
         try {
-          const resp = await fetch(src.storageUrl);
+          const fetchHeaders = {};
+          if (supabaseKey && src.storageUrl.includes('supabase')) {
+            fetchHeaders['Authorization'] = `Bearer ${supabaseKey}`;
+            fetchHeaders['apikey'] = supabaseKey;
+          }
+          const resp = await fetch(src.storageUrl, { headers: fetchHeaders });
           if (!resp.ok) continue;
           const buf = await resp.arrayBuffer();
           const base64 = Buffer.from(buf).toString('base64');
