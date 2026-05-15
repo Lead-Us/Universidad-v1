@@ -1503,6 +1503,7 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
   const [chatImg,setChatImg]=useState(null);
   const [sourcesProcessed,setSourcesProcessed]=useState(false);
   const [processingFiles,setProcessingFiles]=useState(false);
+  const [processedSources,setProcessedSources]=useState([]);
   const imgRef=useRef(null);
   const fRef=useRef(null);
   const endRef=useRef(null);
@@ -1553,11 +1554,25 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
   const handleSubir=async()=>{
     if(actSrc.length===0&&blockFiles.length===0)return;
     setProcessingFiles(true);
-    // TODO: call Gemini API to process files
-    await new Promise(r=>setTimeout(r,1500));
-    setProcessingFiles(false);
-    setSourcesProcessed(true);
     setShowSrc(false);
+    const srcList=actSrc.map(s=>{
+      const file=archRamo.find(f=>f.n===s);
+      return {title:s,storageUrl:file?.storage_path?`${SUPABASE_URL}/storage/v1/object/authenticated/ramo-files/${file.storage_path}`:undefined};
+    });
+    try{
+      const resp=await fetch('/api/process-sources',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sources:srcList})});
+      const data=await resp.json();
+      if(resp.ok&&data.sources&&data.sources.length>0){
+        setProcessedSources(data.sources);setProcessingFiles(false);setSourcesProcessed(true);
+      }else{
+        await new Promise(r=>setTimeout(r,2000));
+        const resp2=await fetch('/api/process-sources',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sources:srcList})});
+        const data2=await resp2.json();
+        if(resp2.ok&&data2.sources&&data2.sources.length>0){
+          setProcessedSources(data2.sources);setProcessingFiles(false);setSourcesProcessed(true);
+        }else{setProcessingFiles(false);alert('No se pudieron procesar los archivos. Intenta de nuevo.');}
+      }
+    }catch(err){console.error(err);setProcessingFiles(false);alert('Error de conexión al procesar archivos.');}
   };
 
   const send=async(overrideTxt)=>{
@@ -1581,16 +1596,19 @@ function SecAprender({cuads,setCuads,user,ramos=[]}){
         return{title:f.name,content:f.content||''};
       }));
       const imgSources=imgSnap?[{title:imgSnap.name,storageUrl:imgSnap.url}]:[];
-      const sources=[...actSrc.map(s=>({title:s,content:''})),...fileSources,...imgSources];
+      const rawSources=[...actSrc.map(s=>({title:s,content:''})),...fileSources,...imgSources];
+      const finalSources=processedSources.length>0?processedSources:rawSources;
+      const isPlan=processedSources.length>0&&msgs.length===0;
       const allSrcs=[...actSrc,...imgSrc];
       const resp=await fetch('/api/aprender-chat',{
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body:JSON.stringify({
-          sources,
+          sources:finalSources,
           messages:nextMsgs.map(m=>({role:m.role==='ai'?'assistant':'user',content:m.text})),
           blockMemory:blockMemory[ck]||'',
           projectMemory:projectMemory[cid]||'',
+          planMode:isPlan,
         })
       });
       if(!resp.ok){const e=await resp.json();throw new Error(e.error||'Error del servidor');}
@@ -1822,6 +1840,7 @@ function SecEjercicios({ramos=[],user}){
   const [chatImg,setChatImg]=useState(null);
   const [sourcesProcessed,setSourcesProcessed]=useState(false);
   const [processingFiles,setProcessingFiles]=useState(false);
+  const [processedSources,setProcessedSources]=useState([]);
   const imgRef=useRef(null);
   const fRef=useRef(null);
   const msgEndRef=useRef(null);
@@ -1883,10 +1902,22 @@ function SecEjercicios({ramos=[],user}){
   const handleSubirEj=async()=>{
     if(actSrc.length===0&&blockFiles.length===0)return;
     setProcessingFiles(true);
-    await new Promise(r=>setTimeout(r,1500));
-    setProcessingFiles(false);
-    setSourcesProcessed(true);
     setShowSrc(false);
+    const srcList=actSrc.map(s=>({title:s.title||s,storageUrl:s.storageUrl||undefined}));
+    try{
+      const resp=await fetch('/api/process-sources',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sources:srcList})});
+      const data=await resp.json();
+      if(resp.ok&&data.sources&&data.sources.length>0){
+        setProcessedSources(data.sources);setProcessingFiles(false);setSourcesProcessed(true);
+      }else{
+        await new Promise(r=>setTimeout(r,2000));
+        const resp2=await fetch('/api/process-sources',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sources:srcList})});
+        const data2=await resp2.json();
+        if(resp2.ok&&data2.sources&&data2.sources.length>0){
+          setProcessedSources(data2.sources);setProcessingFiles(false);setSourcesProcessed(true);
+        }else{setProcessingFiles(false);alert('No se pudieron procesar los archivos. Intenta de nuevo.');}
+      }
+    }catch(err){console.error(err);setProcessingFiles(false);alert('Error de conexión al procesar archivos.');}
   };
   const togRamoFile=a=>setActSrc(prev=>{
     const found=prev.find(s=>s.title===a.n);

@@ -3039,6 +3039,7 @@ function BlockChat({ block, cuaderno, ramos }) {
   const [urlInp, setUrlInp] = useState('');
   const [sourcesProcessed, setSourcesProcessed] = useState(false);
   const [processingFiles, setProcessingFiles] = useState(false);
+  const [processedSources, setProcessedSources] = useState([]);
   const scrollRef = useRef(null);
   const fileRef = useRef(null);
   const ramo = ramos.find(r => r.id === cuaderno.ramo_id);
@@ -3051,12 +3052,46 @@ function BlockChat({ block, cuaderno, ramos }) {
   const handleSubir = async () => {
     if (actSrc.length === 0 && blockFiles.length === 0) return;
     setProcessingFiles(true);
-    // TODO: call Gemini API to process files
-    // For now, simulate processing
-    await new Promise(r => setTimeout(r, 1500));
-    setProcessingFiles(false);
-    setSourcesProcessed(true);
     setShowSrc(false);
+    // Build source list with storage URLs
+    const srcList = actSrc.map(s => {
+      const file = archRamo.find(f => f.name === s);
+      return { title: s, storageUrl: file?.storage_path ? `${SUPABASE_URL}/storage/v1/object/authenticated/ramo-files/${file.storage_path}` : undefined };
+    });
+    try {
+      const resp = await fetch(API_BASE + '/api/process-sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sources: srcList }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.sources && data.sources.length > 0) {
+        setProcessedSources(data.sources);
+        setProcessingFiles(false);
+        setSourcesProcessed(true);
+      } else {
+        // Retry once automatically
+        await new Promise(r => setTimeout(r, 2000));
+        const resp2 = await fetch(API_BASE + '/api/process-sources', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sources: srcList }),
+        });
+        const data2 = await resp2.json();
+        if (resp2.ok && data2.sources && data2.sources.length > 0) {
+          setProcessedSources(data2.sources);
+          setProcessingFiles(false);
+          setSourcesProcessed(true);
+        } else {
+          setProcessingFiles(false);
+          alert('No se pudieron procesar los archivos. Intenta de nuevo.');
+        }
+      }
+    } catch (err) {
+      console.error('Process sources error:', err);
+      setProcessingFiles(false);
+      alert('Error de conexión al procesar archivos. Intenta de nuevo.');
+    }
   };
 
   const handleUpload = async (e) => {
@@ -3135,12 +3170,17 @@ function BlockChat({ block, cuaderno, ramos }) {
       return;
     }
 
+    // Use pre-processed sources if available (already extracted by Gemini)
+    const finalSources = processedSources.length > 0 ? processedSources : apiSources;
+    const isPlan = processedSources.length > 0 && msgs.length === 0;
+
     // Real SSE streaming
     streamChat('/api/aprender-chat', {
-      sources: apiSources,
+      sources: finalSources,
       messages: apiMsgs,
       blockMemory,
       projectMemory,
+      planMode: isPlan,
     }, {
       onChunk: (full) => setStreamBuf(full),
       onDone: (full, meta) => {
@@ -3956,6 +3996,7 @@ function EjercicioChat({ block, ramos, cuaderno }) {
   const [blockFiles, setBlockFiles] = useState([]);
   const [sourcesProcessed, setSourcesProcessed] = useState(false);
   const [processingFiles, setProcessingFiles] = useState(false);
+  const [processedSources, setProcessedSources] = useState([]);
   const scrollRef = useRef(null);
   const fileRef = useRef(null);
   const ramo = ramos.find(r => r.id === cuaderno.ramo_id);
@@ -3968,11 +4009,44 @@ function EjercicioChat({ block, ramos, cuaderno }) {
   const handleSubir = async () => {
     if (actSrc.length === 0 && blockFiles.length === 0) return;
     setProcessingFiles(true);
-    // TODO: call Gemini API to process files
-    await new Promise(r => setTimeout(r, 1500));
-    setProcessingFiles(false);
-    setSourcesProcessed(true);
     setShowSrc(false);
+    const srcList = actSrc.map(s => {
+      const file = archRamo.find(f => f.name === s);
+      return { title: s, storageUrl: file?.storage_path ? `${SUPABASE_URL}/storage/v1/object/authenticated/ramo-files/${file.storage_path}` : undefined };
+    });
+    try {
+      const resp = await fetch(API_BASE + '/api/process-sources', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sources: srcList }),
+      });
+      const data = await resp.json();
+      if (resp.ok && data.sources && data.sources.length > 0) {
+        setProcessedSources(data.sources);
+        setProcessingFiles(false);
+        setSourcesProcessed(true);
+      } else {
+        await new Promise(r => setTimeout(r, 2000));
+        const resp2 = await fetch(API_BASE + '/api/process-sources', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sources: srcList }),
+        });
+        const data2 = await resp2.json();
+        if (resp2.ok && data2.sources && data2.sources.length > 0) {
+          setProcessedSources(data2.sources);
+          setProcessingFiles(false);
+          setSourcesProcessed(true);
+        } else {
+          setProcessingFiles(false);
+          alert('No se pudieron procesar los archivos. Intenta de nuevo.');
+        }
+      }
+    } catch (err) {
+      console.error('Process sources error:', err);
+      setProcessingFiles(false);
+      alert('Error de conexión al procesar archivos. Intenta de nuevo.');
+    }
   };
 
   const handleUpload = (e) => { Array.from(e.target.files || []).forEach(f => { setBlockFiles(prev => [...prev, { id: 'bf' + Date.now(), name: f.name }]); setActSrc(prev => [...prev, f.name]); }); e.target.value = ''; };
